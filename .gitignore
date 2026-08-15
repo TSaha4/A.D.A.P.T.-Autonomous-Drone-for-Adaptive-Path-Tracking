@@ -1,2 +1,15 @@
 # Ignore generated waypoint files
 *.waypoints
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+*.egg-info/
+.pytest_cache/
+data/output/*
+!data/output/.gitkeep
+*.log
+.DS_Store
+.vscode/
+.idea/

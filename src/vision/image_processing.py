@@ -54,8 +54,11 @@ class ImageProcessor:
         v_min, v_max = np.min(v_vals), np.max(v_vals)
 
         # Expand margins
+        h_min, s_min, v_min = int(h_min), int(s_min), int(v_min)
+        h_max, s_max, v_max = int(h_max), int(s_max), int(v_max)
+
         lower_h = max(h_min - hue_margin, 0)
-        upper_h = min(h_max + hue_margin, 179)
+        upper_h = min(h_max + hue_margin, 179)  # H channel caps at 179 in OpenCV, not 255
         lower_s = max(s_min - sv_margin, 0)
         upper_s = min(s_max + sv_margin, 255)
         lower_v = max(v_min - sv_margin, 0)

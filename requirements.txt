@@ -1,0 +1,5 @@
+numpy
+opencv-python
+matplotlib
+requests
+python-dotenv

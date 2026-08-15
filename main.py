@@ -7,11 +7,14 @@ from typing import List, Tuple, Any
 import cv2
 import numpy as np
 
-from image_processing import ImageProcessor
-from clustering import cluster_contours
-from pathfinding import nearest_neighbor_tsp
-from safe_dropzone import find_safe_drop_points
-from mission_output import generate_mission_file, display_path_on_map
+from src.vision.image_processing import ImageProcessor
+from src.vision.clustering import cluster_contours
+from src.routing.pathfinding import nearest_neighbor_tsp, compute_full_path
+from src.mission.safe_dropzone import find_safe_drop_points
+from src.mission.mission_output import generate_mission_file, display_path_on_map
+from src.weather.weather_api import get_weather_data
+from src.weather.flood_spread import predict_spread
+from config import settings
 
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
@@ -58,12 +61,26 @@ def to_point_list(cluster_centers: Any) -> List[Tuple[int, int]]:
 
 def main():
     parser = argparse.ArgumentParser(description="Generate drone mission from flood-map image.")
-    parser.add_argument("image_path", nargs="?", default="varanasi.png", help="Input map image path")
+    parser.add_argument("image_path", nargs="?", default="data/input/varanasi.png", help="Input map image path")
     parser.add_argument("--display-width", "-w", type=int, default=750, help="Resize display width")
     parser.add_argument("--min-area", type=int, default=200, help="Minimum contour area to keep")
+    parser.add_argument("--lat", type=float, default=25.3176, help="Latitude for weather API")
+    parser.add_argument("--lon", type=float, default=82.9739, help="Longitude for weather API")
+    parser.add_argument("--horizon", type=float, default=2.0, help="Hours for flood spread prediction")
     args = parser.parse_args()
 
     DISPLAY_WIDTH = args.display_width
+
+    # 1. Fetch weather data
+    logging.info(f"Fetching weather data for lat={args.lat}, lon={args.lon}...")
+    weather = get_weather_data(args.lat, args.lon)
+    logging.info(f"Weather: {weather}")
+    
+    # Check safety thresholds
+    if weather["wind_speed_10m"] > settings.MAX_SAFE_WIND_SPEED:
+        logging.warning("HIGH WIND WARNING: Drone operations may be unsafe.")
+    if weather["precipitation"] > settings.MAX_SAFE_PRECIPITATION:
+        logging.warning("HEAVY RAIN WARNING: Drone operations may be unsafe.")
 
     logging.info(f"Loading image from '{args.image_path}' ...")
     image = cv2.imread(args.image_path)
@@ -104,6 +121,13 @@ def main():
 
     show_image_safe("Flood Mask", mask, wait=True)
 
+    # 2. Predict flood spread
+    logging.info(f"Predicting flood spread for horizon={args.horizon} hours...")
+    pred_mask = predict_spread(mask, weather, args.horizon)
+    
+    # Combine masks for obstacle avoidance
+    combined_obstacle_mask = cv2.bitwise_or(mask, pred_mask)
+
     contours = proc.find_filtered_contours(mask, min_area=args.min_area)
     if not contours:
         logging.info("No significant flood areas detected.")
@@ -133,9 +157,9 @@ def main():
 
     # Select HOME from safe points closest to map center
     safe_points_arr = np.array(safe_points)
-    center = np.array([w // 2, h // 2])
+    center = np.array([image.shape[1] // 2, image.shape[0] // 2])
     distances = np.linalg.norm(safe_points_arr - center, axis=1)
-    home_index = np.argmin(distances)
+    home_index = int(np.argmin(distances))
     home = tuple(safe_points[home_index])
     logging.info(f"Selected HOME at safe point {home}")
 
@@ -146,24 +170,31 @@ def main():
         logging.error(f"nearest_neighbor_tsp failed: {e}")
         sys.exit(1)
 
-    logging.info(f"Path order: {path_order}")
-    logging.info(f"Ordered points: {ordered_points}")
-
-    # Generate mission file with takeoff from HOME, drop points, and landing at HOME
+    logging.info(f"TSP Path order: {path_order}")
+    
+    # 3. Compute D* Lite full path avoiding obstacles
     try:
-        generate_mission_file(safe_points, home, "enriched_drone_mission.waypoints")
-        logging.info("Mission file 'enriched_drone_mission.waypoints' generated successfully.")
+        logging.info("Computing full obstacle-avoiding path...")
+        full_path, drop_indices = compute_full_path(ordered_points, combined_obstacle_mask)
+    except Exception as e:
+        logging.error(f"compute_full_path failed: {e}")
+        sys.exit(1)
+
+    # Generate mission file with takeoff from HOME, waypoints, drops, and landing at HOME
+    try:
+        output_file = "data/output/enriched_drone_mission.waypoints"
+        generate_mission_file(full_path, drop_indices, home, output_file)
+        logging.info(f"Mission file '{output_file}' generated successfully.")
     except Exception as e:
         logging.error(f"generate_mission_file failed: {e}")
 
     # Display path and HOME
     try:
-        display_path_on_map(image.copy(), contours, safe_points, list(range(len(safe_points))), home)
+        display_path_on_map(image.copy(), contours, pred_mask, full_path, drop_indices, home)
     except Exception as e:
         logging.warning(f"display_path_on_map failed: {e}")
 
     logging.info("Done.")
-
 
 if __name__ == "__main__":
     main()
