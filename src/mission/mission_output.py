@@ -1,25 +1,27 @@
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
+from src.mission.coordinates import pixel_to_latlon
 
-def generate_mission_file(full_path, drop_indices, home, filename="mission.waypoints", base_altitude=100, drop_altitude=10):
+def generate_mission_file(full_path, drop_indices, home, image_center_px, geo_center, meters_per_pixel, filename="mission.waypoints", base_altitude=100, drop_altitude=10):
     # Mission:
     # Takeoff at home → visit waypoints → drop packages at drop indices → return home → land.
     with open(filename, "w") as f:
         f.write("QGC WPL 110\n")
         seq = 0
 
+        home_lat, home_lon = pixel_to_latlon(home[0], home[1], image_center_px, geo_center, meters_per_pixel)
+        
         # 0: Home location
-        f.write(f"{seq}\t1\t3\t16\t0\t0\t0\t0\t{home[1]}\t{home[0]}\t0\t1\n")
+        f.write(f"{seq}\t1\t3\t16\t0\t0\t0\t0\t{home_lat}\t{home_lon}\t0\t1\n")
         seq += 1
 
         # 1: Takeoff at home
-        f.write(f"{seq}\t0\t3\t22\t0\t0\t0\t0\t{home[1]}\t{home[0]}\t{base_altitude}\t1\n")
+        f.write(f"{seq}\t0\t3\t22\t0\t0\t0\t0\t{home_lat}\t{home_lon}\t{base_altitude}\t1\n")
         seq += 1
 
         for i, pt in enumerate(full_path):
-            lat = 12.0 + pt[1] / 10000.0
-            lon = 77.0 + pt[0] / 10000.0
+            lat, lon = pixel_to_latlon(pt[0], pt[1], image_center_px, geo_center, meters_per_pixel)
 
             # If it's the home point (start or end of mission), skip unless it's a drop (usually not)
             if i == 0 and pt == home:
@@ -44,12 +46,12 @@ def generate_mission_file(full_path, drop_indices, home, filename="mission.waypo
                 seq += 1
 
         # Return to home
-        f.write(f"{seq}\t0\t3\t20\t0\t0\t0\t0\t{home[1]}\t{home[0]}\t{base_altitude}\t1\n")
+        f.write(f"{seq}\t0\t3\t20\t0\t0\t0\t0\t{home_lat}\t{home_lon}\t{base_altitude}\t1\n")
         seq += 1
         # Land at home
-        f.write(f"{seq}\t0\t3\t21\t0\t0\t0\t0\t{home[1]}\t{home[0]}\t0\t1\n")
+        f.write(f"{seq}\t0\t3\t21\t0\t0\t0\t0\t{home_lat}\t{home_lon}\t0\t1\n")
 
-def display_path_on_map(image, contours, pred_mask, full_path, drop_indices, home=None):
+def display_path_on_map(image, contours, pred_mask, full_path, drop_indices, home=None, tsp_path=None):
     vis = image.copy()
 
     # Draw current contours
@@ -70,15 +72,24 @@ def display_path_on_map(image, contours, pred_mask, full_path, drop_indices, hom
     if home:
         cv2.circle(vis, tuple(map(int, home)), 10, (0, 0, 0), -1)
 
-    # Draw path lines (thin red)
+    # Draw D* Lite path lines (blue) via cv2
     for i in range(len(full_path) - 1):
         pt1 = tuple(map(int, full_path[i]))
         pt2 = tuple(map(int, full_path[i + 1]))
-        cv2.line(vis, pt1, pt2, (0, 0, 255), 2) 
+        cv2.line(vis, pt1, pt2, (255, 0, 0), 2) 
 
     # Display
     plt.figure(figsize=(10, 10))
     plt.imshow(cv2.cvtColor(vis, cv2.COLOR_BGR2RGB))
+    
+    # Draw TSP direct path lines (red dashed) using matplotlib so it's clearly distinguishable
+    if tsp_path:
+        tsp_x = [pt[0] for pt in tsp_path]
+        tsp_y = [pt[1] for pt in tsp_path]
+        plt.plot(tsp_x, tsp_y, 'r--', linewidth=2, label="TSP Direct Path")
+        plt.plot([], [], 'b-', linewidth=2, label="D* Lite Avoidance Path")
+        plt.legend(loc="upper right")
+        
     plt.title("Drone Path with Safe Drop Zones, Obstacles & Home")
     plt.axis("off")
     plt.show()

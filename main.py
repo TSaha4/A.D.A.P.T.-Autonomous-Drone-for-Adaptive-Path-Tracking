@@ -67,13 +67,26 @@ def main():
     parser.add_argument("--lat", type=float, default=25.3176, help="Latitude for weather API")
     parser.add_argument("--lon", type=float, default=82.9739, help="Longitude for weather API")
     parser.add_argument("--horizon", type=float, default=2.0, help="Hours for flood spread prediction")
+    parser.add_argument("--dummy-weather", action="store_true", help="Use dummy extreme weather data to force visible flood spread")
     args = parser.parse_args()
 
     DISPLAY_WIDTH = args.display_width
 
-    # 1. Fetch weather data
-    logging.info(f"Fetching weather data for lat={args.lat}, lon={args.lon}...")
-    weather = get_weather_data(args.lat, args.lon)
+    # 1. Fetch or use dummy weather data
+    if args.dummy_weather:
+        dummy_file = "data/input/dummy_weather.json"
+        logging.info(f"Using dummy weather data from {dummy_file}...")
+        try:
+            import json
+            with open(dummy_file, "r") as f:
+                weather = json.load(f)
+        except Exception as e:
+            logging.error(f"Failed to load dummy weather: {e}. Falling back to default.")
+            weather = {"precipitation": 20.0, "wind_speed_10m": 30.0, "wind_direction_10m": 270.0}
+    else:
+        logging.info(f"Fetching weather data for lat={args.lat}, lon={args.lon}...")
+        weather = get_weather_data(args.lat, args.lon)
+    
     logging.info(f"Weather: {weather}")
     
     # Check safety thresholds
@@ -183,14 +196,24 @@ def main():
     # Generate mission file with takeoff from HOME, waypoints, drops, and landing at HOME
     try:
         output_file = "data/output/enriched_drone_mission.waypoints"
-        generate_mission_file(full_path, drop_indices, home, output_file)
+        image_center_px = (image.shape[1] // 2, image.shape[0] // 2)
+        geo_center = (args.lat, args.lon)
+        generate_mission_file(
+            full_path, 
+            drop_indices, 
+            home, 
+            image_center_px, 
+            geo_center, 
+            settings.METERS_PER_PIXEL,
+            filename=output_file
+        )
         logging.info(f"Mission file '{output_file}' generated successfully.")
     except Exception as e:
         logging.error(f"generate_mission_file failed: {e}")
 
     # Display path and HOME
     try:
-        display_path_on_map(image.copy(), contours, pred_mask, full_path, drop_indices, home)
+        display_path_on_map(image.copy(), contours, pred_mask, full_path, drop_indices, home, tsp_path=ordered_points)
     except Exception as e:
         logging.warning(f"display_path_on_map failed: {e}")
 
