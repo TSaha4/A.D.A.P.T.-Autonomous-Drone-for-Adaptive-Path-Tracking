@@ -13,3 +13,9 @@ data/output/*
 .DS_Store
 .vscode/
 .idea/
+
+# dynamic pipeline: never commit credentials or heavy outputs
+dynamic/.cdse.env
+dynamic/out/
+__pycache__/
+*.pyc
