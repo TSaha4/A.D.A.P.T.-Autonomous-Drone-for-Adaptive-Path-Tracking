@@ -9,6 +9,8 @@ venv/
 .pytest_cache/
 data/output/*
 !data/output/.gitkeep
+data/models/*
+*.pt
 *.log
 .DS_Store
 .vscode/

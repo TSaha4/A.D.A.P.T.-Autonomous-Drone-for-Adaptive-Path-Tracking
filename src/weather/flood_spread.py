@@ -64,9 +64,18 @@ def predict_spread(mask: np.ndarray, weather_data: dict, horizon_hours: float) -
     return pred_mask
 
 
-def stretch_goal_convlstm_stub(mask: np.ndarray, weather_data: dict, horizon_hours: float) -> np.ndarray:
+def predict_spread_sequence(mask: np.ndarray, weather_data: dict,
+                            timestamps_min, backend: str = "auto"):
     """
-    Placeholder for the stretch goal: ConvLSTM/U-Net based seq-to-image prediction.
-    Currently falls back to the physics-informed morphological CA.
+    Time-indexed flood prediction used by the mission planner.
+
+    Replaces the old single static ``predict_spread`` output with a
+    :class:`~src.weather.flood_predictor.FloodTimeline`: one flood contour per
+    requested future timestamp so routing can query the obstacle state at the
+    time the drone will actually arrive (not just the current forecast).
+
+    ``backend`` selects the DL layer ("dl"/"auto") or the physics baseline
+    ("ca"). The CA model is kept as a fallback baseline for comparison.
     """
-    return predict_spread(mask, weather_data, horizon_hours)
+    from src.weather.flood_predictor import predict_flood_sequence
+    return predict_flood_sequence(mask, weather_data, timestamps_min, backend=backend)

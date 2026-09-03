@@ -1,7 +1,17 @@
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib import get_backend
 from src.mission.coordinates import pixel_to_latlon
+
+# matplotlib is not GUI-capable in every environment (e.g. the "agg" backend).
+# When that is the case we still *save* the annotated map to a PNG so the output
+# is never lost to a silently-missing window.
+_INTERACTIVE_BACKENDS = {"qtagg", "qt5agg", "tkagg", "gtk3agg", "gtk4agg", "wxagg"}
+
+
+def _gui_capable() -> bool:
+    return get_backend().lower() in _INTERACTIVE_BACKENDS
 
 def generate_mission_file(full_path, drop_indices, home, image_center_px, geo_center, meters_per_pixel, filename="mission.waypoints", base_altitude=100, drop_altitude=10):
     # Mission:
@@ -51,16 +61,17 @@ def generate_mission_file(full_path, drop_indices, home, image_center_px, geo_ce
         # Land at home
         f.write(f"{seq}\t0\t3\t21\t0\t0\t0\t0\t{home_lat}\t{home_lon}\t0\t1\n")
 
-def display_path_on_map(image, contours, pred_mask, full_path, drop_indices, home=None, tsp_path=None):
+def display_path_on_map(image, contours, pred_mask, full_path, drop_indices, home=None,
+                        tsp_path=None, save_path=None, title=None):
     vis = image.copy()
 
     # Draw current contours
     cv2.drawContours(vis, contours, -1, (0, 255, 0), 2)
-    
+
     # Draw predicted spread
     if pred_mask is not None:
         pred_contours, _ = cv2.findContours(pred_mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        cv2.drawContours(vis, pred_contours, -1, (0, 165, 255), 2) # Orange for predicted spread
+        cv2.drawContours(vis, pred_contours, -1, (0, 165, 255), 2)  # Orange for predicted spread
 
     # Draw safe points (small blue dots)
     for idx in drop_indices:
@@ -68,20 +79,21 @@ def display_path_on_map(image, contours, pred_mask, full_path, drop_indices, hom
             pt_int = tuple(map(int, full_path[idx]))
             cv2.circle(vis, pt_int, 5, (255, 0, 0), -1)
 
-    # Draw HOME (green)
+    # Draw HOME (black circle)
     if home:
         cv2.circle(vis, tuple(map(int, home)), 10, (0, 0, 0), -1)
+        cv2.circle(vis, tuple(map(int, home)), 10, (0, 255, 255), 2)
 
     # Draw D* Lite path lines (blue) via cv2
     for i in range(len(full_path) - 1):
         pt1 = tuple(map(int, full_path[i]))
         pt2 = tuple(map(int, full_path[i + 1]))
-        cv2.line(vis, pt1, pt2, (255, 0, 0), 2) 
+        cv2.line(vis, pt1, pt2, (255, 0, 0), 2)
 
-    # Display
-    plt.figure(figsize=(10, 10))
+    # Render the annotated map
+    fig = plt.figure(figsize=(10, 10))
     plt.imshow(cv2.cvtColor(vis, cv2.COLOR_BGR2RGB))
-    
+
     # Draw TSP direct path lines (red dashed) using matplotlib so it's clearly distinguishable
     if tsp_path:
         tsp_x = [pt[0] for pt in tsp_path]
@@ -89,8 +101,20 @@ def display_path_on_map(image, contours, pred_mask, full_path, drop_indices, hom
         plt.plot(tsp_x, tsp_y, 'r--', linewidth=2, label="TSP Direct Path")
         plt.plot([], [], 'b-', linewidth=2, label="D* Lite Avoidance Path")
         plt.legend(loc="upper right")
-        
-    plt.title("Drone Path with Safe Drop Zones, Obstacles & Home")
+
+    plt.title(title or "Drone Path with Safe Drop Zones, Obstacles & Home")
     plt.axis("off")
-    plt.show()
+
+    if save_path:
+        import os
+        os.makedirs(os.path.dirname(os.path.abspath(save_path)), exist_ok=True)
+        fig.savefig(save_path, dpi=110, bbox_inches="tight")
+        plt.close(fig)
+        return save_path
+
+    if _gui_capable():
+        plt.show()
+    else:
+        plt.close(fig)  # nothing interactive available; don't block silently
+    return None
 
