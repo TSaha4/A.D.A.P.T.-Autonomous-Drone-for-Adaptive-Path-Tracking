@@ -2,6 +2,24 @@ import unittest
 from src.routing.dstarlite import DStarLite
 
 class TestDStarLite(unittest.TestCase):
+    def test_arrival_time_selects_future_obstacle_frame(self):
+        import numpy as np
+        from src.weather.flood_spread import obstacle_mask_at
+        a = np.zeros((2, 2), dtype=np.uint8)
+        b = np.ones((2, 2), dtype=np.uint8) * 255
+        self.assertFalse(obstacle_mask_at({0.5: a, 1.0: b}, 0.6).any())
+        self.assertTrue(obstacle_mask_at({0.5: a, 1.0: b}, 0.9).any())
+        self.assertTrue(obstacle_mask_at({0.5: a, 1.0: b}, 5.0).any())
+
+    def test_compute_full_path_home_only_uses_three_value_contract(self):
+        import numpy as np
+        from src.routing.pathfinding import compute_full_path
+        result = compute_full_path([(4, 4)], np.zeros((10, 10), dtype=np.uint8))
+        self.assertEqual(len(result), 3)
+        self.assertEqual(result[0], [(4, 4)])
+        self.assertEqual(result[1], [0])
+        self.assertEqual(result[2], [])
+
     def test_shortest_path_empty_grid(self):
         # 10x10 grid, start at 0,0, goal at 9,9
         dstar = DStarLite((10, 10), (0, 0), (9, 9))

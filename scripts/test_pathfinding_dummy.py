@@ -39,7 +39,7 @@ def main():
     print("Running D* Lite obstacle avoidance...")
     # 4. Compute full path with D* Lite (avoiding obstacles)
     # Note: downsample_factor=1 for our small 100x100 dummy grid
-    full_path, drop_indices = compute_full_path(ordered_points, obstacle_mask, downsample_factor=1)
+    full_path, drop_indices, leg_distances = compute_full_path(ordered_points, obstacle_mask, downsample_factor=1)
     
     # 5. Visualization
     plt.figure(figsize=(10, 8))
