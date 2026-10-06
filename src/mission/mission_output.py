@@ -3,15 +3,17 @@ import numpy as np
 from matplotlib import pyplot as plt
 from src.mission.coordinates import pixel_to_latlon
 
-def generate_mission_file(full_path, drop_indices, home, image_center_px, geo_center, meters_per_pixel, filename="mission.waypoints", base_altitude=100, drop_altitude=10):
+def generate_mission_file(full_path, drop_indices, home, image_center_px, geo_center, meters_per_pixel, filename="mission.waypoints", base_altitude=100, drop_altitude=10, servo_channel=9, servo_pwm=2000):
     # Mission:
     # Takeoff at home → visit waypoints → drop packages at drop indices → return home → land.
+    # Convert every point before opening the file, so an invalid coordinate cannot leave a partial mission
+    home_lat, home_lon = pixel_to_latlon(home[0], home[1], image_center_px, geo_center, meters_per_pixel)
+    path_latlon = [pixel_to_latlon(pt[0], pt[1], image_center_px, geo_center, meters_per_pixel) for pt in full_path]
+
     with open(filename, "w") as f:
         f.write("QGC WPL 110\n")
         seq = 0
 
-        home_lat, home_lon = pixel_to_latlon(home[0], home[1], image_center_px, geo_center, meters_per_pixel)
-        
         # 0: Home location
         f.write(f"{seq}\t1\t3\t16\t0\t0\t0\t0\t{home_lat}\t{home_lon}\t0\t1\n")
         seq += 1
@@ -21,7 +23,7 @@ def generate_mission_file(full_path, drop_indices, home, image_center_px, geo_ce
         seq += 1
 
         for i, pt in enumerate(full_path):
-            lat, lon = pixel_to_latlon(pt[0], pt[1], image_center_px, geo_center, meters_per_pixel)
+            lat, lon = path_latlon[i]
 
             # If it's the home point (start or end of mission), skip unless it's a drop (usually not)
             if i == 0 and pt == home:
@@ -31,15 +33,17 @@ def generate_mission_file(full_path, drop_indices, home, image_center_px, geo_ce
             f.write(f"{seq}\t0\t3\t16\t0\t0\t0\t0\t{lat}\t{lon}\t{base_altitude}\t1\n")
             seq += 1
             
-            if i in drop_indices and pt != home:
+            # First/last entries are the HOME departure/return; any other occurrence of HOME is
+            # the drop for the cluster whose safe point was chosen as HOME.
+            if i in drop_indices and 0 < i < len(full_path) - 1:
                 # Loiter 5 sec
                 f.write(f"{seq}\t0\t3\t19\t5\t0\t0\t0\t{lat}\t{lon}\t{base_altitude}\t1\n")
                 seq += 1
                 # Descend to drop altitude
                 f.write(f"{seq}\t0\t3\t16\t0\t0\t0\t0\t{lat}\t{lon}\t{drop_altitude}\t1\n")
                 seq += 1
-                # Drop package (servo trigger)
-                f.write(f"{seq}\t0\t3\t183\t0\t0\t2000\t0\t{lat}\t{lon}\t{drop_altitude}\t1\n")
+                # Drop package (MAV_CMD_DO_SET_SERVO: param1 = servo channel, param2 = PWM)
+                f.write(f"{seq}\t0\t3\t183\t{servo_channel}\t{servo_pwm}\t0\t0\t{lat}\t{lon}\t{drop_altitude}\t1\n")
                 seq += 1
                 # Ascend back to cruise altitude
                 f.write(f"{seq}\t0\t3\t16\t0\t0\t0\t0\t{lat}\t{lon}\t{base_altitude}\t1\n")

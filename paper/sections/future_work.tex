@@ -1,0 +1,11 @@
+\section{Future Work}
+\label{sec:future}
+Future work follows directly from the limitations, roughly in order of cost:
+\begin{enumerate}
+\item \emph{Operational validation.} Load the generated missions in Mission Planner and QGroundControl, then execute them in ArduPilot and PX4 SITL to confirm item acceptance, servo timing, RTL behaviour and mission-storage limits, before any hardware-in-the-loop or field trial.
+\item \emph{Georeferenced inputs.} Accept georeferenced rasters (for example GeoTIFF flood products from SAR processing chains \cite{twele2016sentinel}) or ground control points, replace the single scale with an affine or projective georeference, and treat web-Mercator inputs with the correct projection \cite{battersby2014implications,snyder1987map}.
+\item \emph{Segmentation ground truth.} Annotate the evaluation maps, report IoU, precision and recall, and evaluate on public benchmarks such as FloodNet and Sen1Floods11 \cite{rahnemoonfar2021floodnet,bonafilia2020sen1floods11}.
+\item \emph{Planner completeness.} Detect disconnected drop points and handle them explicitly, for example by reporting them, selecting another boundary vertex, or planning only on current flooding, instead of flying straight legs. Plan at a resolution defined in metres, and either exploit D*~Lite's incremental reuse during flight or use a static planner offline.
+\item \emph{Prediction.} Calibrate or replace the spread rule with terrain-aware CA models \cite{guidolin2016weighted,jamali2019cellular}, and use precipitation accumulations with explicit time bases.
+\item \emph{Mission and logistics.} Add endurance and payload constraints, better ordering heuristics or exact methods for small instances, multi-UAV allocation \cite{otto2018optimization,dong2026path}, and site-safety scoring for drop points \cite{patterson2014timely,kaljahi2019automatic}.
+\end{enumerate}

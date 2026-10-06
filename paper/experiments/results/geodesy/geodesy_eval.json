@@ -1,0 +1,260 @@
+{
+ "synthetic": {
+  "max_conformance_deg": 1.4210854715202004e-14,
+  "max_error_m": 25.921274155265642,
+  "max_error_pct": 0.491778472348433,
+  "all_within_bound": true
+ },
+ "round_trip": {
+  "trials": 100000,
+  "compared": 98789,
+  "rejected_unrepresentable": 1211,
+  "max_px": 6.815686444124088e-08,
+  "mean_px": 2.389376176703657e-09,
+  "rms_px": 6.47340581973961e-09,
+  "max_px_by_region": {
+   "mid-latitudes": 4.6735851047894715e-08,
+   "near poles": 1.61242557071706e-08,
+   "near antimeridian": 6.815686444124088e-08,
+   "equator/prime meridian": 3.169964210397611e-08
+  }
+ },
+ "model_error_at_extents": {
+  "configured 2.0 m/px (Varanasi display)": {
+   "half_diagonal_km": 1.3727839853611348,
+   "worst_model_error_m": 4.797838221159916
+  },
+  "Varanasi at estimated scale": {
+   "half_diagonal_km": 63.834455319292765,
+   "worst_model_error_m": 344.6957562326822
+  },
+  "Kanpur at estimated scale": {
+   "half_diagonal_km": 89.24049676987487,
+   "worst_model_error_m": 562.7648073645862
+  },
+  "Assam at estimated scale": {
+   "half_diagonal_km": 405.898740408644,
+   "worst_model_error_m": 7736.392912050456
+  }
+ },
+ "correspondence": {
+  "varanasi": {
+   "rows": 364,
+   "display_frame_max_dev_deg": 3.552713678800501e-15,
+   "original_frame_max_dev_m": 0.5647011290352127,
+   "sy_over_sx_minus_1_pct": -0.06103092783504849
+  },
+  "kanpur": {
+   "rows": 1145,
+   "display_frame_max_dev_deg": 3.552713678800501e-15,
+   "original_frame_max_dev_m": 0.39710029421606513,
+   "sy_over_sx_minus_1_pct": -0.04251207729468742
+  },
+  "assam": {
+   "rows": 10,
+   "display_frame_max_dev_deg": 0.0,
+   "original_frame_max_dev_m": 0.18805488613292143,
+   "sy_over_sx_minus_1_pct": 0.025620207487597746
+  }
+ },
+ "resize": [
+  {
+   "display_width": 300,
+   "metres_per_display_px": 40.0,
+   "drops": 3,
+   "matched_corners": [
+    [
+     249,
+     249
+    ],
+    [
+     649,
+     650
+    ],
+    [
+     900,
+     299
+    ]
+   ],
+   "max_drop_dev_from_model_m": 35.377492842708875,
+   "max_drop_dev_from_wgs84_m": 37.70316420015582,
+   "max_abs_spacing_error_pct": 0.8699661666390357
+  },
+  {
+   "display_width": 301,
+   "metres_per_display_px": 39.86710963455149,
+   "drops": 3,
+   "matched_corners": [
+    [
+     249,
+     249
+    ],
+    [
+     649,
+     650
+    ],
+    [
+     900,
+     299
+    ]
+   ],
+   "max_drop_dev_from_model_m": 38.793160008024486,
+   "max_drop_dev_from_wgs84_m": 34.773050931707346,
+   "max_abs_spacing_error_pct": 1.2806612902211523
+  },
+  {
+   "display_width": 600,
+   "metres_per_display_px": 20.0,
+   "drops": 3,
+   "matched_corners": [
+    [
+     249,
+     249
+    ],
+    [
+     649,
+     650
+    ],
+    [
+     900,
+     299
+    ]
+   ],
+   "max_drop_dev_from_model_m": 7.056326705005284,
+   "max_drop_dev_from_wgs84_m": 7.922203291178099,
+   "max_abs_spacing_error_pct": 0.32360121690637733
+  },
+  {
+   "display_width": 601,
+   "metres_per_display_px": 19.966722129783694,
+   "drops": 3,
+   "matched_corners": [
+    [
+     249,
+     249
+    ],
+    [
+     649,
+     650
+    ],
+    [
+     900,
+     299
+    ]
+   ],
+   "max_drop_dev_from_model_m": 15.924705492227343,
+   "max_drop_dev_from_wgs84_m": 12.620881366812538,
+   "max_abs_spacing_error_pct": 0.5318592333522831
+  },
+  {
+   "display_width": 900,
+   "metres_per_display_px": 13.333333333333334,
+   "drops": 3,
+   "matched_corners": [
+    [
+     249,
+     249
+    ],
+    [
+     649,
+     650
+    ],
+    [
+     900,
+     299
+    ]
+   ],
+   "max_drop_dev_from_model_m": 9.710917671066776,
+   "max_drop_dev_from_wgs84_m": 16.847021699721157,
+   "max_abs_spacing_error_pct": 0.12554021634400003
+  },
+  {
+   "display_width": 901,
+   "metres_per_display_px": 13.318534961154272,
+   "drops": 3,
+   "matched_corners": [
+    [
+     249,
+     249
+    ],
+    [
+     649,
+     650
+    ],
+    [
+     900,
+     299
+    ]
+   ],
+   "max_drop_dev_from_model_m": 8.29163756010177,
+   "max_drop_dev_from_wgs84_m": 10.58603392790164,
+   "max_abs_spacing_error_pct": 0.21224558668435645
+  },
+  {
+   "display_width": 1200,
+   "metres_per_display_px": 10.0,
+   "drops": 3,
+   "matched_corners": [
+    [
+     249,
+     249
+    ],
+    [
+     649,
+     650
+    ],
+    [
+     900,
+     299
+    ]
+   ],
+   "max_drop_dev_from_model_m": 7.061641393696718e-10,
+   "max_drop_dev_from_wgs84_m": 9.872311409418826,
+   "max_abs_spacing_error_pct": 4.4075854077618715e-12
+  },
+  {
+   "display_width": 1600,
+   "metres_per_display_px": 10.0,
+   "drops": 3,
+   "matched_corners": [
+    [
+     249,
+     249
+    ],
+    [
+     649,
+     650
+    ],
+    [
+     900,
+     299
+    ]
+   ],
+   "max_drop_dev_from_model_m": 7.061641393696718e-10,
+   "max_drop_dev_from_wgs84_m": 9.872311409418826,
+   "max_abs_spacing_error_pct": 4.4075854077618715e-12
+  },
+  {
+   "display_width": 2400,
+   "metres_per_display_px": 10.0,
+   "drops": 3,
+   "matched_corners": [
+    [
+     249,
+     249
+    ],
+    [
+     649,
+     650
+    ],
+    [
+     900,
+     299
+    ]
+   ],
+   "max_drop_dev_from_model_m": 7.061641393696718e-10,
+   "max_drop_dev_from_wgs84_m": 9.872311409418826,
+   "max_abs_spacing_error_pct": 4.4075854077618715e-12
+  }
+ ]
+}

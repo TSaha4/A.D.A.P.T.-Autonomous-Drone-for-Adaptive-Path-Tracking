@@ -1,0 +1,51 @@
+\section{Related Work}
+\label{sec:related}
+
+\subsection{UAVs in Disaster Response}
+Surveys of UAV use in disasters converge on three roles: rapid mapping and damage assessment, communication support, and delivery of small, time-critical payloads \cite{erdelj2017help,mohddaud2022applications,khan2022emerging}. Erdelj \emph{et al.} \cite{erdelj2017help} frame these roles across the prediction, assessment and response phases, and humanitarian-logistics reviews confirm that delivery to areas cut off by floods is a recurring motivation \cite{rejeb2021humanitarian}. Most of this literature is either conceptual or concerned with networking and coordination; for example, multi-UAV search-and-rescue frameworks address task allocation among vehicles \cite{alotaibi2019lsar}, and recent flood-management work simulates UAV-cluster deployment and resource scheduling with edge computing \cite{li2025urban}. Gioia \emph{et al.} \cite{gioia2026perspective} review adaptive mission planning and hazard monitoring for wildfires, chemical releases and floods, and identify the integration of hazard-evolution models with mission planning as fragmented across domains. These works motivate the problem but do not provide a path from a flood map to a mission file.
+
+\subsection{Flood Mapping and Segmentation}
+Classical water mapping relies on spectral indices such as the NDWI \cite{mcfeeters1996ndwi} and, for all-weather operation, on synthetic aperture radar with automated thresholding chains \cite{twele2016sentinel}. Learning-based methods require labelled data; Sen1Floods11 provides a georeferenced benchmark for Sentinel-1 \cite{bonafilia2020sen1floods11}, and FloodNet provides pixel-labelled post-flood UAV imagery \cite{rahnemoonfar2021floodnet}. Convolutional networks have been applied to UAV flood-extent mapping \cite{gebrehiwot2019deep}. Training-free colour-based methods remain attractive where labels are unavailable: Simantiris and Panagiotakis \cite{simantiris2024unsupervised} combine LAB-colour masks, a vegetation index and edges for unsupervised flood segmentation of UAV photographs, and Ibrahim \emph{et al.} \cite{ibrahim2021application} compare RGB/HSI clustering and region growing. All of these methods terminate at a flood mask; none produces delivery points or a flight plan. \adapt{} addresses a narrower perception problem than these works: it extracts flood pixels from \emph{already annotated} map products by operator-sampled HSV thresholding \cite{smith1978color}, followed by mathematical morphology \cite{haralick1987image} and border-following contour extraction \cite{suzuki1985topological}.
+
+\subsection{Flood Modelling and Prediction}
+Physically based and simplified inundation models range from raster storage-cell schemes such as LISFLOOD-FP \cite{bates2000simple} to cellular-automata (CA) models that replace the shallow-water equations by local transition rules on a digital elevation model \cite{ghimire2013formulation,guidolin2016weighted,jamali2019cellular}. CA models trade some accuracy for large speed-ups, but still require terrain data, rainfall or inflow forcing and calibration; Jamali \emph{et al.} \cite{jamali2019cellular} also report weaker performance where flow momentum matters. Teng \emph{et al.} \cite{teng2017flood} review this spectrum and its uncertainties. No reviewed model is coupled to UAV mission planning. The spread rule in \adapt{} is not a hydrological model: it is a terrain-free morphological proxy that dilates and shifts the observed mask according to precipitation and wind, and it is used only to inflate obstacles.
+
+\subsection{Path Planning}
+Grid search with A* \cite{hart1968formal} is optimal for static maps. Incremental methods, D* \cite{stentz1994optimal} and its simpler successor D*~Lite \cite{koenig2002dstar,koenig2005fast}, reuse search effort when edge costs change, which is valuable when a vehicle discovers obstacles during execution. Reviews of UAV path planning \cite{aggarwal2020path} catalogue classical, sampling-based and learning-based planners; they assume that the obstacle representation is given. \adapt{} uses D*~Lite on a downsampled occupancy grid derived from current and predicted flood masks; as shown in Section~\ref{sec:results}, its present offline use does not exercise the incremental property.
+
+\subsection{Route Optimisation and Relief Logistics}
+Visiting a set of delivery points is a travelling-salesman-type problem. Exact dynamic programming is exponential \cite{held1962dynamic}, and the nearest-neighbour construction heuristic can be a logarithmic factor worse than optimal in the worst case \cite{rosenkrantz1977analysis}. Operations-research work on UAV delivery formulates truck--drone tandems \cite{murray2015flying} and drone fleets for last-mile relief \cite{rabta2018drone}; Otto \emph{et al.} \cite{otto2018optimization} survey this area. Most closely related, Dong \emph{et al.} \cite{dong2026path} optimise multi-vehicle, multi-UAV flood-rescue delivery with flood-depth-dependent road speeds using mixed-integer programming and adaptive large-neighbourhood search. These models are more rigorous than \adapt{}'s ordering heuristic, but take demand locations and network states as given inputs rather than deriving them from imagery, and output schedules rather than autopilot missions.
+
+\subsection{Landing and Drop-Site Selection}
+Image-based selection of safe landing zones has been studied using multichannel imagery fused with map data \cite{patterson2014timely} and texture-based flat-surface detection \cite{kaljahi2019automatic}. These methods score candidate sites for landing safety. \adapt{} has no comparable safety model: its ``safe'' drop point is a convex-hull vertex on the boundary of a flood region, chosen for accessibility from the route, without terrain, population or obstacle information.
+
+\subsection{Mission Generation and Geospatial Conversion}
+MAVLink is the de facto protocol between ground stations and open autopilots \cite{meier2012pixhawk,koubaa2019micro}; missions are commonly exchanged as QGroundControl WPL plain-text files \cite{mavlink_fileformat} whose command semantics are defined by the common message set \cite{mavlink_common} and refined per autopilot \cite{ardupilot_missioncmds,px4_missions}. Converting image coordinates to geodetic coordinates requires a projection model \cite{snyder1987map}; web-map imagery uses Web Mercator, whose scale varies with latitude \cite{battersby2014implications}, and accurate geodesics on the ellipsoid are available from Vincenty's and Karney's algorithms \cite{vincenty1975direct,karney2013algorithms}. We found no reviewed work that generates WPL missions from flood imagery and verifies the geodetic and mission layers.
+
+\subsection{Synthesis and Gap}
+Table~\ref{tab:gap} summarises the capabilities reported by representative work. Perception, hazard modelling, path planning, route optimisation and site selection are each well developed, but in the reviewed literature they are rarely combined into a chain that starts from flood imagery and ends in an executable autopilot mission, and the correctness of the image-to-geodetic and mission-encoding steps is not reported. \adapt{} addresses this intersection with deliberately simple components. Its contribution is integration and verification; each of its components is weaker than the specialised state of the art in its own area.
+
+\begin{table*}[t]
+\centering
+\caption{Capabilities reported by representative related work and by \adapt{}. \yes{}: addressed; \part{}: partially or under strong simplification; \no{}: not addressed in the cited work as reported. The table reflects the stated scope of each paper and is not exhaustive.}
+\label{tab:gap}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}p{4.9cm}cccccccc@{}}
+\toprule
+Work (group) & \shortstack{Flood\\perception} & \shortstack{Hazard\\evolution} & \shortstack{Weather\\input} & \shortstack{Obstacle-aware\\path planning} & \shortstack{Delivery-point\\selection} & \shortstack{Visit\\ordering} & \shortstack{Executable\\autopilot mission} & \shortstack{Geo/mission\\verification}\\
+\midrule
+Flood segmentation \cite{gebrehiwot2019deep,simantiris2024unsupervised,rahnemoonfar2021floodnet} & \yes & \no & \no & \no & \no & \no & \no & \no\\
+SAR flood mapping \cite{twele2016sentinel,bonafilia2020sen1floods11} & \yes & \no & \no & \no & \no & \no & \no & \no\\
+Inundation models \cite{bates2000simple,ghimire2013formulation,guidolin2016weighted,jamali2019cellular} & \no & \yes & \part & \no & \no & \no & \no & \no\\
+Incremental grid planning \cite{stentz1994optimal,koenig2005fast} & \no & \no & \no & \yes & \no & \no & \no & \no\\
+Relief / drone routing \cite{murray2015flying,rabta2018drone} & \no & \no & \no & \no & \no & \yes & \no & \no\\
+Flood-rescue collaborative delivery \cite{dong2026path} & \no & \no & \no & \part & \no & \yes & \no & \no\\
+Safe landing-zone detection \cite{patterson2014timely,kaljahi2019automatic} & \part & \no & \no & \no & \part & \no & \no & \no\\
+Multi-UAV SAR / flood deployment \cite{alotaibi2019lsar,li2025urban} & \no & \no & \no & \part & \no & \yes & \no & \no\\
+\midrule
+\adapt{} (this work) & \part{}$^{a}$ & \part{}$^{b}$ & \yes{}$^{c}$ & \yes & \part{}$^{d}$ & \part{}$^{e}$ & \yes & \yes{}$^{f}$\\
+\bottomrule
+\end{tabular}\\[2pt]
+\parbox{\textwidth}{\scriptsize $^{a}$Annotated map products only, operator-sampled colour thresholds. $^{b}$Terrain-free morphological proxy, uncalibrated. $^{c}$Current precipitation and wind only. $^{d}$Boundary geometry only, no safety model. $^{e}$Nearest-neighbour heuristic. $^{f}$Software verification only; no ground-station, SITL or flight validation.}
+\end{table*}

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import sys
 import argparse
 import logging
@@ -12,6 +13,7 @@ from src.vision.clustering import cluster_contours
 from src.routing.pathfinding import nearest_neighbor_tsp, compute_full_path
 from src.mission.safe_dropzone import find_safe_drop_points
 from src.mission.mission_output import generate_mission_file, display_path_on_map
+from src.mission.coordinates import pixel_to_latlon
 from src.weather.weather_api import get_weather_data
 from src.weather.flood_spread import predict_spread
 from config import settings
@@ -59,16 +61,38 @@ def to_point_list(cluster_centers: Any) -> List[Tuple[int, int]]:
     return pts
 
 
+def remove_mission_file(path: str) -> bool:
+    #Delete a mission file if present; returns False (after logging) if it exists but cannot be removed.
+    if not os.path.lexists(path):
+        return True
+    try:
+        os.remove(path)
+    except OSError as e:
+        logging.error(f"Could not remove mission file '{path}': {e}")
+        return False
+    return True
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generate drone mission from flood-map image.")
     parser.add_argument("image_path", nargs="?", default="data/input/varanasi.png", help="Input map image path")
     parser.add_argument("--display-width", "-w", type=int, default=750, help="Resize display width")
     parser.add_argument("--min-area", type=int, default=200, help="Minimum contour area to keep")
-    parser.add_argument("--lat", type=float, default=25.3176, help="Latitude for weather API")
-    parser.add_argument("--lon", type=float, default=82.9739, help="Longitude for weather API")
+    parser.add_argument("--lat", type=float, default=25.3176, help="Latitude of the image centre (used for weather API and mission coordinates)")
+    parser.add_argument("--lon", type=float, default=82.9739, help="Longitude of the image centre (used for weather API and mission coordinates)")
     parser.add_argument("--horizon", type=float, default=2.0, help="Hours for flood spread prediction")
     parser.add_argument("--dummy-weather", action="store_true", help="Use dummy extreme weather data to force visible flood spread")
     args = parser.parse_args()
+
+    if args.display_width <= 0:
+        parser.error("--display-width must be a positive number of pixels")
+    # Reject an unusable geographic reference or scale before any work (or the earlier mission) is touched
+    try:
+        pixel_to_latlon(0, 0, (0, 0), (args.lat, args.lon), settings.METERS_PER_PIXEL)
+    except ValueError as e:
+        logging.error(f"Invalid --lat/--lon or METERS_PER_PIXEL: {e}")
+        sys.exit(2)
+    output_file = "data/output/enriched_drone_mission.waypoints"
 
     DISPLAY_WIDTH = args.display_width
 
@@ -86,6 +110,8 @@ def main():
     else:
         logging.info(f"Fetching weather data for lat={args.lat}, lon={args.lon}...")
         weather = get_weather_data(args.lat, args.lon)
+        if weather.get("status") == "fallback":
+            logging.warning("Weather API unavailable: using fallback calm weather, so predicted flood spread will be minimal.")
     
     logging.info(f"Weather: {weather}")
     
@@ -101,7 +127,16 @@ def main():
         logging.error("Error loading image file. Please check the path.")
         sys.exit(1)
 
+    # This run can now produce a mission: remove the one from any earlier run, so a run that ends without
+    # generating a mission cannot leave an older file that looks like this run's output.
+    if os.path.lexists(output_file):
+        if not remove_mission_file(output_file):
+            logging.error("Refusing to continue: the earlier mission could be mistaken for this run's output.")
+            sys.exit(1)
+        logging.info(f"Removed mission file from a previous run: '{output_file}'")
+
     h, w = image.shape[:2]
+    scale_factor = 1.0
     if w > DISPLAY_WIDTH:
         scale_factor = DISPLAY_WIDTH / float(w)
         new_h = int(round(h * scale_factor))
@@ -195,21 +230,26 @@ def main():
 
     # Generate mission file with takeoff from HOME, waypoints, drops, and landing at HOME
     try:
-        output_file = "data/output/enriched_drone_mission.waypoints"
-        image_center_px = (image.shape[1] // 2, image.shape[0] // 2)
+        os.makedirs(os.path.dirname(output_file), exist_ok=True)
+        # Geometric centre in OpenCV pixel-centre coordinates (W//2 is half a pixel off for even sizes)
+        image_center_px = ((image.shape[1] - 1) / 2, (image.shape[0] - 1) / 2)
         geo_center = (args.lat, args.lon)
+        # METERS_PER_PIXEL describes the original input image; each resized pixel covers more ground.
+        meters_per_pixel = settings.METERS_PER_PIXEL / scale_factor
         generate_mission_file(
             full_path, 
             drop_indices, 
             home, 
             image_center_px, 
             geo_center, 
-            settings.METERS_PER_PIXEL,
+            meters_per_pixel,
             filename=output_file
         )
         logging.info(f"Mission file '{output_file}' generated successfully.")
     except Exception as e:
         logging.error(f"generate_mission_file failed: {e}")
+        # Do not leave a partially written mission behind
+        remove_mission_file(output_file)
 
     # Display path and HOME
     try:

@@ -1,0 +1,57 @@
+% A.D.A.P.T. manuscript. Drafted with IEEEtran (journal mode) for compilation and review.
+% Primary target: IEEE Access (original research article). Before submission, port the body to the official
+% IEEE Access LaTeX template (https://ieeeaccess.ieee.org/authors/preparing-your-article/); see README.md.
+\documentclass[journal]{IEEEtran}
+
+\usepackage[T1]{fontenc}
+\usepackage{cite}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\adapt}{A.D.A.P.T.}
+\newcommand{\yes}{\checkmark}
+\newcommand{\part}{(\checkmark)}
+\newcommand{\no}{--}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+\begin{document}
+
+\title{A.D.A.P.T.: A Weather-Informed, Verifiable Pipeline from Annotated Flood Maps to Executable UAV Relief Missions}
+
+\author{[Author~1], [Author~2], and [Faculty~Advisor]%
+  \thanks{Manuscript draft prepared October 2026. [Funding statement: to be provided by the authors.]}%
+  \thanks{The authors are with [Department], [Institution], [City], [Country] (e-mail: [corresponding.author@institution.edu]).}%
+}
+
+\markboth{Draft manuscript --- not peer reviewed}{[Author~1] \MakeLowercase{\textit{et al.}}: A.D.A.P.T.}
+
+\maketitle
+
+\input{sections/abstract}
+
+\input{sections/introduction}
+\input{sections/related_work}
+\input{sections/architecture}
+\input{sections/methodology}
+\input{sections/experiments}
+\input{sections/limitations}
+\input{sections/comparison}
+\input{sections/future_work}
+\input{sections/conclusion}
+\input{sections/backmatter}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

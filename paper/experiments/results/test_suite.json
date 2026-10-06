@@ -1,0 +1,24 @@
+{
+ "summary_line": "126 passed, 494 subtests passed in 2.48s",
+ "counts": {
+  "passed": 126,
+  "subtests passed": 494
+ },
+ "tests_per_file": {
+  "tests/test_adversarial_coordinates.py": 14,
+  "tests/test_clustering.py": 2,
+  "tests/test_coordinates.py": 2,
+  "tests/test_coordinates_groundtruth.py": 7,
+  "tests/test_coordinates_safety.py": 18,
+  "tests/test_dstarlite.py": 3,
+  "tests/test_flood_spread.py": 3,
+  "tests/test_geodesy_reference.py": 6,
+  "tests/test_image_centre.py": 4,
+  "tests/test_mission_output.py": 5,
+  "tests/test_resize_consistency.py": 5,
+  "tests/test_stale_mission.py": 11,
+  "tests/test_weather_api.py": 2,
+  "tests/test_wpl_validation.py": 8,
+  "tests/test_wpl_validator_adversarial.py": 36
+ }
+}

@@ -1,0 +1,53 @@
+{
+ "varanasi": {
+  "legs": 16,
+  "both_found": 8,
+  "both_none": 8,
+  "disagree": 0,
+  "max_abs_cost_diff": 4.263256414560601e-14,
+  "dstar_s": 12.668490799995197,
+  "astar_s": 0.2080454999995709,
+  "dstar_pops": 41533,
+  "dstar_updates": 837079,
+  "astar_expansions": 41752,
+  "grid": [
+   150,
+   149
+  ],
+  "obstacle_cells": 3534
+ },
+ "kanpur": {
+  "legs": 33,
+  "both_found": 27,
+  "both_none": 6,
+  "disagree": 0,
+  "max_abs_cost_diff": 1.1368683772161603e-13,
+  "dstar_s": 30.833035499998005,
+  "astar_s": 0.2760154000061448,
+  "dstar_pops": 57924,
+  "dstar_updates": 2375656,
+  "astar_expansions": 52367,
+  "grid": [
+   150,
+   148
+  ],
+  "obstacle_cells": 6458
+ },
+ "assam": {
+  "legs": 0,
+  "both_found": 0,
+  "both_none": 0,
+  "disagree": 0,
+  "max_abs_cost_diff": 0.0,
+  "dstar_s": 0.0,
+  "astar_s": 0.0,
+  "dstar_pops": 0,
+  "dstar_updates": 0,
+  "astar_expansions": 0,
+  "grid": [
+   150,
+   105
+  ],
+  "obstacle_cells": 14538
+ }
+}

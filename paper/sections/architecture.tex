@@ -1,0 +1,29 @@
+\section{Problem Formulation and Architecture}
+\label{sec:arch}
+
+\subsection{Notation}
+Let $I$ be the input raster of $W_0\times H_0$ pixels. If $W_0$ exceeds a display width $D$ (750~px by default), the image is resized to $I'$ of size $W'\times H'$ with $W'=D$, $H'=\operatorname{round}(H_0 s)$ and $s=D/W_0$; otherwise $I'=I$ and $s=1$. All perception and planning operate on the pixel domain $\Omega=\{0,\dots,W'-1\}\times\{0,\dots,H'-1\}$ of $I'$, with OpenCV conventions: $x$ is the column (increasing to the east of a north-up map) and $y$ the row (increasing to the south), and integer coordinates denote pixel centres.
+
+The pipeline produces the following objects:
+\begin{itemize}
+\item a binary flood mask $M\subseteq\Omega$ extracted from $I'$;
+\item weather $w=(P,V,\theta)$: precipitation $P$ (mm), wind speed $V$ (km/h) and meteorological wind direction $\theta$ (degrees, direction the wind blows \emph{from});
+\item a predicted mask $\hat M\supseteq M$ after a horizon of $T$ hours, and an obstacle set $O=M\cup\hat M$;
+\item flood regions $R_1,\dots,R_n$, the external contours of $M$ with area at least $a_{\min}$;
+\item drop points $d_i\in\mathcal{V}(\operatorname{conv}R_i)$, one vertex of the convex hull of each region, and a HOME point $h\in\{d_i\}$;
+\item a visiting order $\pi$ and a pixel route $P=(p_0,\dots,p_m)$ with $p_0=p_m=h$;
+\item a mission $\mathcal{W}$, a sequence of MAVLink mission items with geodetic coordinates $(\varphi,\lambda)$ derived from a reference $(\varphi_0,\lambda_0)$ and a ground scale $\rho$ (METERS\_PER\_PIXEL, metres per \emph{original} pixel).
+\end{itemize}
+
+\subsection{Problem Statement}
+Given $(I,w,\varphi_0,\lambda_0,\rho)$, produce $\mathcal{W}$ such that the vehicle takes off at $h$, visits every $d_i$ once at cruise altitude, descends and releases a payload at each $d_i$, avoids $O$ wherever a free path exists on the planning grid, and returns to $h$. \adapt{} does not solve this as a joint optimisation problem. It decomposes it into a fixed sequence of heuristic stages (Fig.~\ref{fig:architecture}), each of which is specified in Section~\ref{sec:method}. No optimality is claimed for the composition. In particular, visit ordering ignores obstacles, and path planning is optimal only per leg and on a coarse grid.
+
+\input{figures/architecture}
+
+\subsection{Architecture and Interfaces}
+Fig.~\ref{fig:architecture} shows the implemented data flow. The entry point validates its arguments and the geographic configuration before any work is done (Section~\ref{sec:geo}), then runs the stages in the order shown. The only interactive step is colour sampling, in which the operator clicks on flood pixels. The planner and the geodetic conversion are the only stages with explicit failure semantics:
+\begin{itemize}
+\item a leg with no free path is logged and flown as a straight segment;
+\item a coordinate outside the conversion's validity domain aborts mission generation without writing a file.
+\end{itemize}
+A mission file left by an earlier run is removed once the input image has been loaded, so that a run which fails afterwards cannot leave an older mission that could be mistaken for its output. The implementation is written in Python using OpenCV \cite{bradski2000opencv} and NumPy, and is accompanied by an offline verification layer (Section~\ref{sec:verif}).

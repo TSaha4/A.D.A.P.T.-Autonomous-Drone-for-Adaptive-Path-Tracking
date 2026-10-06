@@ -1,0 +1,159 @@
+\section{Methodology}
+\label{sec:method}
+
+This section specifies each stage exactly as implemented in the evaluated version of \adapt{}. Parameter values are the defaults used in all experiments (Table~\ref{tab:config}).
+
+\subsection{Input Acquisition and Display Scaling}
+The input is a raster in which flooded areas have been drawn in a distinct colour (red in all evaluated maps). The image is decoded with OpenCV and, if wider than $D$, downscaled with area interpolation to $I'$ (Section~\ref{sec:arch}). Scaling serves interactive display; because every later stage works in display pixels, all pixel-unit parameters below have a ground size that depends on $s$. This is accounted for in the geodetic conversion (Section~\ref{sec:geo}) but not in the perception and planning parameters (Section~\ref{sec:limits}).
+
+\subsection{Colour Sampling and Flood Segmentation}
+The operator clicks $K$ flood pixels $c_k=(x_k,y_k)$ in $I'$. For each click, all pixels of the $11\times11$ patch $\Pi_k$ centred on $c_k$ (clipped at the image border) are converted to HSV \cite{smith1978color} with OpenCV's ranges $H\in[0,179]$, $S,V\in[0,255]$. Let $\mathcal{S}=\bigcup_k\mathrm{HSV}(I'(\Pi_k))$. Writing $C^{-}$ and $C^{+}$ for the minimum and maximum of channel $C$ over $\mathcal{S}$, the thresholds are the sample extrema widened by margins $\delta_H=20$ and $\delta_{SV}=30$:
+\begin{align}
+\ell_H&=\max(H^{-}-\delta_H,0),\quad u_H=\min(H^{+}+\delta_H,179),\label{eq:hsvH}\\
+\ell_C&=\max(C^{-}-\delta_{SV},0),\quad u_C=\min(C^{+}+\delta_{SV},255),\label{eq:hsvSV}
+\end{align}
+for $C\in\{S,V\}$. Because red straddles the hue origin, a \emph{red-wrap} rule applies when $\ell_H\le10$ or $u_H\ge170$: the hue interval is then replaced by the fixed set $\mathcal{H}=[0,10]\cup[170,179]$ while the S and V intervals are kept; otherwise $\mathcal{H}=[\ell_H,u_H]$. The raw mask is
+\begin{multline}
+M_0=\{p\in\Omega:\,H(p)\in\mathcal{H},\\ S(p)\in[\ell_S,u_S],\ V(p)\in[\ell_V,u_V]\},
+\end{multline}
+and the flood mask is obtained by a morphological closing followed by an opening \cite{haralick1987image} with a $5\times5$ square structuring element $B$:
+\begin{equation}
+M=(M_0\bullet B)\circ B .
+\label{eq:morph}
+\end{equation}
+Two properties follow directly from these definitions and matter for the results. First, whenever the red-wrap rule fires, as it does for every map evaluated here, $\delta_H$ has no effect on $M$. Second, the patch contains background pixels around small or thin markings, so $\ell_S$ can fall to $0$; since OpenCV assigns hue $0$ to achromatic (grey and white) pixels, white background can then satisfy all three conditions. Section~\ref{sec:results} shows both effects.
+
+\subsection{Flood-Region Extraction}
+External contours of $M$ are extracted by border following \cite{suzuki1985topological}, and contours with area below $a_{\min}=200$~px$^2$ are discarded. Each remaining region $R_i$ is represented by the vertex set of its convex hull and by its image-moment centroid $c_i=(\lfloor m_{10}/m_{00}\rfloor,\lfloor m_{01}/m_{00}\rfloor)$. Regions are taken from the current mask $M$ only; predicted flooding affects obstacles but creates no new delivery targets.
+
+\subsection{Weather Acquisition}
+\label{sec:weather}
+Current conditions at $(\varphi_0,\lambda_0)$ are requested from the Open-Meteo forecast API \cite{zippenfenig2024openmeteo}: precipitation, 10-m wind speed, 10-m wind direction and visibility (the last is not used). Responses are cached per coordinate, and requests time out after 10~s. On any request or parsing failure a calm fallback $(P,V,\theta)=(0,0,0)$ is returned and a warning is logged. Note that Open-Meteo reports current-condition precipitation as a sum over the preceding reporting interval, for example 15~minutes \cite{openmeteo_docs}, whereas the spread rule below interprets $P$ per hour. Wind above 40~km/h and precipitation above 15~mm trigger warnings but do not stop the pipeline. For reproducibility, the experiments use a weather file with $(P,V,\theta)=(10~\text{mm},30~\text{km/h},270^\circ)$.
+
+\subsection{Weather-Driven Spread Rule}
+\label{sec:spread}
+\adapt{} estimates near-term flood growth with a deterministic, terrain-free rule applied to the binary mask (Algorithm~\ref{alg:spread}). It can be read as a cellular automaton whose cells become flooded if any cell within an elliptical neighbourhood is flooded (isotropic growth), combined with a rigid advection of the flooded set in the downwind direction. With
+\begin{equation}
+b=\max(0,\lfloor P/5\rfloor),\ \ v=\max(0,\lfloor V/10\rfloor),\ \ \alpha=\theta+180^\circ,
+\label{eq:spread}
+\end{equation}
+the shift is $(\Delta x,\Delta y)=(\operatorname{round}(v\sin\alpha),\operatorname{round}(-v\cos\alpha))$ display pixels, and $N=\max(1,\lfloor T\rfloor)$ iterations are applied. For the experimental weather, $b=2$, $v=3$, $\alpha=90^\circ$ (eastward), $(\Delta x,\Delta y)=(3,0)$ and $N=2$ for $T=2$~h. The rule has not been calibrated against observed flood evolution or compared with hydrodynamic models; its coefficients are documented in the code as heuristic. It is used only to make the planner keep clear of areas that may flood soon.
+
+\begin{algorithm}[t]
+\caption{Weather-driven spread rule (Stage E)}
+\label{alg:spread}
+\begin{algorithmic}[1]
+\REQUIRE mask $M$, weather $(P,V,\theta)$, horizon $T$ (h)
+\ENSURE predicted mask $\hat M\supseteq M$
+\STATE $b\gets\max(0,\lfloor P/5\rfloor)$; $v\gets\max(0,\lfloor V/10\rfloor)$; $\alpha\gets\theta+180^\circ$
+\STATE $\Delta x\gets\operatorname{round}(v\sin\alpha)$; $\Delta y\gets\operatorname{round}(-v\cos\alpha)$
+\STATE $\hat M\gets M$
+\FOR{$t=1$ \TO $\max(1,\lfloor T\rfloor)$}
+  \IF{$b>0$} \STATE $\hat M\gets\hat M\oplus E_{2b+1}$ \COMMENT{dilation, elliptical element} \ENDIF
+  \IF{$v>0$} \STATE $\hat M\gets\hat M\cup\tau_{(\Delta x,\Delta y)}(\hat M)$ \COMMENT{shift, zero fill} \ENDIF
+\ENDFOR
+\RETURN $\hat M$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Obstacle Modelling}
+The obstacle set is $O=M\cup\hat M$, which equals $\hat M$ because the rule only adds pixels. Using $O$ rather than $M$ trades route exposure to predicted flooding against free-space connectivity; Section~\ref{sec:results} quantifies both sides of this trade-off.
+
+\subsection{Drop-Point and HOME Selection}
+For each region, one hull vertex is chosen as its drop point. Let $\Gamma$ be the polyline through the centroids $c_1,\dots,c_n$ in contour-discovery order. Then
+\begin{equation}
+d_i=\arg\min_{q\in\mathcal{V}(\operatorname{conv}R_i)}\ \min_{j}\operatorname{dist}\big(q,\overline{c_jc_{j+1}}\big),
+\label{eq:drop}
+\end{equation}
+with the point-to-segment distance; for $n=1$ the first hull vertex is used. The drop point is therefore on the flood boundary, not inside the water. It is ``safe'' only in this geometric sense: no terrain, structure, population or landing-safety information is used, unlike dedicated site-selection methods \cite{patterson2014timely,kaljahi2019automatic}. $\Gamma$ joins centroids in discovery order, not in the final visiting order, and $O$ is not consulted. HOME is the drop point nearest to the integer image centre: $h=\arg\min_i\lVert d_i-(\lfloor W'/2\rfloor,\lfloor H'/2\rfloor)\rVert$. The region whose drop point becomes HOME still receives a delivery.
+
+\subsection{Visit Ordering}
+The visiting order is built by the nearest-neighbour heuristic: starting at $h$, the closest unvisited drop point in Euclidean pixel distance is appended until all are visited, and $h$ is appended at the end. Because $h$ is itself a drop point, the first step has zero length. The procedure is $O(n^2)$, ignores obstacles, and carries no optimality guarantee; its worst-case ratio to the optimal tour grows logarithmically with $n$ \cite{rosenkrantz1977analysis}. Section~\ref{sec:results} measures its gap empirically.
+
+\subsection{Per-Leg Path Planning with D*~Lite}
+\label{sec:dstar}
+\emph{Grid.} $O$ is downsampled by a factor $f=5$ with nearest-neighbour resampling to an occupancy grid $G$ of $\lfloor W'/5\rfloor\times\lfloor H'/5\rfloor$ cells. Each cell therefore reflects a single sample of its $5\times5$ block, so features thinner than a cell can be missed.
+
+\emph{Endpoints.} Consecutive stops $(p,q)$ are mapped to cells by integer division and clamped to the grid. Because drop points lie on flood boundaries, endpoints frequently fall in occupied cells; such endpoints are moved to the nearest free cell by an 8-connected breadth-first search of radius 10 cells. If none is found, the endpoint stays inside the obstacle and a warning is logged.
+
+\emph{Search.} For each leg, a new D*~Lite instance \cite{koenig2002dstar,koenig2005fast} is created on the 8-connected grid. The edge cost is $c(u,v)=\lVert u-v\rVert$ (1 or $\sqrt2$) if neither cell is occupied and $\infty$ otherwise, and the heuristic is the Chebyshev distance, which is admissible because every step costs at least one Chebyshev unit. With $\mu(u)=\min(g(u),rhs(u))$, vertices are ordered by the key
+\begin{equation}
+k(u)=\big[\mu(u)+h(s,u)+k_m;\ \mu(u)\big],
+\label{eq:key}
+\end{equation}
+where $s$ is the start cell and the search runs from the goal. Every occupied cell is registered through the standard vertex-update procedure before the shortest path is computed, and the path is extracted by repeatedly moving to the successor that minimises $c(u,v)+g(v)$. The implementation documents D*~Lite as chosen for efficient replanning when obstacles are discovered. However, because each leg uses a fresh instance on a static grid, $k_m$ remains $0$ and no search effort is reused: \emph{the incremental-replanning property of D*~Lite is not exercised in the present offline pipeline}.
+
+\emph{Failure behaviour.} If the start cell has infinite cost-to-go, no intermediate points are added for that leg, so the mission flies a straight segment between the two stops, possibly across $O$; this is logged as an error. Interior path cells $(g_x,g_y)$ are mapped back to display pixels as $(5g_x,5g_y)$, the top-left corner of each block; the row actually sampled by the resampling can differ from it by up to two pixels. Algorithm~\ref{alg:leg} summarises the procedure.
+
+\begin{algorithm}[t]
+\caption{Per-leg planning (Stage I)}
+\label{alg:leg}
+\begin{algorithmic}[1]
+\REQUIRE ordered stops $(h,d_{\pi_1},\dots,d_{\pi_n},h)$, obstacle mask $O$
+\ENSURE pixel route $P$ and stop indices
+\STATE $G\gets$ nearest-neighbour downsample of $O$ by $f=5$
+\FOR{each consecutive pair $(p,q)$}
+  \STATE append $p$ to $P$ and mark it as a stop
+  \STATE $(u,v)\gets(\lfloor p/f\rfloor,\lfloor q/f\rfloor)$, clamped to $G$
+  \STATE snap $u$, $v$ to the nearest free cell (BFS, radius 10) if occupied
+  \IF{$u\neq v$}
+    \STATE $\sigma\gets$ \textsc{DStarLite}$(G,u,v)$ \COMMENT{new instance}
+    \IF{$\sigma=\emptyset$} \STATE log error; add nothing (straight leg)
+    \ELSE \STATE append $f\cdot\sigma_2,\dots,f\cdot\sigma_{|\sigma|-1}$ to $P$ \ENDIF
+  \ENDIF
+\ENDFOR
+\STATE append final stop $h$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Pixel-to-Geodetic Conversion}
+\label{sec:geo}
+The geographic reference $(\varphi_0,\lambda_0)$ is interpreted as the ground position of the geometric centre of the image, which in pixel-centre coordinates is $\mathbf c=((W'-1)/2,(H'-1)/2)$. Since $\rho$ refers to original pixels, the ground size of a display pixel is $k=\rho/s$. A route pixel $(x,y)$ is converted by
+\begin{align}
+E&=(x-c_x)\,k, & N&=(c_y-y)\,k,\label{eq:enu}\\
+\varphi&=\varphi_0+\frac{N}{L}, & \lambda&=\lambda_0+\frac{E}{L\cos\varphi_0},\label{eq:geo}
+\end{align}
+with $L=111\,320$~m per degree. Equations \eqref{eq:enu}--\eqref{eq:geo} are an equirectangular projection with standard parallel $\varphi_0$ on a sphere of radius $R=180L/\pi\approx6\,378\,165$~m \cite{snyder1987map}. Relative to the WGS84 ellipsoid, the north--south scale is off by $|M(\varphi)\pi/(180L)-1|$ and the east--west scale by $|N(\varphi)\pi/(180L)-1|$, where $M$ and $N$ are the meridional and prime-vertical radii of curvature. At $25^\circ$ latitude these are 0.49\% and 0.06\%, respectively, and second-order terms grow with the square of the offset.
+
+The conversion refuses to return a coordinate, raising an error that aborts mission generation before any file is opened, when
+\begin{itemize}
+\item any input is non-finite, or $k\le0$ (which would collapse or mirror the mission);
+\item $\varphi_0\notin(-90^\circ,90^\circ)$, where $\cos\varphi_0=0$, or $\lambda_0\notin[-180^\circ,180^\circ]$;
+\item the offset crosses a pole ($|\varphi|>90^\circ$);
+\item $|\lambda-\lambda_0|\ge180^\circ$, where wrapping would map distinct offsets to the same meridian, which also excludes overflowed offsets.
+\end{itemize}
+Otherwise $\lambda$ is wrapped into $[-180^\circ,180^\circ)$ only if it lies outside $[-180^\circ,180^\circ]$. The same check is run on $(\varphi_0,\lambda_0,\rho)$ when the program starts, so invalid configurations fail before the interactive step.
+
+The model further \emph{assumes} that the image is north-up, has square pixels and uniform scale, and that $(\varphi_0,\lambda_0)$ and $\rho$ are known. None of these assumptions is checked against the image, and Section~\ref{sec:results} shows that they do not hold for the supplied maps. Rounding $H'$ makes the vertical display scale differ from $s$ by less than 0.07\% for the evaluated images.
+
+\subsection{Mission Encoding}
+The route is serialised as a QGroundControl WPL~110 file \cite{mavlink_fileformat}: one tab-separated line per item with index, current flag, frame, command, four parameters, latitude, longitude, altitude and autocontinue. All positional items use frame~3 (global position, altitude relative to home) \cite{mavlink_common}. The item sequence is given in Table~\ref{tab:mission}. For every stop other than the departure and the final return, the vehicle loiters, descends to the drop altitude, actuates a servo, and climbs back. All coordinates are converted before the file is opened, so a conversion failure leaves no partial file. According to the ArduCopter documentation, DO commands run when the preceding navigation command completes, so the servo command fires on reaching the drop altitude; TAKEOFF climbs from the vehicle's current location; and RTL should generally be the last command, so the trailing LAND item is not expected to execute on that autopilot \cite{ardupilot_missioncmds}. Waypoint parameter~4 (yaw) is written as 0; ArduCopter ignores it, whereas PX4 interprets it as a north heading \cite{px4_missions}. These semantics were established from documentation and have not been confirmed in simulation.
+
+\begin{table}[t]
+\centering
+\caption{Mission item sequence generated by \adapt{} (frame 3; altitudes in m relative to HOME).}
+\label{tab:mission}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lllp{2.25cm}@{}}
+\toprule
+Item & MAVLink command (id) & Alt. & Parameters / role\\
+\midrule
+0 & NAV\_WAYPOINT (16) & 0 & HOME, current flag 1\\
+1 & NAV\_TAKEOFF (22) & 100 & at HOME\\
+\multicolumn{4}{@{}l}{\emph{for each route point:}}\\
+ & NAV\_WAYPOINT (16) & 100 & cruise waypoint\\
+\multicolumn{4}{@{}l}{\emph{additionally at each delivery stop:}}\\
+ & NAV\_LOITER\_TIME (19) & 100 & p1 = 5 s\\
+ & NAV\_WAYPOINT (16) & 10 & descend to drop altitude\\
+ & DO\_SET\_SERVO (183) & 10 & p1 = servo 9, p2 = 2000~$\mu$s\\
+ & NAV\_WAYPOINT (16) & 100 & climb back\\
+$m-1$ & NAV\_RETURN\_TO\_LAUNCH (20) & 100 & --\\
+$m$ & NAV\_LAND (21) & 0 & at HOME\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Verification Methodology}
+\label{sec:verif}
+Correctness of the geospatial and mission layers is established independently of the implementation through five mechanisms. (i) \emph{Regression and unit tests} cover every stage touched by verification, including all rejection cases of the conversion. (ii) \emph{An independent geodetic oracle} implements Vincenty's direct and inverse solutions on WGS84 \cite{vincenty1975direct} in test code that does not import the production code. Before use, it is checked against a published worked geodesic (to 1~mm and $0.01''$), the equatorial length of one degree of longitude and the WGS84 meridian quadrant. Physical ground truth for a pixel is the point reached from the reference by a geodesic of length $\sqrt{E^2+N^2}$ at azimuth $\operatorname{atan2}(E,N)$, and a first- and second-order bound on the model error is derived from the radii of curvature. (iii) \emph{A specification-based mission validator} re-implements the expected item structure, parameter slots, coordinate ranges and pixel-to-coordinate correspondence without importing production code. It is itself exercised by 36 adversarial test cases built from corrupted missions, and its blind spots are asserted explicitly. (iv) \emph{Metamorphic resize tests} run the same synthetic map through the unmodified entry point at several display widths and require the waypoints to stay at the same ground position. (v) \emph{Mutation testing} injects 24 plausible defects into a copy of the code, such as sign and axis errors, wrong constants, missing wrapping or validation, and wrong parameter slots, and requires the test suite to detect each one.

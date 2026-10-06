@@ -113,12 +113,18 @@ def compute_full_path(ordered_points, obstacle_mask, downsample_factor=5):
         if s_obs:
             logging.info(f"Start node {s_grid} is an obstacle. Attempting to snap to free cell...")
             s_grid, s_dist = snap_to_nearest_free_cell(s_grid, obstacles, new_w, new_h)
-            logging.info(f"Snapped start node to {s_grid} (distance: {s_dist} cells).")
+            if s_grid in obstacles:
+                logging.warning(f"No free cell found within {s_dist} cells of start node {s_grid}; it remains inside an obstacle.")
+            else:
+                logging.info(f"Snapped start node to {s_grid} (distance: {s_dist} cells).")
             
         if g_obs:
             logging.info(f"Goal node {g_grid} is an obstacle. Attempting to snap to free cell...")
             g_grid, g_dist = snap_to_nearest_free_cell(g_grid, obstacles, new_w, new_h)
-            logging.info(f"Snapped goal node to {g_grid} (distance: {g_dist} cells).")
+            if g_grid in obstacles:
+                logging.warning(f"No free cell found within {g_dist} cells of goal node {g_grid}; it remains inside an obstacle.")
+            else:
+                logging.info(f"Snapped goal node to {g_grid} (distance: {g_dist} cells).")
         
         # If start and goal are same in small grid, just use direct line
         if s_grid == g_grid:

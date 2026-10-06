@@ -1,0 +1,49 @@
+% Fig. 1: A.D.A.P.T. architecture (matches main.py call order; letters refer to Section IV subsections).
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+  font=\scriptsize, node distance=3mm and 7.5mm,
+  stage/.style={draw, rounded corners=1pt, align=center, minimum height=9mm, text width=20mm, fill=blue!6},
+  io/.style={draw, align=center, minimum height=9mm, text width=20mm, fill=orange!12},
+  ver/.style={draw, rounded corners=1pt, align=center, minimum height=7mm, text width=30mm, fill=green!7},
+  lab/.style={font=\tiny, fill=white, inner sep=0.6pt},
+  arr/.style={-{Stealth[length=1.6mm]}, semithick}]
+  % row 1: perception and selection
+  \node[io] (img) {flood-annotated\\map raster $I$};
+  \node[stage, right=of img] (seg) {(A, B) display scaling,\\HSV sampling,\\morphology};
+  \node[stage, right=of seg] (reg) {(C) contours,\\hulls, centroids};
+  \node[stage, right=of reg] (drop) {(G) boundary drop\\points and HOME};
+  \node[stage, right=of drop] (nn) {(H) nearest-\\neighbour order};
+  \node[io, right=of nn] (cfg) {reference $(\varphi_0,\lambda_0)$,\\scale $\rho$};
+  % row 2: environment, planning and output
+  \node[io, below=11mm of img] (wx) {weather $(P,V,\theta)$\\(Open-Meteo or file)};
+  \node[stage, right=of wx] (spread) {(D, E) weather-\\driven spread rule};
+  \node[stage, right=of spread] (obs) {(F) obstacles\\$O=M\cup\hat M$};
+  \node[stage, right=of obs] (dstar) {(I) per-leg D*~Lite\\on $5{\times}$ grid};
+  \node[stage, right=of dstar] (geo) {(J) pixel-to-geodetic\\with validity checks};
+  \node[io, right=of geo] (wpl) {(K) QGC WPL 110\\mission file};
+  % data flow
+  \draw[arr] (img) -- (seg);
+  \draw[arr] (seg) -- node[lab, above=1pt]{$M$} (reg);
+  \draw[arr] (reg) -- node[lab, above=1pt]{$R_i$} (drop);
+  \draw[arr] (drop) -- node[lab, above=1pt]{$d_i, h$} (nn);
+  \draw[arr] (wx) -- (spread);
+  \draw[arr] (seg.south) -- node[lab, right=1pt, pos=0.45]{$M$} (spread.north);
+  \draw[arr] (spread) -- node[lab, above=1pt]{$\hat M$} (obs);
+  \draw[arr] (obs) -- node[lab, above=1pt]{$O$} (dstar);
+  \draw[arr] (nn.south) -- node[lab, right=1pt, pos=0.45]{$\pi$} (dstar.north);
+  \draw[arr] (dstar) -- node[lab, above=1pt]{$P$} (geo);
+  \draw[arr] (cfg.south) -- (geo.north);
+  \draw[arr] (geo) -- (wpl);
+  % verification layer
+  \node[ver, below=7mm of obs] (oracle) {independent WGS84 oracle\\(Vincenty) and round trips};
+  \node[ver, right=6mm of oracle] (val) {specification-based\\WPL validator (tested)};
+  \node[ver, right=6mm of val] (mut) {regression, metamorphic\\and mutation tests};
+  \node[draw, dotted, inner sep=1.6mm, fit=(oracle)(val)(mut)] (vbox) {};
+  \node[anchor=east, align=right, font=\scriptsize] at (vbox.west) {offline verification\\(Sec.~\ref{sec:verif})~};
+  \draw[arr, dotted] (val.north) -- (geo.south);
+  \draw[arr, dotted] (mut.north) -- (wpl.south);
+\end{tikzpicture}
+\caption{Architecture of \adapt{} as implemented. Letters refer to the subsections of Section~\ref{sec:method}. Blue boxes are pipeline stages executed in this order by the entry point; orange boxes are inputs and the output. The dotted block is the offline verification layer, which is not part of the run-time pipeline. Colour sampling is the only interactive step.}
+\label{fig:architecture}
+\end{figure*}

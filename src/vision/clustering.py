@@ -21,7 +21,8 @@ def cluster_contours(contours):
             cx = int(M["m10"] / M["m00"])
             cy = int(M["m01"] / M["m00"])
         else:
-            cx, cy = hull[0][0], hull[0][1]
+            # hull has shape (N, 1, 2); take the first hull vertex
+            cx, cy = int(hull[0][0][0]), int(hull[0][0][1])
         cluster_centers.append((cx, cy))
 
     return cluster_centers, cluster_edges
