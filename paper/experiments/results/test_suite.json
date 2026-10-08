@@ -1,8 +1,8 @@
 {
- "summary_line": "126 passed, 494 subtests passed in 2.48s",
+ "summary_line": "231 passed, 520 subtests passed in 212.74s (0:03:32)",
  "counts": {
-  "passed": 126,
-  "subtests passed": 494
+  "passed": 231,
+  "subtests passed": 520
  },
  "tests_per_file": {
   "tests/test_adversarial_coordinates.py": 14,
@@ -14,8 +14,14 @@
   "tests/test_flood_spread.py": 3,
   "tests/test_geodesy_reference.py": 6,
   "tests/test_image_centre.py": 4,
+  "tests/test_mission_constraints.py": 27,
   "tests/test_mission_output.py": 5,
+  "tests/test_multi_base.py": 8,
+  "tests/test_multi_base_regressions.py": 20,
+  "tests/test_multi_uav.py": 35,
+  "tests/test_overlap_repair.py": 4,
   "tests/test_resize_consistency.py": 5,
+  "tests/test_robustness.py": 11,
   "tests/test_stale_mission.py": 11,
   "tests/test_weather_api.py": 2,
   "tests/test_wpl_validation.py": 8,

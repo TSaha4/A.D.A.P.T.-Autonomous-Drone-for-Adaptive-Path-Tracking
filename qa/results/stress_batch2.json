@@ -1,0 +1,98 @@
+[
+ {
+  "mode": "single",
+  "zones": 100,
+  "k": 1,
+  "mpp": 2.0,
+  "exit": 0,
+  "exc": null,
+  "total_s": 35.56,
+  "peak_mb": 88.9,
+  "stage_s": {
+   "find_safe_drop_points": 0.31,
+   "nearest_neighbor_tsp": 0.0,
+   "compute_full_path": 35.18,
+   "generate_mission_file": 0.01
+  }
+ },
+ {
+  "mode": "single",
+  "zones": 300,
+  "k": 1,
+  "mpp": 2.0,
+  "exit": 0,
+  "exc": null,
+  "total_s": 109.63,
+  "peak_mb": 90.3,
+  "stage_s": {
+   "find_safe_drop_points": 2.58,
+   "nearest_neighbor_tsp": 0.02,
+   "compute_full_path": 106.96,
+   "generate_mission_file": 0.02
+  }
+ },
+ {
+  "mode": "single",
+  "zones": 600,
+  "k": 1,
+  "mpp": 2.0,
+  "exit": 0,
+  "exc": null,
+  "total_s": 242.15,
+  "peak_mb": 91.6,
+  "stage_s": {
+   "find_safe_drop_points": 10.35,
+   "nearest_neighbor_tsp": 0.07,
+   "compute_full_path": 231.66,
+   "generate_mission_file": 0.04
+  }
+ },
+ {
+  "mode": "multi",
+  "zones": 100,
+  "k": 4,
+  "mpp": 2.0,
+  "exit": 0,
+  "exc": null,
+  "total_s": 393.14,
+  "peak_mb": 343.5,
+  "stage_s": {
+   "find_safe_drop_points": 7.68,
+   "routed_distance_function": 8.22,
+   "select_bases": 0.83,
+   "nearest_neighbor_tsp": 0.0,
+   "compute_routed_path": 361.64,
+   "execute_overlap_repairs": 1.62,
+   "generate_mission_file": 0.02,
+   "display_multi_base_map": 1.85
+  },
+  "drop_points": 100,
+  "bases": 3,
+  "visited": 100,
+  "outcome": "MULTI_BASE_3"
+ },
+ {
+  "mode": "multi",
+  "zones": 300,
+  "k": 4,
+  "mpp": 2.0,
+  "exit": 0,
+  "exc": null,
+  "total_s": 1137.54,
+  "peak_mb": 382.1,
+  "stage_s": {
+   "find_safe_drop_points": 39.43,
+   "routed_distance_function": 22.94,
+   "select_bases": 4.24,
+   "nearest_neighbor_tsp": 0.01,
+   "compute_routed_path": 1038.09,
+   "execute_overlap_repairs": 2.35,
+   "generate_mission_file": 0.03,
+   "display_multi_base_map": 2.05
+  },
+  "drop_points": 300,
+  "bases": 4,
+  "visited": 300,
+  "outcome": "MULTI_BASE_4"
+ }
+]

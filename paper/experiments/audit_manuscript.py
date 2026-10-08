@@ -9,7 +9,7 @@ import re
 
 PAPER = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(PAPER)
-files = ["main.tex"] + sorted(p.replace("\\", "/") for p in glob.glob("sections/*.tex")) + ["figures/architecture.tex"]
+files = ["main.tex"] + sorted(p.replace("\\", "/") for p in glob.glob("sections/*.tex") + glob.glob("figures/*.tex"))
 tex = {f: io.open(f, encoding="utf-8").read() for f in files}
 body = "\n".join(tex.values())
 

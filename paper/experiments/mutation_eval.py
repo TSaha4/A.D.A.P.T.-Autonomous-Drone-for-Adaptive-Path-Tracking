@@ -1,4 +1,4 @@
-"""E8 - Mutation testing of the geospatial / mission code.
+"""E8 - Mutation testing of the geospatial / mission code and of the integrated multi-base (multi-UAV) mode.
 
 Each mutant injects one plausible defect into a TEMPORARY COPY of the repository (production files are never
 touched) and runs the full test suite; the mutant is "killed" if any test fails.
@@ -40,13 +40,30 @@ MUTANTS = [
     ("partial-file guard removed", MO,
      "path_latlon = [pixel_to_latlon(pt[0], pt[1], image_center_px, geo_center, meters_per_pixel) for pt in full_path]",
      "path_latlon = None"),
-    ("centre W//2 (pre-fix)", MAIN, "((image.shape[1] - 1) / 2, (image.shape[0] - 1) / 2)",
-     "(image.shape[1] // 2, image.shape[0] // 2)"),
-    ("resize not compensated", MAIN, "settings.METERS_PER_PIXEL / scale_factor", "settings.METERS_PER_PIXEL"),
-    ("resize compensated twice", MAIN, "settings.METERS_PER_PIXEL / scale_factor", "settings.METERS_PER_PIXEL / scale_factor ** 2"),
-    ("stale mission kept", MAIN, "if os.path.lexists(output_file):\n        if not remove_mission_file",
+    ("centre W//2 (pre-fix)", MAIN, "((image.shape[1] - 1) / 2, (image.shape[0] - 1) / 2)\n        geo_center",
+     "(image.shape[1] // 2, image.shape[0] // 2)\n        geo_center"),
+    ("resize not compensated", MAIN, "settings.METERS_PER_PIXEL / scale_factor\n", "settings.METERS_PER_PIXEL\n"),
+    ("resize compensated twice", MAIN, "settings.METERS_PER_PIXEL / scale_factor\n", "settings.METERS_PER_PIXEL / scale_factor ** 2\n"),
+    ("stale mission kept", MAIN, 'if args.mode == "single" and os.path.lexists(output_file):\n        if not remove_mission_file',
      "if False:\n        if not remove_mission_file"),
     ("preflight removed", MAIN, "pixel_to_latlon(0, 0, (0, 0), (args.lat, args.lon), settings.METERS_PER_PIXEL)", "pass"),
+    # Multi-base (multi-UAV) mode, integrated from the MAIN branch
+    ("multi: centre W//2", MAIN, "((image.shape[1] - 1) / 2, (image.shape[0] - 1) / 2)\n    pred_mask",
+     "(image.shape[1] // 2, image.shape[0] // 2)\n    pred_mask"),
+    ("multi: resize not compensated", MAIN, "settings.METERS_PER_PIXEL / scale_factor  # metres per display pixel",
+     "settings.METERS_PER_PIXEL  # metres per display pixel"),
+    ("multi: overlap gate disabled", MAIN, "    if overlaps:\n        log_deviation(", "    if False:\n        log_deviation("),
+    ("multi: reload stop not encoded", MO, "            if i in reload_set:\n", "            if False:\n"),
+    ("multi: reload index unchecked", MO,
+     "if not (0 < r < len(full_path) - 1) or tuple(full_path[r]) != tuple(home) or r in drop_indices:", "if False:"),
+    ("multi: nudged reach kept stale", "src/mission/overlap_repair.py", "            refresh_reach(first)\n",
+     "            pass\n"),
+    ("multi: forecast frames stamped k", "src/weather/flood_spread.py", "frames[float(min(k, horizon_hours))] = frame",
+     "frames[float(k)] = frame"),
+    ("multi: legacy drop selection replaced", "src/mission/safe_dropzone.py", "    if obstacle_mask is not None:\n        return find_dry",
+     "    if True:\n        return find_dry"),
+    ("multi: snap default radius 15", "src/routing/pathfinding.py", "max_h, max_search_radius=10, target_component",
+     "max_h, max_search_radius=15, target_component"),
 ]
 PY = sys.executable
 

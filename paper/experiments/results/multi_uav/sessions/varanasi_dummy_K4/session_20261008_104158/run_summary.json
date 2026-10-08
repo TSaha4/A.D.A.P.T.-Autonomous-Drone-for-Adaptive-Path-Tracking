@@ -1,0 +1,392 @@
+{
+  "mode": "multi",
+  "max_bases": 4,
+  "geo_anchor": [
+    25.3176,
+    82.9739
+  ],
+  "session_dir": "A:\\Work\\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\\paper\\experiments\\results\\multi_uav\\sessions\\varanasi_dummy_K4\\session_20261008_104158",
+  "weather": {
+    "precipitation": 10.0,
+    "wind_speed_10m": 30.0,
+    "wind_direction_10m": 270.0
+  },
+  "scale_factor": 0.7716049382716049,
+  "meters_per_pixel_display": 2.592,
+  "image_center_px": [
+    374.5,
+    373.5
+  ],
+  "forecast_hours": [
+    0.0,
+    1.0,
+    2.0
+  ],
+  "drop_points": [
+    [
+      537,
+      400
+    ],
+    [
+      561,
+      503
+    ],
+    [
+      533,
+      398
+    ],
+    [
+      491,
+      361
+    ],
+    [
+      406,
+      450
+    ],
+    [
+      459,
+      509
+    ],
+    [
+      495,
+      358
+    ],
+    [
+      73,
+      264
+    ],
+    [
+      96,
+      250
+    ],
+    [
+      70,
+      256
+    ],
+    [
+      82,
+      225
+    ],
+    [
+      579,
+      232
+    ],
+    [
+      367,
+      239
+    ],
+    [
+      545,
+      186
+    ],
+    [
+      628,
+      144
+    ],
+    [
+      613,
+      131
+    ],
+    [
+      505,
+      86
+    ],
+    [
+      407,
+      289
+    ],
+    [
+      582,
+      305
+    ],
+    [
+      504,
+      282
+    ],
+    [
+      591,
+      100
+    ],
+    [
+      169,
+      42
+    ]
+  ],
+  "home_candidates": {
+    "grid_points": 1764,
+    "dry": 1495,
+    "with_clearance": 1237
+  },
+  "selection": {
+    "mode": "multi",
+    "bases": [
+      [
+        387,
+        369
+      ],
+      [
+        567,
+        81
+      ],
+      [
+        603,
+        477
+      ],
+      [
+        81,
+        207
+      ]
+    ],
+    "best_single_reach": 6,
+    "coverable": 12
+  },
+  "overlap_repairs": [],
+  "path_overlaps": [],
+  "outcome": "MULTI_BASE_4",
+  "bases": [
+    {
+      "base": 1,
+      "home": [
+        387,
+        369
+      ],
+      "assigned": 5,
+      "clearance_px": 20.772096633911133,
+      "connectivity_excluded": 0,
+      "refinement": {
+        "status": "converged",
+        "iterations": 2,
+        "cap": 6
+      },
+      "visited": 5,
+      "unreachable": 0,
+      "legs": {
+        "total": 8,
+        "dstar": 7,
+        "same_cell": 1,
+        "fallback": 0
+      },
+      "route_flooded_px_arrival": 0,
+      "route_flooded_px_current": 0,
+      "planner_sortie_battery": [
+        0.6525391162145311,
+        0.5888584088738944
+      ],
+      "routed_sortie_battery": [
+        0.6525391162145311,
+        0.5888584088738943
+      ],
+      "waypoint_file": "A:\\Work\\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\\paper\\experiments\\results\\multi_uav\\sessions\\varanasi_dummy_K4\\session_20261008_104158\\base1.waypoints",
+      "waypoint_problems": [],
+      "route_length_m": 2116.1709513729256,
+      "cruise_time_s": 423.2341902745851,
+      "sorties": 2
+    },
+    {
+      "base": 2,
+      "home": [
+        567,
+        81
+      ],
+      "assigned": 2,
+      "clearance_px": 24.165895462036133,
+      "connectivity_excluded": 0,
+      "refinement": {
+        "status": "converged",
+        "iterations": 1,
+        "cap": 4
+      },
+      "visited": 2,
+      "unreachable": 0,
+      "legs": {
+        "total": 3,
+        "dstar": 3,
+        "same_cell": 0,
+        "fallback": 0
+      },
+      "route_flooded_px_arrival": 0,
+      "route_flooded_px_current": 0,
+      "planner_sortie_battery": [
+        0.30793249594065897
+      ],
+      "routed_sortie_battery": [
+        0.3079324959406592
+      ],
+      "waypoint_file": "A:\\Work\\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\\paper\\experiments\\results\\multi_uav\\sessions\\varanasi_dummy_K4\\session_20261008_104158\\base2.waypoints",
+      "waypoint_problems": [],
+      "route_length_m": 528.0715275079826,
+      "cruise_time_s": 105.61430550159653,
+      "sorties": 1
+    },
+    {
+      "base": 3,
+      "home": [
+        603,
+        477
+      ],
+      "assigned": 3,
+      "clearance_px": 17.393798828125,
+      "connectivity_excluded": 0,
+      "refinement": {
+        "status": "converged",
+        "iterations": 1,
+        "cap": 5
+      },
+      "visited": 3,
+      "unreachable": 0,
+      "legs": {
+        "total": 6,
+        "dstar": 5,
+        "same_cell": 1,
+        "fallback": 0
+      },
+      "route_flooded_px_arrival": 0,
+      "route_flooded_px_current": 0,
+      "planner_sortie_battery": [
+        0.5404397573635427,
+        0.5444357933808361
+      ],
+      "routed_sortie_battery": [
+        0.540439757363543,
+        0.5444357933808367
+      ],
+      "waypoint_file": "A:\\Work\\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\\paper\\experiments\\results\\multi_uav\\sessions\\varanasi_dummy_K4\\session_20261008_104158\\base3.waypoints",
+      "waypoint_problems": [],
+      "route_length_m": 1867.7065572984413,
+      "cruise_time_s": 373.54131145968825,
+      "sorties": 2
+    },
+    {
+      "base": 4,
+      "home": [
+        81,
+        207
+      ],
+      "assigned": 2,
+      "clearance_px": 17.78759765625,
+      "connectivity_excluded": 0,
+      "refinement": {
+        "status": "converged",
+        "iterations": 1,
+        "cap": 4
+      },
+      "visited": 2,
+      "unreachable": 0,
+      "legs": {
+        "total": 3,
+        "dstar": 3,
+        "same_cell": 0,
+        "fallback": 0
+      },
+      "route_flooded_px_arrival": 0,
+      "route_flooded_px_current": 0,
+      "planner_sortie_battery": [
+        0.6897897851194538
+      ],
+      "routed_sortie_battery": [
+        0.6897897851194535
+      ],
+      "waypoint_file": "A:\\Work\\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\\paper\\experiments\\results\\multi_uav\\sessions\\varanasi_dummy_K4\\session_20261008_104158\\base4.waypoints",
+      "waypoint_problems": [],
+      "route_length_m": 1186.675561502918,
+      "cruise_time_s": 237.3351123005836,
+      "sorties": 1
+    }
+  ],
+  "base_separation_min_px": 241.49534156997728,
+  "base_separation_required_px": 150.0,
+  "territory_violations": [],
+  "assignment": {
+    "1": 3,
+    "3": 1,
+    "4": 1,
+    "5": 3,
+    "6": 1,
+    "10": 4,
+    "12": 1,
+    "16": 2,
+    "17": 1,
+    "18": 3,
+    "20": 2,
+    "21": 4
+  },
+  "unreachable_by_any_base": {
+    "0": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "2": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "7": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "8": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "9": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "11": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "13": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "14": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "15": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "19": "unreachable by any base: no flood-clear base site can serve it within battery"
+  },
+  "drops_visited": 12,
+  "reloads": 2,
+  "unreachable": 0,
+  "connectivity_excluded": 0,
+  "legs": {
+    "total": 20,
+    "dstar": 18,
+    "same_cell": 2,
+    "fallback": 0
+  },
+  "route_flooded_px_arrival": 0,
+  "route_flooded_px_current": 0,
+  "routed_sortie_battery": [
+    0.6525391162145311,
+    0.5888584088738943,
+    0.3079324959406592,
+    0.540439757363543,
+    0.5444357933808367,
+    0.6897897851194535
+  ],
+  "waypoint_problems": [],
+  "total_route_length_m": 5698.624597682267,
+  "refinement": {
+    "status": "converged",
+    "per_base": [
+      {
+        "status": "converged",
+        "iterations": 2,
+        "cap": 6
+      },
+      {
+        "status": "converged",
+        "iterations": 1,
+        "cap": 4
+      },
+      {
+        "status": "converged",
+        "iterations": 1,
+        "cap": 5
+      },
+      {
+        "status": "converged",
+        "iterations": 1,
+        "cap": 4
+      }
+    ]
+  },
+  "stage_counts": {
+    "zones": 16,
+    "zones_with_drop_point": 16,
+    "drop_points": 22,
+    "unreachable_by_any_base": 10,
+    "assigned": 12,
+    "visited": 12
+  },
+  "map": {
+    "ok": true,
+    "dominant_colour": [
+      224,
+      247,
+      209
+    ],
+    "dominant_fraction": 0.06095187165775401,
+    "shape_match": true,
+    "correlation": 0.8053730671158321,
+    "unchanged_fraction": 0.8894367201426024
+  }
+}

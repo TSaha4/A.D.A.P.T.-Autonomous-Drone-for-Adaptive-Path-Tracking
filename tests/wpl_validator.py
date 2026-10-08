@@ -84,9 +84,14 @@ def expected_items(sidecar, cruise_alt, drop_alt):
     conv = lambda p: expected_latlon(p[0], p[1], sidecar["image_center_px"], sidecar["geo_center"],
                                      sidecar["meters_per_pixel"])
     h_lat, h_lon = conv(home)
+    reloads = set(sidecar.get("reload_indices") or [])
     out = [(NAV_WAYPOINT, h_lat, h_lon, 0), (NAV_TAKEOFF, h_lat, h_lon, cruise_alt)]
     for i, pt in enumerate(path):
         if i == 0 and pt == home:
+            continue
+        if i in reloads:
+            # Multi-base mode: back at HOME between sorties -> land for the reload, then take off again
+            out += [(NAV_LAND, h_lat, h_lon, 0), (NAV_TAKEOFF, h_lat, h_lon, cruise_alt)]
             continue
         lat, lon = conv(pt)
         out.append((NAV_WAYPOINT, lat, lon, cruise_alt))
@@ -98,9 +103,14 @@ def expected_items(sidecar, cruise_alt, drop_alt):
     return out
 
 
-def validate(path, sidecar=None, cruise_alt=100.0, drop_alt=10.0, servo_channel=None, servo_pwm=None):
+def validate(path, sidecar=None, cruise_alt=100.0, drop_alt=10.0, servo_channel=None, servo_pwm=None,
+             allow_reloads=False):
     """servo_channel / servo_pwm: the payload-release output the mission is meant to drive; when given,
-    every DO_SET_SERVO must use exactly these values."""
+    every DO_SET_SERVO must use exactly these values.
+    allow_reloads: accept multi-base reload stops, i.e. a LAND at HOME (alt 0) immediately followed by a
+    TAKEOFF at HOME to cruise altitude, before the final RTL/LAND. Implied when the sidecar lists
+    reload_indices. Otherwise any LAND before the end of the mission is an error, as before."""
+    allow_reloads = allow_reloads or bool(sidecar and sidecar.get("reload_indices"))
     findings = []
     err = lambda c, m: findings.append(Finding("ERROR", c, m))
     warn = lambda c, m: findings.append(Finding("WARN", c, m))
@@ -194,8 +204,26 @@ def validate(path, sidecar=None, cruise_alt=100.0, drop_alt=10.0, servo_channel=
         if items[-1]["alt"] != 0:
             err("return", f"LAND altitude {items[-1]['alt']} (expected 0)")
         info("return", "RTL is followed by LAND; ArduCopter's RTL normally lands by itself, so the LAND item may never run")
-    if any(r["cmd"] in (NAV_RTL, NAV_LAND) for r in items[:-2]):
-        err("return", "RTL/LAND appears before the end of the mission")
+    if not allow_reloads:
+        if any(r["cmd"] in (NAV_RTL, NAV_LAND) for r in items[:-2]):
+            err("return", "RTL/LAND appears before the end of the mission")
+    else:
+        if any(r["cmd"] == NAV_RTL for r in items[:-2]):
+            err("return", "RTL appears before the end of the mission")
+        for k, r in enumerate(items[:-2]):
+            if r["cmd"] != NAV_LAND:
+                continue
+            nxt = items[k + 1]
+            if not same(r, home) or r["alt"] != 0:
+                err("reload", f"seq {r['seq']}: intermediate LAND is not at HOME with altitude 0")
+            if nxt["cmd"] != NAV_TAKEOFF or not same(nxt, home) or nxt["alt"] != cruise_alt:
+                err("reload", f"seq {r['seq']}: intermediate LAND is not followed by TAKEOFF at HOME to cruise altitude")
+        n_reloads = sum(r["cmd"] == NAV_LAND for r in items[:-2])
+        if sidecar is not None and n_reloads != len(sidecar.get("reload_indices") or []):
+            err("reload", f"{n_reloads} reload LANDs, but the route has {len(sidecar.get('reload_indices') or [])} reload stops")
+        if n_reloads:
+            info("reload", f"{n_reloads} reload stop(s): LAND then TAKEOFF at HOME; whether the autopilot continues the "
+                           "mission after an intermediate LAND (e.g. auto-disarm) must be checked in SITL")
 
     # 6/8. drop blocks and servo parameters
     servo_idx = [i for i, r in enumerate(items) if r["cmd"] == DO_SET_SERVO]
@@ -285,9 +313,12 @@ def main(argv=None):
     ap.add_argument("--drop-alt", type=float, default=10.0)
     ap.add_argument("--servo-channel", type=float, help="expected DO_SET_SERVO channel (param1)")
     ap.add_argument("--servo-pwm", type=float, help="expected DO_SET_SERVO PWM (param2)")
+    ap.add_argument("--allow-reloads", action="store_true",
+                    help="accept multi-base reload stops (LAND then TAKEOFF at HOME); implied by sidecar reload_indices")
     a = ap.parse_args(argv)
     sidecar = json.load(open(a.sidecar)) if a.sidecar else None
-    findings, items = validate(a.mission, sidecar, a.cruise_alt, a.drop_alt, a.servo_channel, a.servo_pwm)
+    findings, items = validate(a.mission, sidecar, a.cruise_alt, a.drop_alt, a.servo_channel, a.servo_pwm,
+                               a.allow_reloads)
     for f in findings:
         print(f)
     if a.table:

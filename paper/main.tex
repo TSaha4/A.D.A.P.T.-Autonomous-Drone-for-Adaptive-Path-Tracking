@@ -24,6 +24,9 @@
 \newcommand{\no}{--}
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
+% Empty frame reserved for a screenshot the authors will take from their own simulation run.
+% #1: placeholder tag, #2: width, #3: height. Replace the whole \simplaceholder{...} by \includegraphics.
+\newcommand{\simplaceholder}[3]{\fbox{\parbox[c][#3][c]{#2}{\centering\footnotesize\textbf{[FIGURE PLACEHOLDER --- #1]}\\[3pt]\scriptsize image to be inserted by the authors from their own simulation run}}}
 
 \begin{document}
 
@@ -44,6 +47,7 @@
 \input{sections/related_work}
 \input{sections/architecture}
 \input{sections/methodology}
+\input{sections/multi_uav}
 \input{sections/experiments}
 \input{sections/limitations}
 \input{sections/comparison}

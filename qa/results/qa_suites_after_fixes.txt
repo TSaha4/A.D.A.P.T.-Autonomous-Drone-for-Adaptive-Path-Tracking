@@ -1,0 +1,658 @@
+..................................................FFFFF...F.F........... [ 41%]
+........................................................................ [ 82%]
+..............................F                                          [100%]
+================================== FAILURES ===================================
+_________ test_predict_spread_non_numeric_weather_fails_cleanly[nan] __________
+
+value = nan
+
+    @pytest.mark.parametrize("value", [float("nan"), None, "3"])
+    def test_predict_spread_non_numeric_weather_fails_cleanly(value):
+        """A non-numeric weather value must not crash with an obscure error deep in the model."""
+        m = np.zeros((40, 40), np.uint8)
+        m[18:22, 18:22] = 255
+        try:
+>           predict_spread(m, {"precipitation": value, "wind_speed_10m": 0, "wind_direction_10m": 0}, 2.0)
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_units.py:369: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+mask = array([[0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ...,
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0]], shape=(40, 40), dtype=uint8)
+weather_data = {'precipitation': nan, 'wind_speed_10m': 0, 'wind_direction_10m': 0}
+horizon_hours = 2.0
+
+    def predict_spread(mask: np.ndarray, weather_data: dict, horizon_hours: float) -> np.ndarray:
+        """
+        Predicts the spread of floods using a simple morphological cellular automata approach
+        influenced by wind speed/direction and precipitation.
+    
+        Args:
+            mask: The current flood binary mask (numpy array, 255 for flood, 0 for dry).
+            weather_data: Dictionary containing 'precipitation', 'wind_speed_10m', 'wind_direction_10m'.
+            horizon_hours: How many hours into the future to predict (each hour is one CA iteration).
+    
+        Returns:
+            np.ndarray: The predicted flood mask.
+        """
+        if mask is None or mask.size == 0:
+            return mask
+    
+        # Initialize predicted mask
+        pred_mask = mask.copy()
+    
+        precip = weather_data.get("precipitation", 0.0)
+        wind_speed = weather_data.get("wind_speed_10m", 0.0)
+        # Meteorological wind direction is where the wind originates.
+        # To get where it's blowing TO, we add 180 degrees.
+        wind_dir_deg = weather_data.get("wind_direction_10m", 0.0) + 180.0
+        wind_dir_rad = math.radians(wind_dir_deg)
+    
+        # Base spread from precipitation
+        # 0 precip -> no isotropic spread. High precip -> more isotropic spread.
+        # Arbitrary heuristic: 1 pixel of spread per 5mm of precip per hour
+>       base_spread_pixels = max(0, int(precip / 5.0))
+                                    ^^^^^^^^^^^^^^^^^
+E       ValueError: cannot convert float NaN to integer
+
+src\weather\flood_spread.py:35: ValueError
+
+During handling of the above exception, another exception occurred:
+
+value = nan
+
+    @pytest.mark.parametrize("value", [float("nan"), None, "3"])
+    def test_predict_spread_non_numeric_weather_fails_cleanly(value):
+        """A non-numeric weather value must not crash with an obscure error deep in the model."""
+        m = np.zeros((40, 40), np.uint8)
+        m[18:22, 18:22] = 255
+        try:
+            predict_spread(m, {"precipitation": value, "wind_speed_10m": 0, "wind_direction_10m": 0}, 2.0)
+        except (ValueError, TypeError) as e:
+>           pytest.fail(f"predict_spread raised {type(e).__name__}: {e}")
+E           Failed: predict_spread raised ValueError: cannot convert float NaN to integer
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_units.py:371: Failed
+_________ test_predict_spread_non_numeric_weather_fails_cleanly[None] _________
+
+value = None
+
+    @pytest.mark.parametrize("value", [float("nan"), None, "3"])
+    def test_predict_spread_non_numeric_weather_fails_cleanly(value):
+        """A non-numeric weather value must not crash with an obscure error deep in the model."""
+        m = np.zeros((40, 40), np.uint8)
+        m[18:22, 18:22] = 255
+        try:
+>           predict_spread(m, {"precipitation": value, "wind_speed_10m": 0, "wind_direction_10m": 0}, 2.0)
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_units.py:369: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+mask = array([[0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ...,
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0]], shape=(40, 40), dtype=uint8)
+weather_data = {'precipitation': None, 'wind_speed_10m': 0, 'wind_direction_10m': 0}
+horizon_hours = 2.0
+
+    def predict_spread(mask: np.ndarray, weather_data: dict, horizon_hours: float) -> np.ndarray:
+        """
+        Predicts the spread of floods using a simple morphological cellular automata approach
+        influenced by wind speed/direction and precipitation.
+    
+        Args:
+            mask: The current flood binary mask (numpy array, 255 for flood, 0 for dry).
+            weather_data: Dictionary containing 'precipitation', 'wind_speed_10m', 'wind_direction_10m'.
+            horizon_hours: How many hours into the future to predict (each hour is one CA iteration).
+    
+        Returns:
+            np.ndarray: The predicted flood mask.
+        """
+        if mask is None or mask.size == 0:
+            return mask
+    
+        # Initialize predicted mask
+        pred_mask = mask.copy()
+    
+        precip = weather_data.get("precipitation", 0.0)
+        wind_speed = weather_data.get("wind_speed_10m", 0.0)
+        # Meteorological wind direction is where the wind originates.
+        # To get where it's blowing TO, we add 180 degrees.
+        wind_dir_deg = weather_data.get("wind_direction_10m", 0.0) + 180.0
+        wind_dir_rad = math.radians(wind_dir_deg)
+    
+        # Base spread from precipitation
+        # 0 precip -> no isotropic spread. High precip -> more isotropic spread.
+        # Arbitrary heuristic: 1 pixel of spread per 5mm of precip per hour
+>       base_spread_pixels = max(0, int(precip / 5.0))
+                                        ^^^^^^^^^^^^
+E       TypeError: unsupported operand type(s) for /: 'NoneType' and 'float'
+
+src\weather\flood_spread.py:35: TypeError
+
+During handling of the above exception, another exception occurred:
+
+value = None
+
+    @pytest.mark.parametrize("value", [float("nan"), None, "3"])
+    def test_predict_spread_non_numeric_weather_fails_cleanly(value):
+        """A non-numeric weather value must not crash with an obscure error deep in the model."""
+        m = np.zeros((40, 40), np.uint8)
+        m[18:22, 18:22] = 255
+        try:
+            predict_spread(m, {"precipitation": value, "wind_speed_10m": 0, "wind_direction_10m": 0}, 2.0)
+        except (ValueError, TypeError) as e:
+>           pytest.fail(f"predict_spread raised {type(e).__name__}: {e}")
+E           Failed: predict_spread raised TypeError: unsupported operand type(s) for /: 'NoneType' and 'float'
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_units.py:371: Failed
+__________ test_predict_spread_non_numeric_weather_fails_cleanly[3] ___________
+
+value = '3'
+
+    @pytest.mark.parametrize("value", [float("nan"), None, "3"])
+    def test_predict_spread_non_numeric_weather_fails_cleanly(value):
+        """A non-numeric weather value must not crash with an obscure error deep in the model."""
+        m = np.zeros((40, 40), np.uint8)
+        m[18:22, 18:22] = 255
+        try:
+>           predict_spread(m, {"precipitation": value, "wind_speed_10m": 0, "wind_direction_10m": 0}, 2.0)
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_units.py:369: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+mask = array([[0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ...,
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0]], shape=(40, 40), dtype=uint8)
+weather_data = {'precipitation': '3', 'wind_speed_10m': 0, 'wind_direction_10m': 0}
+horizon_hours = 2.0
+
+    def predict_spread(mask: np.ndarray, weather_data: dict, horizon_hours: float) -> np.ndarray:
+        """
+        Predicts the spread of floods using a simple morphological cellular automata approach
+        influenced by wind speed/direction and precipitation.
+    
+        Args:
+            mask: The current flood binary mask (numpy array, 255 for flood, 0 for dry).
+            weather_data: Dictionary containing 'precipitation', 'wind_speed_10m', 'wind_direction_10m'.
+            horizon_hours: How many hours into the future to predict (each hour is one CA iteration).
+    
+        Returns:
+            np.ndarray: The predicted flood mask.
+        """
+        if mask is None or mask.size == 0:
+            return mask
+    
+        # Initialize predicted mask
+        pred_mask = mask.copy()
+    
+        precip = weather_data.get("precipitation", 0.0)
+        wind_speed = weather_data.get("wind_speed_10m", 0.0)
+        # Meteorological wind direction is where the wind originates.
+        # To get where it's blowing TO, we add 180 degrees.
+        wind_dir_deg = weather_data.get("wind_direction_10m", 0.0) + 180.0
+        wind_dir_rad = math.radians(wind_dir_deg)
+    
+        # Base spread from precipitation
+        # 0 precip -> no isotropic spread. High precip -> more isotropic spread.
+        # Arbitrary heuristic: 1 pixel of spread per 5mm of precip per hour
+>       base_spread_pixels = max(0, int(precip / 5.0))
+                                        ^^^^^^^^^^^^
+E       TypeError: unsupported operand type(s) for /: 'str' and 'float'
+
+src\weather\flood_spread.py:35: TypeError
+
+During handling of the above exception, another exception occurred:
+
+value = '3'
+
+    @pytest.mark.parametrize("value", [float("nan"), None, "3"])
+    def test_predict_spread_non_numeric_weather_fails_cleanly(value):
+        """A non-numeric weather value must not crash with an obscure error deep in the model."""
+        m = np.zeros((40, 40), np.uint8)
+        m[18:22, 18:22] = 255
+        try:
+            predict_spread(m, {"precipitation": value, "wind_speed_10m": 0, "wind_direction_10m": 0}, 2.0)
+        except (ValueError, TypeError) as e:
+>           pytest.fail(f"predict_spread raised {type(e).__name__}: {e}")
+E           Failed: predict_spread raised TypeError: unsupported operand type(s) for /: 'str' and 'float'
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_units.py:371: Failed
+_________________ test_predict_spread_non_finite_horizon[nan] _________________
+
+horizon = nan
+
+    @pytest.mark.parametrize("horizon", [float("nan"), float("inf")])
+    def test_predict_spread_non_finite_horizon(horizon):
+        m = np.zeros((20, 20), np.uint8)
+        try:
+>           predict_spread(m, {"precipitation": 0, "wind_speed_10m": 0, "wind_direction_10m": 0}, horizon)
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_units.py:378: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+mask = array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,...0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]],
+      dtype=uint8)
+weather_data = {'precipitation': 0, 'wind_speed_10m': 0, 'wind_direction_10m': 0}
+horizon_hours = nan
+
+    def predict_spread(mask: np.ndarray, weather_data: dict, horizon_hours: float) -> np.ndarray:
+        """
+        Predicts the spread of floods using a simple morphological cellular automata approach
+        influenced by wind speed/direction and precipitation.
+    
+        Args:
+            mask: The current flood binary mask (numpy array, 255 for flood, 0 for dry).
+            weather_data: Dictionary containing 'precipitation', 'wind_speed_10m', 'wind_direction_10m'.
+            horizon_hours: How many hours into the future to predict (each hour is one CA iteration).
+    
+        Returns:
+            np.ndarray: The predicted flood mask.
+        """
+        if mask is None or mask.size == 0:
+            return mask
+    
+        # Initialize predicted mask
+        pred_mask = mask.copy()
+    
+        precip = weather_data.get("precipitation", 0.0)
+        wind_speed = weather_data.get("wind_speed_10m", 0.0)
+        # Meteorological wind direction is where the wind originates.
+        # To get where it's blowing TO, we add 180 degrees.
+        wind_dir_deg = weather_data.get("wind_direction_10m", 0.0) + 180.0
+        wind_dir_rad = math.radians(wind_dir_deg)
+    
+        # Base spread from precipitation
+        # 0 precip -> no isotropic spread. High precip -> more isotropic spread.
+        # Arbitrary heuristic: 1 pixel of spread per 5mm of precip per hour
+        base_spread_pixels = max(0, int(precip / 5.0))
+        # Growth larger than the image diagonal already reaches every pixel; a larger element changes nothing but
+        # its size, which for implausible precipitation values would exhaust memory.
+        base_spread_pixels = min(base_spread_pixels, int(math.ceil(math.hypot(*mask.shape[:2]))) + 2)
+    
+        # Wind spread
+        # Arbitrary heuristic: 1 pixel of directional spread per 10km/h of wind
+        wind_spread_pixels = max(0, int(wind_speed / 10.0))
+    
+        dx = int(round(math.sin(wind_dir_rad) * wind_spread_pixels))
+        # Image y-axis is inverted (0 at top, positive down)
+        # North is negative y, South is positive y
+        # cos(0) = 1 (North), so in image coords this should be -1.
+        dy = int(round(-math.cos(wind_dir_rad) * wind_spread_pixels))
+    
+>       iterations = max(1, int(horizon_hours))
+                            ^^^^^^^^^^^^^^^^^^
+E       ValueError: cannot convert float NaN to integer
+
+src\weather\flood_spread.py:50: ValueError
+
+During handling of the above exception, another exception occurred:
+
+horizon = nan
+
+    @pytest.mark.parametrize("horizon", [float("nan"), float("inf")])
+    def test_predict_spread_non_finite_horizon(horizon):
+        m = np.zeros((20, 20), np.uint8)
+        try:
+            predict_spread(m, {"precipitation": 0, "wind_speed_10m": 0, "wind_direction_10m": 0}, horizon)
+        except (ValueError, OverflowError) as e:
+>           pytest.fail(f"non-finite horizon raised {type(e).__name__}: {e}")
+E           Failed: non-finite horizon raised ValueError: cannot convert float NaN to integer
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_units.py:380: Failed
+_________________ test_predict_spread_non_finite_horizon[inf] _________________
+
+horizon = inf
+
+    @pytest.mark.parametrize("horizon", [float("nan"), float("inf")])
+    def test_predict_spread_non_finite_horizon(horizon):
+        m = np.zeros((20, 20), np.uint8)
+        try:
+>           predict_spread(m, {"precipitation": 0, "wind_speed_10m": 0, "wind_direction_10m": 0}, horizon)
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_units.py:378: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+mask = array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,...0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]],
+      dtype=uint8)
+weather_data = {'precipitation': 0, 'wind_speed_10m': 0, 'wind_direction_10m': 0}
+horizon_hours = inf
+
+    def predict_spread(mask: np.ndarray, weather_data: dict, horizon_hours: float) -> np.ndarray:
+        """
+        Predicts the spread of floods using a simple morphological cellular automata approach
+        influenced by wind speed/direction and precipitation.
+    
+        Args:
+            mask: The current flood binary mask (numpy array, 255 for flood, 0 for dry).
+            weather_data: Dictionary containing 'precipitation', 'wind_speed_10m', 'wind_direction_10m'.
+            horizon_hours: How many hours into the future to predict (each hour is one CA iteration).
+    
+        Returns:
+            np.ndarray: The predicted flood mask.
+        """
+        if mask is None or mask.size == 0:
+            return mask
+    
+        # Initialize predicted mask
+        pred_mask = mask.copy()
+    
+        precip = weather_data.get("precipitation", 0.0)
+        wind_speed = weather_data.get("wind_speed_10m", 0.0)
+        # Meteorological wind direction is where the wind originates.
+        # To get where it's blowing TO, we add 180 degrees.
+        wind_dir_deg = weather_data.get("wind_direction_10m", 0.0) + 180.0
+        wind_dir_rad = math.radians(wind_dir_deg)
+    
+        # Base spread from precipitation
+        # 0 precip -> no isotropic spread. High precip -> more isotropic spread.
+        # Arbitrary heuristic: 1 pixel of spread per 5mm of precip per hour
+        base_spread_pixels = max(0, int(precip / 5.0))
+        # Growth larger than the image diagonal already reaches every pixel; a larger element changes nothing but
+        # its size, which for implausible precipitation values would exhaust memory.
+        base_spread_pixels = min(base_spread_pixels, int(math.ceil(math.hypot(*mask.shape[:2]))) + 2)
+    
+        # Wind spread
+        # Arbitrary heuristic: 1 pixel of directional spread per 10km/h of wind
+        wind_spread_pixels = max(0, int(wind_speed / 10.0))
+    
+        dx = int(round(math.sin(wind_dir_rad) * wind_spread_pixels))
+        # Image y-axis is inverted (0 at top, positive down)
+        # North is negative y, South is positive y
+        # cos(0) = 1 (North), so in image coords this should be -1.
+        dy = int(round(-math.cos(wind_dir_rad) * wind_spread_pixels))
+    
+>       iterations = max(1, int(horizon_hours))
+                            ^^^^^^^^^^^^^^^^^^
+E       OverflowError: cannot convert float infinity to integer
+
+src\weather\flood_spread.py:50: OverflowError
+
+During handling of the above exception, another exception occurred:
+
+horizon = inf
+
+    @pytest.mark.parametrize("horizon", [float("nan"), float("inf")])
+    def test_predict_spread_non_finite_horizon(horizon):
+        m = np.zeros((20, 20), np.uint8)
+        try:
+            predict_spread(m, {"precipitation": 0, "wind_speed_10m": 0, "wind_direction_10m": 0}, horizon)
+        except (ValueError, OverflowError) as e:
+>           pytest.fail(f"non-finite horizon raised {type(e).__name__}: {e}")
+E           Failed: non-finite horizon raised OverflowError: cannot convert float infinity to integer
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_units.py:380: Failed
+_______________ test_battery_fraction_nan_distance_is_not_free ________________
+
+    def test_battery_fraction_nan_distance_is_not_free():
+        """A NaN distance must not be treated as a free (zero-cost) leg."""
+        v = leg_battery_fraction(float("nan"))
+>       assert not (v == 0.0), "NaN distance consumed no battery"
+E       AssertionError: NaN distance consumed no battery
+E       assert not 0.0 == 0.0
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_units.py:421: AssertionError
+_______________ test_plan_mission_stops_capacity_below_one_drop _______________
+
+    def test_plan_mission_stops_capacity_below_one_drop():
+        """Payload capacity smaller than one package: must not crash with AssertionError."""
+        cur = np.zeros((50, 50), np.uint8)
+        try:
+>           r = plan_mission_stops((0, 0), [(10, 10)], {0.0: cur}, cur, capacity=0.1, per_drop_kg=0.25)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_units.py:458: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+home = (0, 0), drop_points = [(10, 10)]
+forecasts = {0.0: array([[0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ...,
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0]], shape=(50, 50), dtype=uint8)}
+current_mask = array([[0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ...,
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0]], shape=(50, 50), dtype=uint8)
+capacity = 0.1, per_drop_kg = 0.25, meters_per_pixel = 2.0, speed_mps = 5.0
+headwind_mps = 0.0, initial_battery = 1.0, reserve = 0.2
+routed_leg_distances_m = None
+
+    def plan_mission_stops(home, drop_points, forecasts, current_mask, *, capacity=None,
+                           per_drop_kg=None, meters_per_pixel=2.0, speed_mps=None,
+                           headwind_mps=0.0, initial_battery=None, reserve=None,
+                           routed_leg_distances_m=None):
+        """Build an executable stop sequence of closed sorties, checking flooding and battery.
+    
+        Each sortie departs HOME carrying one package per planned drop, delivers
+        them in TSP order (getting lighter after each drop) and returns to HOME.
+        A drop joins the current sortie only if the whole sortie, including the
+        return leg from that drop, stays within the battery reserve and payload
+        capacity; otherwise the sortie is closed with a return/reload and the drop
+        starts the next sortie. A drop that cannot be served by a single-drop
+        sortie from a full battery is marked unreachable. Flooded drops are moved
+        to the front once; if still flooded at arrival they are marked unreachable.
+    
+        ``headwind_mps`` is applied to every leg (worst case, direction unknown).
+        """
+        from src.weather.flood_spread import obstacle_mask_at, forecast_at
+        capacity = settings.PAYLOAD_CAPACITY_KG if capacity is None else capacity
+        per_drop_kg = settings.PAYLOAD_PER_DROP_KG if per_drop_kg is None else per_drop_kg
+        speed_mps = settings.DRONE_SPEED_MPS if speed_mps is None else speed_mps
+        initial_battery = settings.INITIAL_BATTERY_FRACTION if initial_battery is None else initial_battery
+        reserve = settings.BATTERY_RESERVE_FRACTION if reserve is None else reserve
+        if not drop_points:
+            msg = "mission infeasible — no reachable drop points"
+            logging.error(msg)
+            return PlannedRoute([tuple(map(int, home))], [], [], [], [float(initial_battery)], [msg])
+        home = tuple(map(int, home))
+        targets = [tuple(map(int, p)) for p in drop_points]
+        speed = max(speed_mps, .1)
+        routed = routed_leg_distances_m
+    
+        # Predict arrival at each target using its scheduled position and promote a
+        # target if its first estimate is flooded at the original visit time.
+        ranked = []
+        cursor = home
+        elapsed_s = 0.0
+        first_forecast_h = min((t for t in forecasts if t > 0), default=float("inf"))
+        for idx, target in enumerate(targets):
+            d = float(np.linalg.norm(np.asarray(target, float) - np.asarray(cursor, float))) * meters_per_pixel
+            arrival_h = elapsed_s / 3600.0 + d / speed / 3600.0
+            # Use current conditions for arrivals before the first forecast frame;
+            # never promote based on flooding that only appears later.
+            query_h = arrival_h if arrival_h >= first_forecast_h else 0.0
+            mask = obstacle_mask_at(forecasts, query_h, current_mask)
+            x, y = target
+            ranked.append((idx, bool(0 <= y < mask.shape[0] and 0 <= x < mask.shape[1] and mask[y, x] > 0)))
+            elapsed_s += d / speed
+            cursor = target
+        # Move forecast-flooded visits ahead; the subsequent actual arrival test is authoritative.
+        order = [i for i, flooded in ranked if flooded] + [i for i, flooded in ranked if not flooded]
+    
+        state = {"remaining": float(initial_battery), "clock_s": 0.0, "committed_legs": 0}
+        points = [home]
+        drops, reloads, unreachable, deviations = [], [], [], []
+        battery_history = [state["remaining"]]
+        sortie_battery = []
+    
+        def simulate(sortie):
+            """Fly ``sortie`` (drop ids) from HOME and back, starting at the current mission time."""
+            carried = per_drop_kg * len(sortie)
+            cursor, clock, total, legs = home, state["clock_s"], 0.0, []
+            for k, drop_id in enumerate(sortie):
+                target = targets[drop_id]
+                straight = float(np.linalg.norm(np.subtract(target, cursor))) * meters_per_pixel
+                distance = _routed_distance(routed, home, cursor, target, drop_id,
+                                            state["committed_legs"] + k, straight)
+                drain = leg_battery_fraction(distance, carried, headwind_mps)
+                clock += distance / speed
+                total += drain
+                legs.append({"drop": drop_id, "distance_m": distance, "drain": drain,
+                             "payload_kg": carried, "arrival_h": clock / 3600.0})
+                carried = max(0.0, carried - per_drop_kg)
+                cursor = target
+            straight = float(np.linalg.norm(np.subtract(home, cursor))) * meters_per_pixel
+            rtb_m = _routed_distance(routed, home, cursor, home, None, 0, straight)
+            rtb = leg_battery_fraction(rtb_m, carried, headwind_mps)
+            return {"legs": legs, "rtb_m": rtb_m, "rtb_drain": rtb, "total": total + rtb,
+                    "end_clock_s": clock + rtb_m / speed}
+    
+        def flooded_at_arrival(drop_id, arrival_h):
+            arrival_mask, forecast_info = forecast_at(forecasts, arrival_h, current_mask)
+            tx, ty = targets[drop_id]
+            inside = 0 <= ty < arrival_mask.shape[0] and 0 <= tx < arrival_mask.shape[1]
+            lo, hi = forecast_info["lower_hours"], forecast_info["upper_hours"]
+            lo_value = int(forecasts[lo][ty, tx]) if inside and lo in forecasts else None
+            hi_value = int(forecasts[hi][ty, tx]) if inside and hi in forecasts else None
+            current_value = int(current_mask[ty, tx]) if inside and current_mask is not None else None
+            sampled_value = int(arrival_mask[ty, tx]) if inside else None
+            is_flooded = (not inside) or bool(arrival_mask[ty, tx] > 0)
+            logging.info("Drop forecast check drop=%d point=(%d,%d) arrival_h=%.4f frame=%s [%.4f,%.4f] alpha=%s current_pixel=%s bracket_pixels=[%s,%s] raw_pixel=%s flooded=%s",
+                drop_id, tx, ty, arrival_h, forecast_info["source"],
+                lo if lo is not None else -1, hi if hi is not None else -1,
+                f"{forecast_info['alpha']:.3f}" if forecast_info["alpha"] is not None else "n/a",
+                current_value, lo_value, hi_value, sampled_value, is_flooded)
+            return is_flooded
+    
+        def reload(reason):
+            if points[-1] != home:
+                points.append(home)
+            reloads.append(len(points) - 1)
+            deviations.append(reason); log_deviation(reason)
+            state["remaining"] = 1.0
+            battery_history.append(1.0)
+            points.append(home)  # explicit re-departure waypoint in the route
+    
+        def commit(sim):
+            level = state["remaining"]
+            for leg in sim["legs"]:
+                level -= leg["drain"]
+                points.append(targets[leg["drop"]])
+                drops.append(len(points) - 1)
+                battery_history.append(level)
+                logging.info("Plan leg to drop %d at (%d, %d): dist=%.1fm, payload=%.2fkg, leg_drain=%.2f%%, "
+                             "remaining=%.2f%% (reserve=%.1f%%)", leg["drop"], *targets[leg["drop"]],
+                             leg["distance_m"], leg["payload_kg"], leg["drain"] * 100.0, level * 100.0,
+                             reserve * 100.0)
+            level -= sim["rtb_drain"]
+            battery_history.append(level)
+            used = state["remaining"] - level
+            sortie_battery.append(used)
+            logging.info("Sortie %d committed: drops=%s, outbound=%.2f%%, rtb=%.1fm/%.2f%%, "
+                         "total_with_rtb=%.2f%% (start=%.1f%%, end=%.1f%%, reserve=%.1f%%)",
+                         len(sortie_battery), [leg["drop"] for leg in sim["legs"]],
+                         (used - sim["rtb_drain"]) * 100.0, sim["rtb_m"], sim["rtb_drain"] * 100.0,
+                         used * 100.0, state["remaining"] * 100.0, level * 100.0, reserve * 100.0)
+            state["remaining"] = level
+            state["committed_legs"] += len(sim["legs"])
+            state["clock_s"] = sim["end_clock_s"]
+            points.append(home)
+    
+        sortie, sortie_sim = [], None
+        for idx in order:
+            if ranked[idx][1]:
+                msg = f"Drop {idx} reprioritized earlier because forecast showed flooding at initial arrival estimate."
+                deviations.append(msg); log_deviation(msg)
+            if sortie and per_drop_kg * (len(sortie) + 1) > capacity + 1e-9:
+                commit(sortie_sim); sortie, sortie_sim = [], None
+                reload(f"Payload capacity reached before drop {idx}; inserted return-to-home reload and re-departure.")
+            # Pre-commit check: the sortie including this drop AND the return leg
+            # from it must fit inside the usable battery.
+            sim = simulate(sortie + [idx])
+            if sortie and state["remaining"] - sim["total"] < reserve:
+                alone = simulate([idx])
+                if 1.0 - alone["total"] < reserve:
+                    # Not servable even alone from a full battery: do not close the
+                    # current sortie (a reload would buy nothing).
+                    unreachable.append(idx)
+                    msg = (f"Drop {idx} unreachable: single-drop sortie needs {alone['total']:.0%} battery "
+                           f"including return, violating the {reserve:.0%} reserve.")
+                    deviations.append(msg); log_deviation(msg)
+                    continue
+                commit(sortie_sim); sortie, sortie_sim = [], None
+                reload(f"Battery reserve would be breached before drop {idx}; inserted return-to-home and reload.")
+                sim = simulate([idx])
+            if state["remaining"] - sim["total"] < reserve:
+                if state["remaining"] < 1.0 - 1e-9 and 1.0 - sim["total"] >= reserve:
+                    reload(f"Battery reserve would be breached before drop {idx}; recharged at HOME before departure.")
+                else:
+                    unreachable.append(idx)
+                    msg = (f"Drop {idx} unreachable: single-drop sortie needs {sim['total']:.0%} battery "
+                           f"including return, violating the {reserve:.0%} reserve.")
+                    deviations.append(msg); log_deviation(msg)
+                    continue
+            arrival_h = sim["legs"][-1]["arrival_h"]
+            if flooded_at_arrival(idx, arrival_h):
+                unreachable.append(idx)
+                msg = f"Drop {idx} unreachable: point flooded at routed arrival +{arrival_h:.2f}h."
+                deviations.append(msg); log_deviation(msg)
+                continue
+            sortie, sortie_sim = sortie + [idx], sim
+            if per_drop_kg * len(sortie) > capacity + 1e-9:
+>               raise AssertionError("Payload capacity exceeded before reload insertion")
+E               AssertionError: Payload capacity exceeded before reload insertion
+
+src\mission\constraints.py:412: AssertionError
+
+During handling of the above exception, another exception occurred:
+
+    def test_plan_mission_stops_capacity_below_one_drop():
+        """Payload capacity smaller than one package: must not crash with AssertionError."""
+        cur = np.zeros((50, 50), np.uint8)
+        try:
+            r = plan_mission_stops((0, 0), [(10, 10)], {0.0: cur}, cur, capacity=0.1, per_drop_kg=0.25)
+        except AssertionError as e:
+>           pytest.fail(f"AssertionError: {e}")
+E           Failed: AssertionError: Payload capacity exceeded before reload insertion
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_units.py:460: Failed
+____________ test_api_weather_mutation_does_not_leak_through_cache ____________
+
+    def test_api_weather_mutation_does_not_leak_through_cache():
+        from unittest import mock
+        from src.weather import weather_api
+        weather_api.get_weather_data.cache_clear()
+        with mock.patch("src.weather.weather_api.requests.get", side_effect=weather_api.requests.RequestException("x")):
+            a = weather_api.get_weather_data(1.0, 2.0)
+            a["precipitation"] = 999
+            b = weather_api.get_weather_data(1.0, 2.0)
+        weather_api.get_weather_data.cache_clear()
+>       assert b["precipitation"] == 0.0, "cached weather dict was mutated by a caller"
+E       AssertionError: cached weather dict was mutated by a caller
+E       assert 999 == 0.0
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:405: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  src.weather.weather_api:weather_api.py:87 Weather API request failed: x. Using fallback weather data.
+=========================== short test summary info ===========================
+FAILED ::test_predict_spread_non_numeric_weather_fails_cleanly[nan] - Failed:...
+FAILED ::test_predict_spread_non_numeric_weather_fails_cleanly[None] - Failed...
+FAILED ::test_predict_spread_non_numeric_weather_fails_cleanly[3] - Failed: p...
+FAILED ::test_predict_spread_non_finite_horizon[nan] - Failed: non-finite hor...
+FAILED ::test_predict_spread_non_finite_horizon[inf] - Failed: non-finite hor...
+FAILED ::test_battery_fraction_nan_distance_is_not_free - AssertionError: NaN...
+FAILED ::test_plan_mission_stops_capacity_below_one_drop - Failed: AssertionE...
+FAILED ::test_api_weather_mutation_does_not_leak_through_cache - AssertionErr...
+8 failed, 167 passed in 2001.22s (0:33:21)

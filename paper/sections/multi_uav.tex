@@ -1,0 +1,91 @@
+\section{Multi-UAV Planning Mode (Approach B: Drone Fleet)}
+\label{sec:multi}
+
+Besides the single-UAV pipeline of Section~\ref{sec:method} (Approach A), \adapt{} provides an optional \emph{multi-base} mode, selected with the command-line option \texttt{-{}-mode multi} (Approach B). It selects up to $K$ launch bases, assigns every drop point to at most one base and plans one mission per base; each base corresponds to one UAV. The result is that every drone serves its own cluster of nearby flood regions. The clusters are not computed by a separate clustering algorithm such as $k$-means. They follow from where the bases are placed (Section~\ref{sec:multi}-E) and from assigning each drop point to the nearest base that can reach it. Section~\ref{sec:multires} measures how the regions are divided in practice. The mode shares stages A--F (scaling, segmentation, regions, weather, spread rule and obstacles) with the single-UAV pipeline and replaces stages G--K by the procedure below (Fig.~\ref{fig:modes}). Its algorithms are those of a reference implementation developed in parallel with this work; Section~\ref{sec:multires} shows that the integrated code reproduces that implementation's plans exactly on identical inputs.
+
+The mode is a \emph{planner}, not a swarm system. The vehicles do not communicate, share state or react to each other in flight. Their coordination is limited to a pre-flight check that the planned routes do not cross (Section~\ref{sec:multi}-G), and drops are assigned by a nearest-feasible rule without workload balancing.
+
+\input{figures/modes}
+
+\subsection{Forecast Frames and Arrival-Time Obstacles}
+The planner checks obstacles at the time a vehicle arrives. Algorithm~\ref{alg:spread} applies one iteration per hour, so its state after $k$ iterations serves as the forecast frame for $k$ hours: $F_0=M$ and $F_k$ is the output for horizon $k$, for $k=1,\dots,N$ with $N=\max(1,\lfloor T\rfloor)$. Frame $k$ is stamped $t_k=\min(k,T)$, and $F_N=\hat M$. For a query time $t_a\le t\le t_b$ between consecutive frames, a pixel $p$ is an obstacle if
+\begin{equation}
+(1-\alpha)\,\sigma_a(p)+\alpha\,\sigma_b(p)<0,\qquad \alpha=\frac{t-t_a}{t_b-t_a},
+\label{eq:front}
+\end{equation}
+where $\sigma$ is the signed Euclidean distance to a frame's flood boundary, negative inside. The flood front therefore advances linearly between frames. Times after the last frame use $F_N$. Base selection, connectivity and drop placement use $O=F_N$, the same obstacle set as the single-UAV mode.
+
+\subsection{Dry Drop Points}
+Hull vertices lie on $M$ and would be rejected as flooded by the battery planner below, so this mode places drops on dry pixels next to each region. Let $\bar R_i$ be the filled region and $B_r=(\bar R_i\oplus Q_{2r+1})\setminus O$ its free band of width $r$, where $Q_{2r+1}$ is a square element. With $r_{\max}=\max(2,\min(20,\lceil0.03\max(W',H')\rceil))$, let $r^\ast\le r_{\max}$ be the smallest $r$ for which $B_r\neq\emptyset$. The drop is the point of $B_{r^\ast}$ closest to the centroid polyline $\Gamma$, as in~\eqref{eq:drop}.
+
+A region of area $A\ge2500$~px$^2$ instead receives $n_i=\min(4,\,2+\lfloor(A-2500)/3000\rfloor)$ drops. For $j=0,\dots,n_i-1$, the contour vertex at fraction $j/n_i$ of the perimeter is an anchor, and its drop is the nearest point of $B_{r_{\max}}$ that lies at least 40~px from the region's earlier drops. An anchor without such a point gets no drop, and a region with no drop at all falls back to the single-point rule. All drops therefore lie outside $O$, within $r_{\max}$ display pixels of their region.
+
+\subsection{Battery and Payload Model}
+Battery use is modelled as a share of loaded endurance. A leg of length $\ell$ flown with payload $m$ against a headwind $w$ consumes
+\begin{equation}
+\beta(\ell,m,w)=\frac{\ell}{60\,v\,E}\,\big(1+c_m m+c_w w\big)
+\label{eq:battery}
+\end{equation}
+of a full battery, with cruise speed $v=5$~m/s, loaded endurance $E=7$~min, $c_m=0.08$~kg$^{-1}$ and $c_w=0.025$~s/m. Each drop carries $m_d=0.25$~kg, the payload capacity is 8~kg, and a sortie must end with at least $r=20\%$ of the battery left. The values are planning assumptions recorded in the configuration, derived from the published specification of a commercial 8-kg-payload multirotor; they have not been calibrated against any vehicle. The measured wind speed $V$ is applied as a headwind $w=V/3.6$~m/s on every leg, the worst case for unknown headings. Only the site score of Section~\ref{sec:multi}-E projects the wind onto each leg's heading. Reloading is assumed to be instantaneous.
+
+\subsection{Base Candidates and Routed Distances}
+Candidate sites are the pixels of a regular grid with stride $\lfloor\max(W',H')/40\rfloor$ that lie outside $O$ and at least 15~px from it, measured with a Euclidean distance transform. Distances are measured on a conservative \emph{routing grid}. $O$ is dilated by a $3\times3$ element, and a $5\times5$ block is blocked if any of its pixels is occupied. Unlike the single-UAV grid (Section~\ref{sec:dstar}), this grid cannot miss a flood strip that is thinner than a cell.
+
+For every drop, an 8-connected shortest-path field with step costs 1 and $\sqrt2$ is computed. The routed distance $\delta(b,d)$ is the field value at the cell of $b$, multiplied by $5k$~metres; it is infinite if the two cells are not connected. Points are mapped to cells by a component-aware rule. A free cell is kept. A blocked cell is moved, by breadth-first search over at most 4 cells, to a free cell (of a required component, where one is given) whose straight connector to the original pixel crosses no pixel of $O$.
+
+\subsection{Base Selection and Assignment}
+A drop $d$ is \emph{reachable} from a site $b$ if a single-drop sortie fits the usable battery, with $\beta$ from~\eqref{eq:battery}:
+\begin{equation}
+\beta\big(\delta(b,d),m_d,w\big)+\beta\big(\delta(b,d),0,w\big)\le1-r .
+\label{eq:reach}
+\end{equation}
+Drops that no candidate can reach are reported as unreachable. If one candidate reaches every remaining (\emph{coverable}) drop, a single base is used. It is the reaching candidate with the lowest \emph{score}: the flight time in hours plus the sum of sortie battery fractions of a greedy simulation that visits the drops in nearest-neighbour order by $\delta$ and closes a sortie before the reserve or the capacity would be exceeded. Otherwise, Algorithm~\ref{alg:bases} places up to $K$ bases (\texttt{MAX\_BASES}, default 4), at least 150~px apart.
+
+Each drop is assigned to exactly one base: \emph{the nearest base, by $\delta$, that can reach it}. There is no balancing of workload between bases. Drops left unassigned are reported together with the reason: no site reaches them, the cap was reached, or every site that reaches them is too close to a chosen base. Setting $K=1$ restricts the mode to a single base, that is, a single UAV.
+
+\begin{algorithm}[t]
+\caption{Base selection when no single site covers all drops}
+\label{alg:bases}
+\begin{algorithmic}[1]
+\REQUIRE candidates $\mathcal C$, coverable drops $D$, reach sets $\rho(c)$, cap $K$, separation $s$
+\ENSURE bases $\mathcal B$ and assignment $a: D'\to\mathcal B$, $D'\subseteq D$
+\STATE $\mathcal B\gets\emptyset$; $a\gets\emptyset$
+\REPEAT
+  \STATE $U\gets D\setminus\operatorname{dom}(a)$
+  \WHILE{$U\neq\emptyset$ \AND $|\mathcal B|<K$}
+    \STATE pick $c\in\mathcal C\setminus\mathcal B$ at least $s$ from every base, maximising $|\rho(c)\cap U|$, then minimising $\sum_{d\in\rho(c)\cap U}\delta(c,d)$; stop if none covers a drop of $U$
+    \STATE $\mathcal B\gets\mathcal B\cup\{c\}$; $U\gets U\setminus\rho(c)$
+  \ENDWHILE
+  \STATE $a(d)\gets\arg\min_{b\in\mathcal B,\,d\in\rho(b)}\delta(b,d)$ for every coverable $d$
+  \FOR{up to 3 rounds, until nothing changes}
+    \STATE move each base to the lowest-score candidate that reaches all its drops and keeps distance $s$ from the other bases; recompute $a$
+  \ENDFOR
+  \STATE remove bases without drops
+\UNTIL{$D\subseteq\operatorname{dom}(a)$, or no change, or $K$ passes}
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Per-Base Mission Planning}
+Each base is planned independently with the single-UAV machinery and three additions.
+\begin{enumerate}
+\item \emph{Connectivity.} Drops outside the base's free component of the routing grid are excluded and reported.
+\item \emph{Sorties.} Drops are ordered by the nearest-neighbour heuristic from the base and grouped into closed sorties. A drop joins the current sortie only if the whole sortie, including that drop and the return to the base, keeps the remaining battery at or above $r$ and the payload within capacity. Otherwise the sortie is closed with a return and a reload, which resets the battery to full, and the drop starts the next sortie. The payload falls by $m_d$ at each drop. A drop that a single-drop sortie from a full battery cannot serve, or that is flooded (by~\eqref{eq:front}) at its estimated arrival time, is reported as unreachable. Drops predicted to be flooded at their first arrival estimate are moved to the front of the order once.
+\item \emph{Routing.} Each leg is planned with D*~Lite (Section~\ref{sec:dstar}) on the conservative grid of the obstacle mask at the leg's estimated arrival time. The arrival time is estimated as the routed length of the preceding legs plus the straight length of the current leg, divided by $v$. Endpoints are resolved with the component-aware rule above. A leg whose endpoints are not in one free component, or for which D*~Lite returns no complete path, is flown as a straight segment and logged together with the number of obstacle pixels it crosses.
+\end{enumerate}
+Sorties are first built from straight-line leg lengths. Routing and sortie construction then alternate, each pass replacing straight lengths by the routed lengths of legs already planned, until the stop sequence repeats or after at most $\min(6,n+2)$ passes. Finally, battery use is recomputed along the routed geometry and logged for every sortie.
+
+\subsection{Route-Crossing Check and Repair}
+Because bases are planned independently, their routes can cross. All pairs of routes are tested for segment intersections, including collinear overlaps; the zero-length segments at reload stops are ignored. While a crossing remains, for at most five rounds, the first crossing pair is repaired with the first applicable tier:
+\begin{enumerate}
+\setcounter{enumi}{-1}
+\item \emph{Reassignment.} If every drop of one crossing sortie is reachable from the other base, those drops are moved to it (the smaller move first), and both bases are re-planned.
+\item \emph{Rerouting.} The crossing leg of one route is re-planned with D*~Lite, with the cells of the other route's crossing legs added as obstacles (first with a one-cell buffer, then without). The new leg is accepted only if it crosses no pixel of the arrival-time obstacle mask, keeps every sortie within the battery limit, reduces the number of crossings and creates none with a third base.
+\item \emph{Nudging.} A base is moved by up to 50~px in 5-px steps, nearest first, to a site that keeps the clearance and the separation and still reaches all its drops. It is re-planned, and the move is accepted if the new route crosses no other route.
+\end{enumerate}
+If crossings remain, the run exits with status~2 and writes no mission. The check is purely geometric. All vehicles fly at the same cruise altitude, and no timing, vertical separation or minimum lateral distance between routes is enforced.
+
+\subsection{Output}
+After the check, one WPL~110 mission per base is written. It uses the encoding of Table~\ref{tab:mission}, with a LAND and a TAKEOFF at the base for every reload. Each mission is validated at run time, and a mission that fails is deleted. Each is also accompanied by a route file for the independent validator of Section~\ref{sec:verif}, and a run summary records the assignment, the unreachable drops and their reasons, and the battery use of every sortie. Every run writes to a new session folder, so it cannot overwrite an earlier mission or be confused with one. As a diagnostic, a territory map assigns each grid cell to the base whose service points (the base and its visited drops) are nearest by routed distance; the run checks that every drop lies in its own base's territory.
+
+\subsection{Relation to the Single-UAV Mode}
+The two modes differ in more than the number of vehicles. The multi-base mode places drops on dry ground beside the flood rather than on its boundary. It launches from a flood-clear base rather than from a drop point, constrains sorties by battery and payload, and routes on a conservative, time-dependent grid. It also reports disconnected drops instead of flying straight across obstacles to them. Its $K=1$ configuration is therefore the single-UAV baseline for multi-UAV comparisons (Section~\ref{sec:multires}); it is not the single-UAV mode of Section~\ref{sec:method}.

@@ -23,11 +23,11 @@ Assam & $1048\times739$ & $750\times529$ & thematic hazard map (5 classes, river
 \end{table}
 
 \subsection{Setup and Protocol}
-All experiments run the unmodified pipeline entry point on a laptop with an Intel Core i5-12500H CPU and 31.7~GiB RAM, under Windows~11 with Python~3.11.9, NumPy~2.4.6 and OpenCV~5.0.0, using the repository defaults (Table~\ref{tab:config}). Only three substitutions are made, all outside the pipeline code. Colour sampling is performed by a deterministic \emph{simulated operator} that clicks the centroids of the $K=8$ largest connected components of strongly saturated red pixels ($H\le5$ or $H\ge175$; $S,V>180$). Display windows are suppressed and their contents captured. The mission is written to the experiment folder instead of the default output path. All three maps use the repository's default geographic configuration, $(\varphi_0,\lambda_0)=(25.3176^\circ,82.9739^\circ)$ and $\rho=2.0$~m/px. All scripts, raw results and figure generators are provided with the paper (Data Availability).
+All experiments run the unmodified pipeline entry point on a laptop with an Intel Core i5-12500H CPU and 31.7~GiB RAM, under Windows~11 with Python~3.11.9, NumPy~2.4.6 and OpenCV~5.0.0, using the repository defaults (Table~\ref{tab:config}). Only three substitutions are made, all outside the pipeline code. Colour sampling is performed by a deterministic \emph{simulated operator} that clicks the centroids of the $K=8$ largest connected components of strongly saturated red pixels ($H\le5$ or $H\ge175$; $S,V>180$). Display windows are suppressed and their contents captured. The mission is written to the experiment folder instead of the default output path. All three maps use the repository's default geographic configuration, $(\varphi_0,\lambda_0)=(25.3176^\circ,82.9739^\circ)$ and $\rho=2.0$~m/px. Unless stated otherwise, results refer to the single-UAV mode; the multi-base mode is evaluated separately in Section~\ref{sec:multires}. All scripts, raw results and figure generators are provided with the paper (Data Availability).
 
 \begin{table}[t]
 \centering
-\caption{Pipeline configuration used in all experiments (repository defaults).}
+\caption{Pipeline configuration used in all experiments (repository defaults). The multi-base experiment additionally uses a moderate weather preset (3 mm, 12 km/h, 270$^\circ$).}
 \label{tab:config}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
@@ -44,6 +44,12 @@ Reference $(\varphi_0,\lambda_0)$ & $25.3176^\circ$, $82.9739^\circ$\\
 Scale $\rho$ & 2.0 m/px\\
 Cruise / drop altitude; loiter & 100 / 10 m; 5 s\\
 Servo channel; PWM & 9; 2000~$\mu$s\\
+\midrule
+\multicolumn{2}{@{}l}{\emph{Multi-base mode only (Section~\ref{sec:multi})}}\\
+Base cap $K$; separation; clearance & 4; 150 px; 15 px\\
+Speed $v$; endurance $E$; $c_m$; $c_w$ & 5 m/s; 7 min; 0.08/kg; 0.025 s/m\\
+Payload per drop; capacity; reserve $r$ & 0.25 kg; 8 kg; 20\%\\
+Large region; extra drop per; max.\ drops & 2500 px$^2$; 3000 px$^2$; 4\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -59,6 +65,7 @@ Table~\ref{tab:e2e} and Fig.~\ref{fig:pipeline} summarise the end-to-end runs. A
 \item \emph{Segmentation failure on the thematic map.} For Assam, the sampled patches include white background, $\ell_S$ falls to $0$ and achromatic pixels pass the red hue test (Section~\ref{sec:method}-B). Of the image, 83.1\% is labelled flood, the whole map becomes a single region, and both endpoints of the only (zero-length) leg remain inside obstacles. The resulting 10-item mission is structurally valid but meaningless.
 \item \emph{Geography.} All missions lie within about 2~km of the default reference, irrespective of the map content (Section~\ref{sec:geovalid}).
 \end{enumerate}
+Figs.~\ref{fig:sim-input} and~\ref{fig:sim-single} are reserved for the corresponding screenshots from the authors' own runs.
 
 \begin{table}[t]
 \centering
@@ -91,6 +98,22 @@ Share of runtime in planning & 99.4\% & 99.6\% & --\\
 \caption{Pipeline stages for the Varanasi map. (a) Input after display scaling (third-party map; see Data Availability). (b) Flood mask $M$. (c) Obstacles: $M$ (blue) and predicted-only pixels $\hat M\setminus M$ (orange). (d) Drop points, HOME, nearest-neighbour order (dashed), planned route (green) and the 8 no-path legs flown as straight segments (red).}
 \label{fig:pipeline}
 \end{figure*}
+
+\begin{figure*}[t]
+\centering
+\begin{minipage}[t]{0.32\textwidth}\centering\simplaceholder{INPUT FLOOD MAP}{0.93\linewidth}{3.6cm}\\[2pt]{\footnotesize (a)}\end{minipage}\hfill
+\begin{minipage}[t]{0.32\textwidth}\centering\simplaceholder{FLOOD REGION DETECTION}{0.93\linewidth}{3.6cm}\\[2pt]{\footnotesize (b)}\end{minipage}\hfill
+\begin{minipage}[t]{0.32\textwidth}\centering\simplaceholder{SAFE DROP POINTS}{0.93\linewidth}{3.6cm}\\[2pt]{\footnotesize (c)}\end{minipage}
+\caption{Reserved for screenshots from the authors' own run of the pipeline. (a) Input flood map. (b) Detected flood regions (mask and contours). (c) Drop points: hull vertices on the region boundary in the single-UAV mode, dry points beside the regions in the multi-base mode. [To be inserted by the authors.]}
+\label{fig:sim-input}
+\end{figure*}
+
+\begin{figure}[t]
+\centering
+\simplaceholder{SINGLE-UAV OPTIMIZED ROUTE}{0.93\columnwidth}{4.2cm}
+\caption{Reserved for Approach A (one drone, single-UAV mode) from the authors' run: the route visiting every drop point in nearest-neighbour order with per-leg D*~Lite. The order is a heuristic and is not optimal (Section~\ref{sec:baselines}). [To be inserted by the authors.]}
+\label{fig:sim-single}
+\end{figure}
 
 \subsection{Ablation: Predicted-Flood Obstacles}
 Table~\ref{tab:ablation} and Fig.~\ref{fig:ablation} compare planning on $O=M\cup\hat M$ with planning on $M$ alone. Predicted-only pixels cover 7.7\% (Varanasi) and 14.0\% (Kanpur) of the image. Without predicted obstacles, 33.8\% and 47.9\% of the route length lies over predicted-only area. With them, exposure falls to 17.9\% and 11.6\%. Exposure does not reach zero because the no-path legs fly straight. The same inflation, however, causes \emph{all} no-path legs: there are none with $M$ alone, against 8 and 6 with $O$. It also increases planning time by a factor of 2.2--2.9, and for Varanasi it slightly increases exposure to the current flood (3.4\% to 4.8\%). The prediction stage is therefore not uniformly beneficial: in its current form, the benefit it is designed for comes with a loss of planner completeness.
@@ -173,6 +196,69 @@ Runtime D*~Lite / A* (s) & 12.67 / 0.21 & 30.83 / 0.28 & \\
 \end{tabular}
 \end{table}
 
+\subsection{One Drone vs.\ a Drone Fleet (Single- vs.\ Multi-UAV Planning)}
+\label{sec:multires}
+\emph{Protocol.} The multi-base mode (Section~\ref{sec:multi}) was run on the three maps with the simulated operator, under the dummy weather and under a moderate preset (3~mm, 12~km/h, $270^\circ$), with base caps $K\in\{1,2,3,4\}$ (24 runs). For a given map and weather, all caps share the drop points, the obstacles and the vehicle model, so $K$ is the only variable. $K=1$ is the single-UAV case, in which one vehicle flies all sorties from one base. All metrics are read from each run's own outputs, and every exported mission was re-checked by the independent validator against its route file. The \emph{estimated completion time} is the routed length of the longest mission divided by $v=5$~m/s. It assumes that all vehicles launch together and excludes take-off, landing, drop manoeuvres and reload turnaround, so it is a lower bound rather than a prediction of mission time. Table~\ref{tab:multiuav} gives the results, and Figs.~\ref{fig:sim-multi} and~\ref{fig:sim-compare} are reserved for the corresponding maps from the authors' runs.
+
+\input{figures/tab_multi_uav}
+
+\emph{Feasibility and safety checks.} Of the 24 runs, 20 produced missions, 43 in total. In these runs:
+\begin{itemize}
+\item all 43 missions pass the validator with no errors;
+\item no two routes of a run cross, so no repair was needed;
+\item no leg was flown as a straight fallback, and no route pixel lies in the detected flood;
+\item every visited drop lies in its own base's territory;
+\item the largest routed sortie uses 79.6\% of the battery, against the 80\% limit.
+\end{itemize}
+The four Assam runs under moderate weather end with status~2, because no base site reaches any drop. Under dummy weather, Assam has one base and visits 1 of 4 drops for every $K$. Both outcomes follow from the segmentation failure of Section~\ref{sec:e2e}.
+
+\emph{Coverage.} A base can only serve drops within one single-drop sortie~\eqref{eq:reach}. That is about 832~m of routed distance in calm air, 768~m under the moderate wind and 690~m under the dummy wind, or roughly 300 and 270 display pixels at the Varanasi scale. Adding bases therefore mainly adds coverage. From $K=1$ to $K=4$, the visited drops rise as follows:
+\begin{itemize}
+\item under dummy weather, from 6 to 12 of 22 (Varanasi) and from 10 to 23 of 41 (Kanpur);
+\item under moderate weather, from 10 to 18 and from 17 to 34.
+\end{itemize}
+Every unvisited drop is reported. In all but two runs, the reason is that no admissible base reaches it within the cap; in two Kanpur runs, the sortie planner rejected one assigned drop. The stronger dummy wind shortens the reach and lowers coverage at every $K$. Because the visited sets differ, total route length does not compare efficiency like for like. It grows with $K$ because more drops are served and each base flies its own return legs.
+
+\emph{Division of work into clusters.} To see how Approach B divides the map, every drop point was attributed to its flood region in each run. The flood regions were recomputed exactly as in the run, and each drop point was matched to the nearest region contour. In the 12 runs with more than one drone, 190 of the 206 flood regions that received a delivery were served by a single drone, and each drone served a cluster of 2 to 18 neighbouring regions. The remaining 16 regions, all large regions with drop points on several sides, were shared by two drones. One drone per cluster is therefore what the planner produces in practice, although it is not imposed.
+
+\emph{Workload.} The nearest-feasible assignment does not balance work. On Kanpur under moderate weather, the drops per UAV are as follows:
+\begin{itemize}
+\item $K=1$: 17;
+\item $K=2$: 17 and 8;
+\item $K=3$: 17, 7 and 6;
+\item $K=4$: 15, 7, 6 and 6.
+\end{itemize}
+The longest mission therefore stays at 11.0~km, and the completion estimate at 37~min, up to $K=3$; the estimate falls to 28~min only at $K=4$. On Varanasi under moderate weather, the longest mission falls from 10.3 to 6.4~km and the completion estimate from 34 to 21~min, using three of the four permitted bases.
+
+\emph{Choosing an approach.} The planner chooses between one drone and a fleet by itself. If one base site reaches every reachable drop point within battery range, it returns a single base even when $K>1$; Assam under dummy weather shows this. A fleet is therefore used only where one drone cannot cover the map, and there it served up to twice as many drops (Kanpur, moderate weather: 17 to 34). The single-UAV mode of Section~\ref{sec:method} (Approach A) delivers to every region in one tour: 16 and 33 drops on Varanasi and Kanpur (Table~\ref{tab:e2e}). However, it has no endurance check. Its routes of 5.66 and 18.78~km at the configured scale exceed what one battery of the fleet mode's vehicle model allows (about 2.1~km at 5~m/s in 7~min). For a battery-limited vehicle, the one-drone baseline is therefore the $K=1$ configuration of the multi-base mode.
+
+\emph{Scale dependence.} These coverage figures hold only for the configured scale. The $K=4$, moderate-weather runs were repeated at the landmark-estimated scales of Section~\ref{sec:geovalid} (93 and 130~m/px). At those scales a single-drop sortie spans only 6.4 and 4.5 display pixels, every drop is unreachable, and both runs end with status~2.
+
+\emph{Runtime.} A feasible run took between about 10~s and 3~min on the evaluation laptop. These are single measurements, taken with several runs executing in parallel.
+
+\emph{Equivalence with the reference implementation.} To check that integrating the mode preserved its behaviour, both implementations were run on Varanasi and Kanpur with identical inputs:
+\begin{itemize}
+\item the same operator samples and weather;
+\item the same ground size of a display pixel, 2~m (the reference does not compensate for display scaling, so its scale was matched explicitly);
+\item for non-calm weather, the reference implementation's own forecast frames, because the reference uses a different spread rule.
+\end{itemize}
+Three cases were compared: calm weather on both maps, and a moderate-weather Varanasi case in which two reassignment repairs occur. In all three, the base positions, the assignment, every route point and every drop and reload index are identical. Assam could not be compared, because the reference rejects its flood mask (83\% coverage) before planning.
+
+\begin{figure*}[t]
+\centering
+\begin{minipage}[t]{0.48\textwidth}\centering\simplaceholder{MULTI-UAV TASK ALLOCATION}{0.95\linewidth}{4.6cm}\\[2pt]{\footnotesize (a)}\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}\centering\simplaceholder{MULTI-UAV ROUTES}{0.95\linewidth}{4.6cm}\\[2pt]{\footnotesize (b)}\end{minipage}
+\caption{Reserved for Approach B (drone fleet, multi-base mode) on one map from the authors' run. (a) Selected bases, with the cluster of drop points assigned to each drone and the unreachable drops (logged assignment table and run summary). (b) Per-base routes with outbound and return legs of every sortie, reload stops and base territories, as rendered by the mode (\texttt{mission\_route\_map.png}). [To be inserted by the authors.]}
+\label{fig:sim-multi}
+\end{figure*}
+
+\begin{figure}[t]
+\centering
+\simplaceholder{SINGLE VS MULTI UAV}{0.93\columnwidth}{4.2cm}
+\caption{Reserved for a side-by-side comparison of the two approaches on the same mission: one drone ($K=1$) and a fleet of up to four drones ($K=4$) planned by the multi-base mode, or a chart of Table~\ref{tab:multiuav}. [To be inserted by the authors.]}
+\label{fig:sim-compare}
+\end{figure}
+
 \subsection{Geospatial and Mission Verification}
 \label{sec:verres}
 Table~\ref{tab:verif} summarises the verification results; Fig.~\ref{fig:geodesy} shows resize consistency and model error. Every result in this subsection concerns \emph{software correctness}, that is, whether the code computes what its model specifies. None of it shows that the generated coordinates match real places.
@@ -181,7 +267,15 @@ Table~\ref{tab:verif} summarises the verification results; Fig.~\ref{fig:geodesy
 \item \emph{Round trips and edge cases.} Of 100\,000 randomised round trips through a test-only inverse, covering mid-latitudes, near-polar and near-antimeridian references, image sizes and scales from 0.05 to 633~m/px, 98\,789 are representable and agree within $6.8\times10^{-8}$~px; the remaining 1\,211 are correctly rejected.
 \item \emph{Mission correspondence.} Every row of the three missions (1\,519 rows in total) matches an independent conversion of its source pixel within $3.6\times10^{-15}$~degrees. Traced back to the original image, the deviation is at most 0.57~m, entirely north--south and explained by the rounding of $H'$.
 \item \emph{Resize consistency.} A synthetic three-region map run at nine display widths (300 to 2400~px, odd and even) yields drops at the same physical corners. They deviate from the model by at most one display pixel, and by $7\times10^{-10}$~m when no resizing occurs.
-\item \emph{Mutation testing.} 22 of 24 injected defects are detected by the 126-test suite. The two surviving mutants are behaviour-equivalent: one removes a redundant finiteness guard, the other repeats a conversion.
+\item \emph{Mutation testing.} 31 of 33 injected defects are detected by the 231-test suite. Of the 24 defects in the geospatial and mission layers, 22 are detected; all 9 defects injected into the multi-base integration are detected, for example an uncompensated display scale, a disabled crossing gate, a missing reload stop or a stale reach set after nudging. The two surviving mutants are behaviour-equivalent: one removes a redundant finiteness guard, the other repeats a conversion.
+\item \emph{Adversarial testing.} A separate QA pass combined three kinds of test: property-based tests (for example, D*~Lite against Dijkstra on random grids, and the crossing test against a brute-force check), about 110 end-to-end runs on pathological inputs, and 500 seeded random scenarios checked against the multi-base invariants. It found ten defects, all now corrected:
+\begin{itemize}
+\item crashes on non-finite command-line values, on incomplete weather data and on invalid environment variables;
+\item an excessive memory request for implausible precipitation values;
+\item drops of a base without a route that were missing from the run summary;
+\item coincident drop points that the repair step split between two bases.
+\end{itemize}
+None of the corrections changes a mission generated in the experiments above.
 \end{itemize}
 During verification, the procedure exposed and led to the correction of defects in the original implementation: scale was not compensated after resizing, servo parameters were in the wrong slots, the region chosen as HOME received no delivery, the reference pixel was off by half a pixel, and invalid or polar inputs silently produced invalid coordinates. All results reported here use the corrected code.
 
@@ -196,16 +290,19 @@ During verification, the procedure exposed and led to the correction of defects 
 Check & Result\\
 \midrule
 \multicolumn{2}{@{}l}{\emph{Software correctness (performed)}}\\
-Automated tests (incl.\ adversarial) & 126 + 494 subtests pass\\
+Automated tests (incl.\ adversarial) & 231 + 520 subtests pass\\
 Oracle vs.\ published geodesic & $\le$1 mm, $\le$0.01$''$\\
 Implementation vs.\ model (synthetic) & $\le1.4\times10^{-14}$ deg\\
 Model vs.\ WGS84, $\le$7.1 km offsets, 25$^\circ$ & $\le$25.9 m\\
 Round trips (98\,789 compared) & max $6.8\times10^{-8}$ px\\
 Mission rows vs.\ source pixels (1\,519) & $\le3.6\times10^{-15}$ deg\\
 Resize, 9 display widths & $\le$1 display px\\
-Mutants detected & 22/24 (2 equivalent)\\
+Mutants detected & 31/33 (2 equivalent)\\
 Validator attack cases & 36 pass\\
-Generated missions (3 maps) & 0 errors, 0 warnings\\
+Single-UAV missions (3 maps) & 0 errors, 0 warnings\\
+Multi-base missions (20 runs, 43 files) & 0 errors, no crossings\\
+Multi-base plans vs.\ reference (3 cases) & identical\\
+Fuzzed end-to-end scenarios (500) & 0 invariant violations\\
 \midrule
 \multicolumn{2}{@{}l}{\emph{Validation beyond software correctness}}\\
 Geographic validity of supplied maps & not established\\
@@ -228,4 +325,16 @@ Hardware-in-the-loop / physical flight & not performed\\
 To test whether the configured geography could describe the maps, a similarity transform was fitted between visible place-name labels and approximate public coordinates of those towns. This was done for 5, 10 and 12 labels on the Varanasi, Kanpur and Assam maps; the label positions were read off by eye. The estimate is a plausibility check, not a georeference. Residuals are 15--26~px and the rotations are $-0.5^\circ$, $-1.0^\circ$ and $-4.8^\circ$. The fitted scales are about 93, 130 and 633~m/px, which is 46, 65 and 317 times the configured 2.0~m/px. The default reference lies 23~km, 319~km and about 1\,000~km from the estimated image centres. At those extents, the flat-earth model itself would err by up to 345~m, 563~m and 7.7~km (Fig.~\ref{fig:geodesy}b), and the maps' web-Mercator basemaps violate the uniform-scale assumption \cite{battersby2014implications}. The generated missions are therefore \emph{not} geographically meaningful for these maps. The cause lies in the inputs and configuration, not in the conversion code.
 
 \subsection{Mission Semantics}
-The command parameters were audited against the MAVLink definitions and the ArduPilot and PX4 documentation \cite{mavlink_common,mavlink_mission,ardupilot_missioncmds,px4_missions}; the findings are given in Section~\ref{sec:method}-K and Section~\ref{sec:limits}. The lower block of Table~\ref{tab:verif} separates what has and has not been validated.
+The command parameters were audited against the MAVLink definitions and the ArduPilot and PX4 documentation \cite{mavlink_common,mavlink_mission,ardupilot_missioncmds,px4_missions}; the findings are given in Section~\ref{sec:method}-K and Section~\ref{sec:limits}. The lower block of Table~\ref{tab:verif} separates what has and has not been validated. The reload stop of the multi-base mode, a LAND followed by a TAKEOFF at the base, was not covered by this audit. Whether an autopilot resumes the mission after an intermediate LAND depends on its configuration, for example disarming after landing, and must be established in simulation.
+
+\subsection{Simulation and Mission Execution}
+\label{sec:sim}
+No simulation or ground-station execution has been performed for this manuscript (Table~\ref{tab:verif}). Fig.~\ref{fig:sim-exec} reserves space for the planned check. Each exported mission (one file in the single-UAV mode, one file per base in the multi-base mode) is to be loaded in QGroundControl or Mission Planner and flown in ArduPilot SITL, with one simulated vehicle per base in the multi-base mode. The check should confirm that every item is accepted, that the servo actuates at each drop, how the reload LAND/TAKEOFF pair behaves, and how the vehicle executes RTL. Until it has been carried out, the operational-validity statements of Section~\ref{sec:limits} apply unchanged.
+
+\begin{figure*}[t]
+\centering
+\begin{minipage}[t]{0.48\textwidth}\centering\simplaceholder{UAV SIMULATION}{0.95\linewidth}{4.6cm}\\[2pt]{\footnotesize (a)}\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}\centering\simplaceholder{MISSION EXECUTION}{0.95\linewidth}{4.6cm}\\[2pt]{\footnotesize (b)}\end{minipage}
+\caption{Reserved for the planned simulation check (Section~\ref{sec:sim}; not yet performed). (a) The simulated vehicle(s) in ArduPilot SITL flying an exported mission. (b) Mission execution as shown by the ground station (QGroundControl or Mission Planner), including a payload drop. [To be inserted by the authors after the SITL runs; the text must then be updated to report their outcome.]}
+\label{fig:sim-exec}
+\end{figure*}

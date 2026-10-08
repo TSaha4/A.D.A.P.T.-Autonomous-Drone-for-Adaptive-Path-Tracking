@@ -1,8 +1,18 @@
 # A.D.A.P.T. — Autonomous Drone for Adaptive Path Tracking
 
-A.D.A.P.T. converts a flood-annotated map image and current weather into a UAV relief mission in
-QGroundControl `QGC WPL 110` format. The mission takes off from a home point, visits one drop point
-on the boundary of every flooded region, releases a payload at each, and returns home.
+A.D.A.P.T. converts a flood-annotated map image and current weather into UAV relief missions in
+QGroundControl `QGC WPL 110` format. It offers two approaches:
+
+- **Approach A: one drone (single-UAV mode, default).** One mission: the drone takes off from a home
+  point, visits one drop point on the boundary of every flooded region, releases a payload at each,
+  and returns home.
+- **Approach B: a fleet of drones (multi-UAV mode, `--mode multi`).** Up to `MAX_BASES` launch bases
+  are chosen (one drone each). Every drop point is assigned to the nearest base that can serve it
+  within a battery model, so each drone serves the **cluster of flood regions around its own base**.
+  In the experiments, 190 of 206 served regions went to a single drone. Each drone gets its own
+  mission, with battery- and payload-limited sorties and reload stops. Plans whose routes cross are
+  repaired or rejected. The drones are coordinated before flight only, not as a communicating swarm.
+  See [Multi-UAV mode](#multi-uav-mode).
 
 > **Status: research prototype — not flight-ready.** The geospatial and mission-generation code is
 > extensively verified in software. However, the bundled sample maps are **not georeferenced**, and no
@@ -59,12 +69,18 @@ main.py                     CLI entry point (runs the whole pipeline)
 config/settings.py          configuration from environment / .env
 src/vision/                 image_processing.py (HSV sampling, mask, contours), clustering.py (hulls, centroids)
 src/weather/                weather_api.py (Open-Meteo client + fallback), flood_spread.py (spread rule)
-src/mission/                safe_dropzone.py, coordinates.py (pixel -> lat/lon), mission_output.py (WPL writer, plot)
-src/routing/                pathfinding.py (NN ordering, snapping, per-leg planning), dstarlite.py (D* Lite)
+src/mission/                safe_dropzone.py (drop points, connectivity filter), coordinates.py (pixel -> lat/lon),
+                            mission_output.py (WPL writer + run-time check, single- and multi-base maps)
+                            multi_base.py (base selection, assignment), constraints.py (battery/payload model,
+                            sortie planning), overlap_repair.py (route-crossing repair)   [multi-UAV mode]
+src/routing/                pathfinding.py (NN ordering, snapping, per-leg planning; routing grid, routed
+                            distances, time-aware router and crossing test for the multi-UAV mode), dstarlite.py
 data/input/                 sample maps (varanasi.png, kanpur.png, assam.png) and dummy_weather.json
-data/output/                generated mission (enriched_drone_mission.waypoints)
+data/output/                single-UAV mission (enriched_drone_mission.waypoints); multi-UAV session_<time>/ folders
 tests/                      test suite, independent geodesy reference and mission validator
 scripts/                    test_pathfinding_dummy.py (visual routing demo on a synthetic grid)
+docs/                       MULTI_UAV_INTEGRATION.md (multi-UAV integration), QA_REPORT.md (adversarial QA results)
+qa/                         adversarial QA suite: property, end-to-end, fuzz and stress tests (run explicitly)
 paper/                      research manuscript, evaluation scripts and results (see paper/README.md)
 ```
 
@@ -100,6 +116,14 @@ Copy `.env.example` to `.env` and edit it. Every variable is optional.
 | `MAX_SAFE_WIND_SPEED` | `40.0` | km/h; a warning is printed above this (the run is not stopped) |
 | `MAX_SAFE_PRECIPITATION` | `15.0` | mm; a warning is printed above this (the run is not stopped) |
 | `METERS_PER_PIXEL` | `2.0` | Ground metres per pixel of the **original** input image |
+| `MAX_BASES` | `4` | Multi-UAV mode: maximum number of bases (= UAVs); `1` gives a single base |
+| `MIN_BASE_SEPARATION_PX` | `150` | Multi-UAV mode: minimum distance between two bases (display px) |
+| `HOME_CLEARANCE_PX` | `15` | Multi-UAV mode: minimum distance from a base to any flood pixel (display px) |
+| `LARGE_CONTOUR_AREA_THRESHOLD`, `LARGE_CONTOUR_AREA_STEP`, `MAX_DROPS_PER_CONTOUR`, `MIN_DROP_SEPARATION_PX` | `2500`, `3000`, `4`, `40` | Multi-UAV mode: extra drop points on large flood regions |
+
+The vehicle model of the multi-UAV mode (5 m/s, 7 min loaded endurance, 0.25 kg per drop, 8 kg
+capacity, 20 % battery reserve, payload and headwind penalties) is set in `config/settings.py`. These
+values are planning assumptions, not calibrated values.
 
 **`METERS_PER_PIXEL` and `--lat/--lon` determine where the mission is placed in the world.** Set them
 correctly for each map:
@@ -125,6 +149,9 @@ python main.py path/to/map.png --lat 26.4499 --lon 80.3319 --horizon 3
 | `--lat`, `--lon` | `25.3176`, `82.9739` | Image-centre latitude/longitude; used for the weather query **and** mission coordinates |
 | `--horizon` | `2.0` | Flood-spread horizon in hours (whole hours are used, minimum 1) |
 | `--dummy-weather` | off | Use `data/input/dummy_weather.json` (10 mm, 30 km/h, from 270°) instead of the API |
+| `--mode` | `single` | `single`: one UAV (the pipeline above). `multi`: multi-UAV mode |
+| `--max-bases` | `MAX_BASES` (4) | Multi-UAV mode only: maximum number of bases/UAVs (≥ 1) |
+| `--session-root` | `data/output` | Multi-UAV mode only: folder in which each run's `session_<time>` folder is created |
 
 **Interactive step:**
 
@@ -139,7 +166,7 @@ python main.py path/to/map.png --lat 26.4499 --lon 80.3319 --horizon 3
 |---|---|
 | `0` | Success, or nothing to deliver (no regions found) |
 | `1` | Image could not be read, point selection failed, a later stage failed, or an earlier mission file could not be removed |
-| `2` | Invalid `--display-width`, `--lat/--lon` or `METERS_PER_PIXEL`. These are checked before any work is done, and an earlier mission is left untouched |
+| `2` | Invalid `--display-width`, `--lat/--lon`, `METERS_PER_PIXEL`, `--horizon` (must be finite), `--max-bases` or `--session-root` (must not be an existing file), or options of the other mode. These are checked before any work is done, and an earlier mission is left untouched. In the multi-UAV mode, `2` also means an infeasible plan (no base site, no base reaching any drop, no base producing a route, or route crossings left after repair); no mission is written then |
 
 ## Output
 
@@ -174,6 +201,71 @@ The plot shows:
 - the planned D* Lite path as blue lines;
 - the nearest-neighbour visiting order as red dashed lines.
 
+## Multi-UAV mode
+
+```powershell
+python main.py data/input/varanasi.png --dummy-weather --mode multi                 # up to MAX_BASES (4) UAVs
+python main.py data/input/varanasi.png --dummy-weather --mode multi --max-bases 1   # one base = one UAV
+```
+
+The interactive click step is the same as in the single-UAV mode. Segmentation, weather, the spread
+rule and the obstacle map are shared; after that the mode works as follows:
+
+```
+dry drop points ──► flood-clear base candidates ──► base selection (≤ K) + nearest-feasible assignment
+                                                                │
+              ┌───────────────────────────┬─────────────────────┴─────┐
+           base 1 (UAV 1)              base 2 (UAV 2)        …      base K (UAV K)
+  connectivity filter, NN order, battery/payload sorties with reloads, time-aware D* Lite
+              └───────────────────────────┴───────────────────────────┘
+                     route-crossing check: reassign → reroute → nudge base; exit 2 if unresolved
+                                                                │
+                              one QGC WPL 110 mission per base (+ route file, summary, map)
+```
+
+1. **Drop points.** These are dry pixels just outside each flood region, not hull vertices on the
+   flood. Large regions (≥ 2500 px²) get up to 4 points, at least 40 px apart.
+2. **Base candidates.** Dry grid points (about 40 × 40 per image) at least 15 px from any flood
+   pixel, current or predicted.
+3. **Reach.** A base can serve a drop if a single-drop sortie (out loaded, back empty, full wind as
+   headwind) fits within 80 % of the battery. Distances are routed around flood on a conservative
+   5× grid.
+4. **Base selection.** One base is used if one site reaches every reachable drop. Otherwise the
+   fewest bases (at most K, at least 150 px apart) that cover the drops are chosen greedily, then
+   re-placed. Every drop goes to the **nearest base that can serve it**. Workload is not balanced.
+5. **Per-base planning.** Each base runs the single-UAV planner, with three additions:
+   - a connectivity filter;
+   - sorties that close (return + reload) before the battery reserve or the payload capacity is
+     exceeded;
+   - D* Lite on the obstacle mask at each leg's arrival time.
+
+   Drops that cannot be served are **reported**, not flown to.
+6. **Crossing check.** Independently planned routes must not cross. The planner tries, in order:
+   moving the crossing sortie's drops to the other base, rerouting the leg around the other route,
+   and moving a base by up to 50 px. If crossings remain, the run exits with status 2 and writes no
+   mission.
+
+Each run writes a new folder `data/output/session_<time>/` containing:
+
+| File | Content |
+|---|---|
+| `base<N>.waypoints` | Mission of base/UAV *N*: the single-UAV item sequence, plus `NAV_LAND` and `NAV_TAKEOFF` at the base for every reload |
+| `base<N>.route.json` | Route file for the independent validator (`python -m tests.wpl_validator base1.waypoints --sidecar base1.route.json`) |
+| `run_summary.json` | Bases, assignment, unreachable drops with reasons, drops of a base that produced no route (`not_planned`), battery per sortie, repairs, route lengths |
+| `mission_route_map.png`, `mission_map_annotated.png` | Map of all bases, sorties, reloads and base territories |
+
+Things to keep in mind:
+
+- **Not a swarm.** This is a pre-flight planner. The UAVs do not communicate or coordinate in
+  flight, and deconfliction only ensures that the planned routes do not cross. All UAVs fly at the
+  same altitude, with no timing or altitude separation.
+- **Separate drop and HOME rules.** `--max-bases 1` is the single-UAV case **of this mode** (dry
+  drops, base, battery). It is not the same as `--mode single`.
+- **Scale-dependent coverage.** Coverage depends on `METERS_PER_PIXEL`. At the bundled maps'
+  estimated true scale (~100 m/px), no drop is within battery range and the run exits with status 2.
+- **Untested reload stops.** A reload is encoded as LAND then TAKEOFF at the base. Whether an
+  autopilot continues after the LAND has not been tested.
+
 ## Geographic conversion
 
 ```
@@ -203,7 +295,7 @@ WGS84:
 ## Testing and verification
 
 ```powershell
-python -m pytest            # 126 tests + 494 subtests, about 3 s
+python -m pytest            # 231 tests + 520 subtests, about 3.5 min
 ```
 
 The suite covers the following:
@@ -219,6 +311,20 @@ The suite covers the following:
 - **Mission structure:** HOME-region drop, servo parameter slots, and the absence of partial or
   stale missions.
 - **D* Lite and snapping, clustering, flood spread and the weather client.**
+- **Multi-UAV mode** (`test_multi_uav.py`, `test_multi_base.py`, `test_overlap_repair.py`,
+  `test_mission_constraints.py`, `test_multi_base_regressions.py`):
+  - **End-to-end runs of `main.py --mode multi` on synthetic maps:**
+    - one, two and three UAVs, and the base cap;
+    - battery limits;
+    - drops sealed off by flood;
+    - the crossing gate;
+    - empty and single-region maps;
+    - the scale convention.
+  - **Checks on every exported mission:** each passes the independent validator, no drop is served
+    twice, and no routes cross.
+  - **Unit tests:** reach, assignment, all three repair tiers, sortie planning and reloads, and
+    forecast frames.
+  - **Preserved behaviour:** the single-UAV interfaces are unchanged.
 
 Missions can also be checked with the independent validator. It does not import the production
 code; it re-derives every row from the route when a sidecar file is supplied.
@@ -229,6 +335,16 @@ python -m tests.wpl_validator MISSION.waypoints --sidecar ROUTE.json --table ite
 ```
 
 The validator is itself exercised by 36 adversarial tests built from corrupted missions.
+
+An adversarial QA suite (`qa/`, run explicitly; see `qa/README.md`) adds:
+
+- **Property tests (Hypothesis):** for example, D* Lite against Dijkstra and the crossing test against brute
+  force.
+- **End-to-end runs of `main.py` on pathological inputs:** about 110 runs.
+- **A seeded fuzzer:** 500 random scenarios checked against all multi-base invariants.
+- **Stress tests.**
+
+Its findings, fixes and the remaining known issues are in `docs/QA_REPORT.md`.
 
 ## Evaluation summary
 
@@ -252,7 +368,22 @@ Other findings:
 - **D* Lite speed:** D* Lite returns the same optimal paths as A* but, as used here (rebuilt per
   leg), is 61–112× slower.
 - **Coordinate accuracy:** mission rows match their source pixels to within 4×10⁻¹⁵°.
-- **Mutation testing:** 22 of 24 injected bugs are detected by the test suite.
+- **Mutation testing:** 31 of 33 injected bugs are detected by the test suite (the 2 survivors are
+  behaviour-equivalent), including all 9 bugs injected into the multi-UAV code.
+
+**Multi-UAV mode** (simulated operator, `--max-bases` 1 → 4; `paper/experiments/multi_uav_comparison.py`):
+
+| | Varanasi (22 drops) | Kanpur (41 drops) |
+|---|---|---|
+| Drops served, dummy weather, K = 1 → 4 | 6 → 12 | 10 → 23 |
+| Drops served, moderate weather, K = 1 → 4 | 10 → 18 | 17 → 34 |
+| Longest single mission, moderate, K = 1 → 4 | 10.3 → 6.4 km | 11.0 → 8.5 km |
+
+- **Missions:** all 43 missions produced pass the validator, and no routes cross.
+- **Workload:** it is not balanced. On Kanpur, one base keeps 15–17 drops for every K.
+- **Assam:** at most 1 of 4 drops is served (segmentation failure).
+- **Reference equivalence:** with identical inputs, the integrated mode reproduces the original
+  multi-base implementation's plans exactly.
 
 ## Known limitations
 
@@ -278,7 +409,13 @@ Other findings:
   - The servo is never reset between drops.
   - The LAND after RTL is redundant on ArduCopter.
   - Waypoint yaw is written as 0, which PX4 interprets as "face north".
-  - Mission length and endurance are not checked against the vehicle.
+  - In the single-UAV mode, mission length and endurance are not checked against the vehicle.
+- **Multi-UAV mode:**
+  - Uncalibrated battery model.
+  - Nearest-feasible assignment without workload balancing or a mission-time objective.
+  - Geometric deconfliction only (same altitude, no timing).
+  - Reload stops untested on an autopilot.
+  - Coverage that depends entirely on the configured scale.
 - **Validation:** no Mission Planner, SITL, HITL or flight testing has been done.
 
 ## Safety
@@ -311,6 +448,10 @@ all evaluation scripts, their raw results, and the audit files (`paper_facts.md`
 | `No path found … straight-line fallback` | Expected when a drop point is enclosed by obstacles; inspect those legs before flight |
 | `Invalid --lat/--lon or METERS_PER_PIXEL` (exit 2) | Provide a valid image-centre latitude/longitude and a positive scale |
 | `Could not remove mission file` (exit 1) | The earlier mission is read-only, or a folder sits at the output path; remove it manually |
+| `BASE SELECTION: no flood-clear base site can serve any drop point` (exit 2, multi-UAV) | Drops are beyond battery range at the configured `METERS_PER_PIXEL`, or no dry site has 15 px clearance |
+| `MISSION INFEASIBLE: Unresolved path overlap` (exit 2, multi-UAV) | The crossing repair failed; try a different `--max-bases`, or inspect `run_summary.json` |
+| `… missing or not a finite number; using 0 (calm)` warning | The weather API returned null for a field, or the weather file lacks one; that field is treated as calm |
+| `Configuration error: NAME='…' … is not a number` | Fix that variable in the environment or `.env` |
 | `Weather API unavailable` warning | No network or API error; calm weather is used, so the predicted spread is minimal |
 | Display errors on a headless machine | Install `opencv-python-headless`; note that the click step needs a GUI |
 
@@ -321,4 +462,7 @@ all evaluation scripts, their raw results, and the audit files (`paper_facts.md`
 - Collect segmentation ground truth.
 - Handle disconnected drop points explicitly instead of flying straight legs.
 - Use a calibrated or terrain-aware flood model.
-- Add endurance-aware and multi-UAV routing.
+- Add endurance limits to the single-UAV mode.
+- Multi-UAV allocation that balances workload or minimises mission time.
+- Temporal and altitude deconfliction.
+- Multi-vehicle SITL runs.

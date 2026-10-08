@@ -107,18 +107,18 @@ Paper work started 2026-10-06. No git operations are performed by the assistant.
   E-W 0.06 %; conformance <= 1.4e-14 deg.
 - Physical model error at estimated real extents: Varanasi 345 m, Kanpur 563 m, Assam 7.7 km;
   at configured 2 m/px: 4.8 m.
-- Mutation testing: 22/24 killed; 2 surviving mutants are behaviour-equivalent.
+- Mutation testing: 22/24 killed; 2 surviving mutants are behaviour-equivalent (before the multi-base integration; now 31/33, see section 12).
 - Resize attack: scale error 0.000 % without resizing; resampling <= 1 display px; D* route differs up
   to 826 m between display widths (grid = 5 display px).
 - Landmark-based scale estimates (approximate, eyeballed labels): Varanasi ~93 m/px, Kanpur ~130 m/px,
   Assam ~633 m/px (46x, 65x, 317x the configured 2.0); default reference 23 / 319 / ~998 km from the
   estimated image centres.
-- Test suite: 126 tests + 494 subtests passed, 0 warnings.
+- Test suite: 126 tests + 494 subtests passed, 0 warnings (before the multi-base integration; 220 + 494 after it; 231 + 520 after the QA fixes).
 
 ## 6b. MEASURED in paper/experiments (authoritative for the manuscript) [measured]
 Environment (results/environment.json): Windows build 10.0.26200 (Windows 11 Home), Python 3.11.9,
 Intel Core i5-12500H, 31.7 GiB RAM; numpy 2.4.6, opencv-python 5.0.0.93, matplotlib 3.11.2.
-Test suite (results/test_suite.json): 126 passed + 494 subtests passed, 0 failed/skipped/errors/warnings, ~2.5 s.
+Test suite (results/test_suite.json): 231 passed + 520 subtests passed, 0 failed/skipped/errors, ~3.5 min (126 + 494 before the multi-base integration; 220 + 494 before the QA fixes, docs/QA_REPORT.md).
 
 E1 end-to-end (results/e2e/summary.json; dummy weather P=10 mm, V=30 km/h, from 270 deg; 8 simulated clicks):
 | map | orig | display | s | k m/px | HSV lower | mask % | pred(obstacle) % | regions | legs planned | no-path | snapped | unsnappable | route pts | route px | route m | items | drops | total s | planning s |
@@ -165,7 +165,7 @@ half-diagonal 4.8 m; Varanasi est. 63.8 km 345 m; Kanpur 89.2 km 563 m; Assam 40
 Correspondence: display-frame <= 3.6e-15 deg (all rows: 364/1145/10); original-frame <= 0.565/0.397/0.188 m (resize
 rounding sy/sx-1 = -0.061/-0.043/+0.026 %). Resize: widths 300-2400: same corners matched; deviation from model
 <= 38.8 m at 40 m/display-px (<= 1 display px), 7e-10 m without resizing; spacing error <= 1.28 %.
-E8 mutation (results/mutation/mutation.csv): 22/24 killed; survivors behaviour-equivalent.
+E8 mutation (results/mutation/mutation.csv): 31/33 killed (22/24 geospatial/mission mutants, 9/9 multi-base mutants); survivors behaviour-equivalent.
 E9 geography (results/geography/map_scale_estimate.json): est. m/px 92.7 / 129.6 / 633.5 (x46.4 / x64.8 / x316.7);
 default reference 22.5 / 318.6 / 998.5 km from estimated centres; residual RMS 14.7 / 17.8 / 25.5 px; rotation
 -0.5 / -1.0 / -4.8 deg.
@@ -199,3 +199,68 @@ weather-fallback warning. The paper describes the CURRENT (fixed) implementation
   WAYPOINT yaw (param4) unsupported on Copter; RTL "generally should be the last command" (LAND after
   RTL never runs); TAKEOFF climbs from current location (lat/lon ignored); seq 0 holds vehicle home.
 - PX4: param4 yaw = 0 => face north at each waypoint (NaN would mean default heading).
+
+## 11. Multi-UAV / multi-base mode (integrated from MAIN, commit ca27215) [code + measured]
+- Invocation: `python main.py IMAGE --mode multi [--max-bases K] [--session-root DIR]`; K defaults to
+  settings.MAX_BASES = 4; K = 1 = single base = single UAV. Single-UAV mode (default) is unchanged.
+- Algorithms (unchanged from MAIN): dry drop points (band outside contour; large zones >= 2500 px^2 get
+  min(4, 2 + floor((A-2500)/3000)) points >= 40 px apart); base candidates on a ~40x40 grid with >= 15 px
+  clearance; routed distances on a conservative 5x grid (3x3 dilation + block max); reach = single-drop sortie
+  within 80 % battery; select_bases = single base if one covers all coverable drops, else greedy fewest-bases
+  cover (separation 150 px) + nearest-feasible assignment + <= 3 re-placement rounds + pruning; per base:
+  connectivity filter, NN order, plan_mission_stops (sorties with reloads, flooded-at-arrival rejection),
+  <= min(6, n+2) plan/route refinement passes, time-aware D* Lite; crossing repair Tier 0 reassign, Tier 1
+  reroute, Tier 2 nudge, <= 5 rounds; exit 2 and no export if crossings remain.
+- Battery model: beta = l / (60 v E) (1 + c_m m + c_w w), v = 5 m/s, E = 7 min, c_m = 0.08/kg,
+  c_w = 0.025 s/m, 0.25 kg per drop, 8 kg capacity, 20 % reserve; full wind speed as headwind on every leg.
+  Single-drop range: 832 m calm, 768 m moderate (12 km/h), 690 m dummy (30 km/h).
+- DEVELOPMENT conventions kept: k = METERS_PER_PIXEL / s for planning and export; centre ((W-1)/2, (H-1)/2);
+  hardened pixel_to_latlon; flood model = DEVELOPMENT's hourly CA, exposed as frames (forecast_frames).
+- Integration fixes vs MAIN: export only after deconfliction (MAIN wrote files during repairs/rejected
+  nudges), reach refreshed after a nudge, real base numbers on the map, race-free session folders, invalid
+  missions deleted, reload indices validated.
+
+## 12. Multi-UAV experiment [measured] (results/multi_uav/comparison.json; table generated into figures/tab_multi_uav.tex)
+- 3 maps x {dummy 10 mm/30 km/h, moderate 3 mm/12 km/h} x K in {1,2,3,4} = 24 runs; simulated operator (8 clicks).
+- 20 feasible runs, 43 missions, 0 validator errors (sidecar + servo 9/2000), 0 crossings, 0 repairs needed,
+  0 fallback legs, 0 route px in current flood, 0 territory violations, max sortie battery 79.55 %.
+- Visited/drops: Varanasi dummy 6/9/11/12 of 22; moderate 10/16/18/18 of 22 (K=4 uses 3 bases).
+  Kanpur dummy 10/16/21/23 of 41; moderate 17/25/30/34 of 41. Assam dummy 1/4 for all K (1 base);
+  moderate: NO_BASE_REACHES_ANY_DROP (exit 2) for all K.
+- Longest mission / completion estimate (moderate): Varanasi 10.3 km / 34 min (K=1) -> 6.4 km / 21 min (K=3,4);
+  Kanpur 11.0 km / 37 min for K=1..3 -> 8.5 km / 28 min (K=4). Drops per UAV Kanpur moderate: [17], [17,8],
+  [17,7,6], [15,7,6,6].
+- Planner-rejected assigned drops: Kanpur moderate K=1 and K=2 (1 each). Connectivity exclusions: 0.
+- Wall time per feasible run: ~10 s to ~3 min (single measurements, runs in parallel).
+- True-scale check (results/multi_uav/true_scale_check.json): Varanasi 93 m/px, Kanpur 130 m/px, moderate,
+  K = 4: both NO_BASE_REACHES_ANY_DROP (exit 2).
+- Equivalence with MAIN (results/multi_uav/equivalence.json): Varanasi calm (2 bases), Kanpur calm (4 bases),
+  Varanasi moderate with MAIN's auto-sample points and MAIN's forecast frames (4 bases, Tier 0 x2): all identical.
+- Test suite after integration and QA fixes: 231 passed + 520 subtests (was 126 + 494); mutation 31/33 (24 old mutants:
+  22 killed as before; 9 multi-base mutants: all killed).
+
+## 13. Adversarial QA pass [measured] (docs/QA_REPORT.md)
+- Suites in qa/: property tests (Hypothesis), ~110 end-to-end runs of main.main() on pathological inputs, repair-loop
+  property test, seeded fuzzer (qa/fuzz.py), stress (qa/stress.py).
+- Defects found and fixed: QA-01 non-finite --horizon crash; QA-02 null/NaN weather fields crash; QA-03 malformed
+  dummy weather file crash; QA-04 OOM for precipitation ~1e6 mm; QA-05 bare traceback for invalid env vars; QA-06
+  --session-root that is a file failed late; QA-07 non-ASCII image path unreadable on Windows; QA-08 drops of a base
+  without a route missing from run_summary (new field not_planned); QA-09 coincident drop points split by Tier 0;
+  QA-10 O(N^2) forecast frames. Regression tests: tests/test_robustness.py (11 tests, 26 subtests).
+- Latent, not fixed (unreachable through inputs): QA-11 shared cached weather dict, QA-12 NaN distance = zero
+  battery, QA-13 capacity below one package -> AssertionError, QA-14 predict_spread without input validation.
+- Before -> after: QA suites 34 failed -> 0 failed (+8 strict xfail); fuzz 5/240 -> 0/500 scenarios with problems;
+  regression suite 220+494 -> 231+520; branch coverage 85 % -> 86 %; mutation 31/33 both times.
+- Outputs unchanged by the fixes: single-mode missions of the 3 maps byte-identical; regenerated multi-mode
+  sessions (varanasi_moderate_K4, kanpur_dummy_K4) byte-identical; equivalence with the reference 3/3.
+- Simulation: NOT EXECUTED (no SITL/QGC/MAVLink tooling on the machine).
+
+## 14. Two planning approaches (paper wording) [measured]
+- Approach A = one drone visits every drop point (single-UAV mode, --mode single); Approach B = fleet of up to K
+  drones, each serving the cluster of drop points nearest its own base (multi-base mode, --mode multi). K=1 of
+  Approach B is the battery-aware one-drone baseline.
+- Clusters (results/multi_uav/clusters.json, multi_uav_clusters.py): in the 12 runs with >1 drone, 190 of 206 served
+  regions were served by exactly one drone; 2-18 regions per drone; 16 large regions shared by two drones.
+- Approach A routes (Table V): 5.66 km Varanasi, 18.78 km Kanpur at the configured scale, versus about 2.1 km per
+  battery (7 min at 5 m/s) in the fleet mode's vehicle model.
+

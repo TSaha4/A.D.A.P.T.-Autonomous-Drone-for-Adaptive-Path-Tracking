@@ -88,3 +88,16 @@ At a broad venue such as IEEE Access, the most probable outcome without SITL and
 is **major revision or rejection for limited novelty and validation**. Adding (1) ground-station + SITL
 runs, (2) segmentation ground truth on at least one public dataset, and (3) one georeferenced input
 would address the three most likely rejection reasons.
+
+## Addendum — multi-UAV (multi-base) mode, added after the integration of the multi-base planner
+
+| Concern | Severity | Response |
+|---|---|---|
+| "Multi-UAV" could be read as a swarm or cooperative system | major if unaddressed | Fixed: Sec. V states it is a pre-flight planner (one mission per base, no in-flight coordination); abstract, introduction and conclusion use the same wording |
+| Nearest-feasible assignment does not balance workload; no mission-time objective | major | Disclosed with evidence (Sec. VI-H: Kanpur 17 / 17,8 / 17,7,6 / 15,7,6,6 drops per UAV); future work names VRP-style allocation |
+| Coverage gains depend on the configured 2 m/px scale | major | Disclosed and measured: at landmark-estimated scales no drop is reachable (exit 2) |
+| Battery coefficients are uncalibrated | major | Disclosed (Sec. V-C, Sec. VII); calibration listed as future work |
+| Deconfliction is geometric only (no time/altitude separation) | major for any flight use | Disclosed (Sec. V-G, Sec. VII safety); SITL with several vehicles listed in TODO |
+| Reload encoded as LAND + TAKEOFF untested on an autopilot | major for operational claims | Disclosed (Sec. VI-K); SITL check listed in TODO |
+| Was the integrated code faithful to the original multi-base implementation? | minor | Fixed: identical plans on three cases (results/multi_uav/equivalence.json) |
+| Completion time ignores take-off, landing, drops and reloads | minor | Disclosed as a lower bound in the table caption and text |
