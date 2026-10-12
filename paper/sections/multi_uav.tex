@@ -39,7 +39,7 @@ A drop $d$ is \emph{reachable} from a site $b$ if a single-drop sortie fits the 
 \beta\big(\delta(b,d),m_d,w\big)+\beta\big(\delta(b,d),0,w\big)\le1-r .
 \label{eq:reach}
 \end{equation}
-Drops that no candidate can reach are reported as unreachable. If one candidate reaches every remaining (\emph{coverable}) drop, a single base is used. It is the reaching candidate with the lowest \emph{score}: the flight time in hours plus the sum of sortie battery fractions of a greedy simulation that visits the drops in nearest-neighbour order by $\delta$ and closes a sortie before the reserve or the capacity would be exceeded. Otherwise, The base-selection procedure places up to $K$ bases (\texttt{MAX\_BASES}, default 4), at least 150~px apart.
+Drops that no candidate can reach are reported as unreachable. If one candidate reaches every remaining (\emph{coverable}) drop, a single base is used. It is the reaching candidate with the lowest \emph{score}: the flight time in hours plus the sum of sortie battery fractions of a greedy simulation that visits the drops in nearest-neighbour order by $\delta$ and closes a sortie before the reserve or the capacity would be exceeded. Otherwise, the base-selection procedure places up to $K$ bases (\texttt{MAX\_BASES}, default 4), at least 150~px apart.
 
 Each drop is assigned to exactly one base: \emph{the nearest base, by $\delta$, that can reach it}. There is no balancing of workload between bases. Drops left unassigned are reported together with the reason: no site reaches them, the cap was reached, or every site that reaches them is too close to a chosen base. Setting $K=1$ restricts the mode to a single base, that is, a single UAV.
 

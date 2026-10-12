@@ -1,5 +1,5 @@
-main.tex:5: ['15']
-main.tex:6: ['94']
+main.tex:4: ['15']
+main.tex:5: ['94']
 figures/architecture.tex:5: ['7.5']
 figures/architecture.tex:6: ['20']
 figures/architecture.tex:7: ['12', '20']

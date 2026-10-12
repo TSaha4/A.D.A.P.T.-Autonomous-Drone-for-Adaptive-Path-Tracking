@@ -182,7 +182,7 @@ Runtime D*~Lite / A* (s) & 12.67 / 0.21 & 30.83 / 0.28 & \\
 
 \subsection{One Drone vs.\ a Drone Fleet (Single- vs.\ Multi-UAV Planning)}
 \label{sec:multires}
-\emph{Protocol.} The multi-base mode (Section~\ref{sec:multi}) was run on the three maps with the simulated operator, under the dummy weather and under a moderate preset (3~mm, 12~km/h, $270^\circ$), with base caps $K\in\{1,2,3,4\}$ (24 runs). For a given map and weather, all caps share the drop points, the obstacles and the vehicle model, so $K$ is the only variable. $K=1$ is the single-UAV case, in which one vehicle flies all sorties from one base. All metrics are read from each run's own outputs, and every exported mission was re-checked by the independent validator against its route file. The \emph{estimated completion time} is the routed length of the longest mission divided by $v=5$~m/s. It assumes that all vehicles launch together and excludes take-off, landing, drop manoeuvres and reload turnaround, so it is a lower bound rather than a prediction of mission time. Table~\ref{tab:multiuav} gives the results; Fig.~\ref{fig:fleet-performance} plots coverage and completion time, and Fig.~\ref{fig:fleet-routes} reconstructs the Kanpur routes from the committed route files.
+\emph{Protocol.} The multi-base mode (Section~\ref{sec:multi}) was run on the three maps with the simulated operator, under the dummy weather and under a moderate preset (3~mm, 12~km/h, $270^\circ$), with base caps $K\in\{1,2,3,4\}$ (24 runs). For a given map and weather, all caps share the drop points, the obstacles and the vehicle model, so $K$ is the only variable. $K=1$ is the single-UAV case, in which one vehicle flies all sorties from one base. All metrics are read from each run's own outputs, and every exported mission was re-checked by the independent validator against its route file. The \emph{estimated completion time} is the routed length of the longest mission divided by $v=5$~m/s. It assumes that all vehicles launch together and excludes take-off, landing, drop manoeuvres and reload turnaround, so it is a lower bound rather than a prediction of mission time. Table~\ref{tab:multiuav} gives the results; Fig.~\ref{fig:fleet-performance} plots coverage and completion time, and Fig.~\ref{fig:fleet-routes} reconstructs the Kanpur routes from the recorded route files.
 
 \input{figures/tab_multi_uav}
 
@@ -233,14 +233,14 @@ Three cases were compared: calm weather on both maps, and a moderate-weather Var
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.78\textwidth]{figures/fig_fleet_performance.pdf}
-\caption{Moderate-weather fleet experiment from committed results. Drop coverage and optimistic completion time versus the allowed number of bases $K$; Varanasi uses three bases when $K=4$. The completion estimate excludes takeoff, landing, drop and reload time.}
+\caption{Moderate-weather fleet experiment from recorded results. Drop coverage and optimistic completion time versus the allowed number of bases $K$; Varanasi uses three bases when $K=4$. The completion estimate excludes takeoff, landing, drop and reload time.}
 \label{fig:fleet-performance}
 \end{figure*}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.92\columnwidth]{figures/fig_fleet_routes.pdf}
-\caption{Kanpur, moderate weather, $K=4$: four bases (stars), their served drops (dots), and planned routes. Reconstructed from committed route records; the map image has no georeference.}
+\caption{Kanpur, moderate weather, $K=4$: four bases (stars), their served drops (dots), and planned routes. Reconstructed from recorded route records; the map image has no georeference.}
 \label{fig:fleet-routes}
 \end{figure}
 
