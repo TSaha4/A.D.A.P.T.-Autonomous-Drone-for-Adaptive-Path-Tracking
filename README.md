@@ -295,7 +295,7 @@ WGS84:
 ## Testing and verification
 
 ```powershell
-python -m pytest            # 231 tests + 520 subtests, about 3.5 min
+python -m pytest            # 238 tests + 520 subtests in the faculty-paper branch
 ```
 
 The suite covers the following:

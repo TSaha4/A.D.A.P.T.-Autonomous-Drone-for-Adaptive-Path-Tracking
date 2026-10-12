@@ -6,6 +6,7 @@ import os
 import stat
 import tempfile
 import unittest
+from unittest import mock
 
 from tests import wpl_validator
 from tests.test_resize_consistency import fake_select, make_image, run_pipeline
@@ -64,14 +65,29 @@ class TestStaleMission(unittest.TestCase):
         self.assertFalse(os.path.exists(self.out), "a partially written mission was left behind")
 
     def test_unremovable_partial_mission_is_reported_not_crashed(self):
-        def partial_read_only_then_fail(*args, filename=None, **kwargs):
+        def partial_then_fail(*args, filename=None, **kwargs):
             with open(filename, "w") as f:
                 f.write("QGC WPL 110\n")
-            os.chmod(filename, stat.S_IREAD)
             raise OSError("simulated disk failure while writing")
 
-        with self.assertLogs(level="ERROR") as logs:
-            run_pipeline(self.flood, 1600, self.tmp.name, generate=partial_read_only_then_fail)
+        # POSIX allows deleting a read-only file in a writable directory; inject
+        # the actual delete failure so the test is independent of file permissions.
+        original_remove = os.remove
+        removes = 0
+
+        def fail_second_remove(path):
+            nonlocal removes
+            if path == OUTPUT:
+                removes += 1
+                if removes == 2:
+                    raise PermissionError("simulated deletion failure")
+            return original_remove(path)
+
+        with mock.patch("main.os.remove", side_effect=fail_second_remove), \
+                self.assertLogs(level="ERROR") as logs:
+            run_pipeline(self.flood, 1600, self.tmp.name, redirect=False,
+                         generate=partial_then_fail)
+        self.assertEqual(removes, 2)
         self.assertTrue(any("Could not remove mission file" in m for m in logs.output), logs.output)
 
     # --- runs that cannot replace the mission must not destroy it -----------------------------------
@@ -106,12 +122,13 @@ class TestStaleMission(unittest.TestCase):
                 self.assertTrue(self.stale_intact())
 
     def test_unremovable_previous_mission_stops_cleanly(self):
-        # A read-only earlier mission cannot be removed; continuing would leave it looking like this run's
-        # output, so the run must stop with a clear error (exit 1), not a PermissionError traceback.
-        os.chmod(self.out, stat.S_IREAD)
-        with self.assertRaises(SystemExit) as cm:
+        # Inject a failed deletion; read-only file permissions do not reliably
+        # prevent removal when the parent directory is writable.
+        with mock.patch("main.os.remove", side_effect=PermissionError("simulated deletion failure")), \
+                self.assertRaises(SystemExit) as cm:
             run_pipeline(self.flood, 1600, self.tmp.name, redirect=False)
         self.assertEqual(cm.exception.code, 1)
+        self.assertTrue(self.stale_intact())
 
     def test_directory_at_output_path_stops_cleanly(self):
         os.remove(self.out)

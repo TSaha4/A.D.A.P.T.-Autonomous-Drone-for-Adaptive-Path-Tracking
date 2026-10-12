@@ -262,7 +262,7 @@ Table~\ref{tab:verif} summarises the verification results. Every result in this 
 \item \emph{Round trips and edge cases.} Of 100\,000 randomised round trips through a test-only inverse, covering mid-latitudes, near-polar and near-antimeridian references, image sizes and scales from 0.05 to 633~m/px, 98\,789 are representable and agree within $6.8\times10^{-8}$~px; the remaining 1\,211 are correctly rejected.
 \item \emph{Mission correspondence.} Every row of the three missions (1\,519 rows in total) matches an independent conversion of its source pixel within $3.6\times10^{-15}$~degrees. Traced back to the original image, the deviation is at most 0.57~m, entirely north--south and explained by the rounding of $H'$.
 \item \emph{Resize consistency.} A synthetic three-region map run at nine display widths (300 to 2400~px, odd and even) yields drops at the same physical corners. They deviate from the model by at most one display pixel, and by $7\times10^{-10}$~m when no resizing occurs.
-\item \emph{Mutation testing.} 31 of 33 injected defects are detected by the 231-test suite. Of the 24 defects in the geospatial and mission layers, 22 are detected; all 9 defects injected into the multi-base integration are detected, for example an uncompensated display scale, a disabled crossing gate, a missing reload stop or a stale reach set after nudging. The two surviving mutants are behaviour-equivalent: one removes a redundant finiteness guard, the other repeats a conversion.
+\item \emph{Mutation testing.} 31 of 33 injected defects were detected in the earlier 231-test mutation campaign. Of the 24 defects in the geospatial and mission layers, 22 were detected; all 9 defects injected into the multi-base integration were detected, for example an uncompensated display scale, a disabled crossing gate, a missing reload stop or a stale reach set after nudging. The two surviving mutants are behaviour-equivalent: one removes a redundant finiteness guard, the other repeats a conversion.
 \item \emph{Adversarial testing.} Property-based tests of D*~Lite and crossing checks, about 110 pathological end-to-end runs and 500 seeded fleet scenarios exposed ten defects, all corrected before the reported evaluation. None changes the missions reported above.
 
 None of the corrections changes a mission generated in the experiments above.
@@ -280,7 +280,7 @@ During verification, the procedure exposed and led to the correction of defects 
 Check & Result\\
 \midrule
 \multicolumn{2}{@{}l}{\emph{Software correctness (performed)}}\\
-Automated tests (incl.\ adversarial) & 231 + 520 subtests pass\\
+Automated tests (incl.\ adversarial) & 238 + 520 subtests pass\\
 Oracle vs.\ published geodesic & $\le$1 mm, $\le$0.01$''$\\
 Implementation vs.\ model (synthetic) & $\le1.4\times10^{-14}$ deg\\
 Model vs.\ WGS84, $\le$7.1 km offsets, 25$^\circ$ & $\le$25.9 m\\

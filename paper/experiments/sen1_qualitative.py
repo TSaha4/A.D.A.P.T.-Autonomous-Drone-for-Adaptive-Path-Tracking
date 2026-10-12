@@ -9,6 +9,8 @@ from torch.nn import functional as F
 
 from sen1_unet import CACHE, OUT, UNet
 
+COMMITTED_WEIGHTS = CACHE.parent.parent / "models/unet_best_state.pt"
+
 
 def optical_rgb(s2):
     return np.clip(np.stack([s2[3], s2[2], s2[1]], axis=-1) / 3000 * 255,
@@ -19,7 +21,9 @@ CHIPS = ("Sri-Lanka_713926", "Ghana_319168")
 
 def main():
     model = UNet()
-    model.load_state_dict(torch.load(CACHE / "unet_best_state.pt", map_location="cpu", weights_only=True))
+    trained_weights = CACHE / "unet_best_state.pt"
+    model.load_state_dict(torch.load(trained_weights if trained_weights.exists() else COMMITTED_WEIGHTS,
+                                     map_location="cpu", weights_only=True))
     model.eval()
     root = CACHE / "data/flood_events/HandLabeled"
     for chip in CHIPS:

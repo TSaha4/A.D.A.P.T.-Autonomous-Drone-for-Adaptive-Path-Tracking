@@ -25,6 +25,7 @@ from src.weather.flood_spread import predict_spread  # noqa: E402
 
 CACHE = ROOT / "paper/experiments/cache/emsr504"
 OUT = ROOT / "paper/experiments/results/forecast"
+WEATHER = ROOT / "paper/experiments/reference/emsr504_weather.json"
 PRODUCTS = [("initial", "2021-03-19T19:07"), ("monitor1", "2021-03-21T19:07"),
             ("monitor2", "2021-03-22T20:01")]
 SOURCE = "https://mapping.emergency.copernicus.eu/activations/EMSR504/"
@@ -76,7 +77,7 @@ def main():
     masks = [raster(geometry(get_geojson(x, "observedEventA")), grid, transform)
              for x, _ in PRODUCTS]
     aoi_masks = [raster(x, grid, transform) for x in aois]
-    w = json.loads((CACHE / "weather.json").read_text())["hourly"]
+    w = json.loads(WEATHER.read_text())["hourly"]
     result = []
     for i in range(len(PRODUCTS) - 1):
         start, t0 = PRODUCTS[i]

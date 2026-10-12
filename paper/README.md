@@ -2,6 +2,8 @@
 
 The editable journal article is [main.tex](main.tex) with section files in `sections/`; [main.pdf](main.pdf) is the compiled 14-page draft. [supplement.tex](supplement.tex) and [supplement.pdf](supplement.pdf) hold evidence figures S1–S7. The article reports held-out flood-segmentation baselines, two observed flood transitions, a georeferenced diagnostic mission, route and fleet comparisons, software verification, and ArduCopter SITL with MAVProxy upload/readback. The three original demonstration maps remain ungeoreferenced, and the short SITL flight does not establish physical payload release or field readiness.
 
+For exact dataset URLs and checksums, experiment order, environment, mission files, and SITL replay, see [REPRODUCE.md](experiments/REPRODUCE.md).
+
 ## Build
 
 From this directory:

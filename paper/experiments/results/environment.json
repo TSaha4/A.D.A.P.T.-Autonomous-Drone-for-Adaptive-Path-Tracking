@@ -1,12 +1,12 @@
 {
- "os": "Windows-10-10.0.26200-SP0",
- "python": "3.11.9",
- "cpu": "12th Gen Intel(R) Core(TM) i5-12500H",
- "ram_gib": 31.7,
+ "os": "Linux-7.2.5-3-omarchy-x86_64-with-glibc2.44",
+ "python": "3.14.7",
+ "cpu": "",
+ "ram_gib": null,
  "packages": {
-  "numpy": "2.4.6",
+  "numpy": "2.5.2",
   "opencv-python": "5.0.0.93",
-  "matplotlib": "3.11.2",
+  "matplotlib": "3.11.1",
   "requests": "2.34.2",
   "python-dotenv": "1.2.4",
   "pytest": "9.1.1"

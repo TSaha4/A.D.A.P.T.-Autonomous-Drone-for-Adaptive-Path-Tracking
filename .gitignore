@@ -14,3 +14,5 @@ data/output/*
 .vscode/
 .idea/
 paper/experiments/cache/
+# Preserve recorded faculty-paper mission outputs in Git.
+!paper/experiments/results/**/*.waypoints

@@ -1,7 +1,8 @@
 {
- "summary_line": "231 passed, 520 subtests passed in 212.74s (0:03:32)",
+ "summary_line": "238 passed, 6 warnings, 520 subtests passed in 85.64s (0:01:25)",
  "counts": {
-  "passed": 231,
+  "passed": 238,
+  "warnings": 6,
   "subtests passed": 520
  },
  "tests_per_file": {
@@ -11,8 +12,11 @@
   "tests/test_coordinates_groundtruth.py": 7,
   "tests/test_coordinates_safety.py": 18,
   "tests/test_dstarlite.py": 3,
+  "tests/test_faculty_fetch_inputs.py": 2,
+  "tests/test_faculty_input_guards.py": 4,
   "tests/test_flood_spread.py": 3,
   "tests/test_geodesy_reference.py": 6,
+  "tests/test_geotiff_reference.py": 1,
   "tests/test_image_centre.py": 4,
   "tests/test_mission_constraints.py": 27,
   "tests/test_mission_output.py": 5,
