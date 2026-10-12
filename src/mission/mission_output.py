@@ -4,14 +4,15 @@ from matplotlib import pyplot as plt
 from matplotlib.lines import Line2D
 from src.mission.coordinates import pixel_to_latlon
 
-def generate_mission_file(full_path, drop_indices, home, image_center_px, geo_center, meters_per_pixel, filename="mission.waypoints", base_altitude=100, drop_altitude=10, servo_channel=9, servo_pwm=2000, reload_indices=None):
+def generate_mission_file(full_path, drop_indices, home, image_center_px, geo_center, meters_per_pixel, filename="mission.waypoints", base_altitude=100, drop_altitude=10, servo_channel=9, servo_pwm=2000, reload_indices=None, coordinate_fn=None):
     # Mission:
     # Takeoff at home → visit waypoints → drop packages at drop indices → return home → land.
     # reload_indices (multi-base mode): indices of full_path where the UAV is back at HOME between sorties;
     # each becomes LAND then TAKEOFF at HOME (battery/payload reload). None (single-UAV mode) adds nothing.
     # Convert every point before opening the file, so an invalid coordinate cannot leave a partial mission
-    home_lat, home_lon = pixel_to_latlon(home[0], home[1], image_center_px, geo_center, meters_per_pixel)
-    path_latlon = [pixel_to_latlon(pt[0], pt[1], image_center_px, geo_center, meters_per_pixel) for pt in full_path]
+    to_geo = coordinate_fn or (lambda x, y: pixel_to_latlon(x, y, image_center_px, geo_center, meters_per_pixel))
+    home_lat, home_lon = to_geo(home[0], home[1])
+    path_latlon = [to_geo(pt[0], pt[1]) for pt in full_path]
     reload_set = set(reload_indices or [])
     for r in reload_set:
         if not (0 < r < len(full_path) - 1) or tuple(full_path[r]) != tuple(home) or r in drop_indices:

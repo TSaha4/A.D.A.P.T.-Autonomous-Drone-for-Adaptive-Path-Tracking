@@ -70,7 +70,8 @@ def simulated_clicks(image, n_clicks=8):
 
 
 def run(map_name=None, image_path=None, out_dir=None, tag=None, n_clicks=8, predict=True, hue_margin=20,
-        sv_margin=30, mpp=None, display_width=750, weather=None, keep_arrays=False):
+        sv_margin=30, mpp=None, display_width=750, weather=None, keep_arrays=False, geo_center=None,
+        geotiff_reference=None, max_mask_fraction=None):
     """Run main.main() once; returns a dict of stage outputs, counts and timings."""
     image_path = image_path or os.path.join("data", "input", f"{map_name}.png")
     tag = tag or map_name
@@ -145,6 +146,12 @@ def run(map_name=None, image_path=None, out_dir=None, tag=None, n_clicks=8, pred
     root = logging.getLogger()
     root.addHandler(counter)
     argv = ["main.py", image_path, "--display-width", str(display_width)]
+    if geo_center is not None:
+        argv += ["--lat", str(geo_center[0]), "--lon", str(geo_center[1])]
+    if geotiff_reference is not None:
+        argv += ["--geotiff-reference", str(geotiff_reference)]
+    if max_mask_fraction is not None:
+        argv += ["--max-mask-fraction", str(max_mask_fraction)]
     if weather is None:
         argv.append("--dummy-weather")
     cwd = os.getcwd()

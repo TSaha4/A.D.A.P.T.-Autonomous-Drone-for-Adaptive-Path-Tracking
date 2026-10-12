@@ -337,11 +337,33 @@ Patrick Zippenfenig.
 \newblock [Online]. Available: \url{https://open-meteo.com/en/docs}, 2026.
 \newblock Accessed: Oct. 6, 2026.
 
+\bibitem{cems_emsr504}
+{Copernicus Emergency Management Service}.
+\newblock {EMSR504}: Floods in australia, rapid mapping delineation and
+  monitoring products.
+\newblock [Online]. Available:
+  \url{https://mapping.emergency.copernicus.eu/activations/EMSR504/}, 2021.
+\newblock Accessed: Oct. 12, 2026.
+
+\bibitem{openmeteo_archive}
+{Open-Meteo}.
+\newblock Historical weather {API} documentation.
+\newblock [Online]. Available:
+  \url{https://open-meteo.com/en/docs/historical-weather-api}, 2026.
+\newblock Accessed: Oct. 12, 2026.
+
 \bibitem{mavlink_mission}
 {MAVLink Development Team}.
 \newblock Mission protocol.
 \newblock MAVLink Developer Guide. [Online]. Available:
   \url{https://mavlink.io/en/services/mission.html}, 2026.
 \newblock Accessed: Oct. 6, 2026.
+
+\bibitem{ardupilot_continue}
+{ArduPilot Dev Team}.
+\newblock Continuing a mission after landing.
+\newblock ArduPilot Copter Documentation. [Online]. Available:
+  \url{https://ardupilot.org/copter/docs/common-continue-mission.html}, 2026.
+\newblock Accessed: Oct. 12, 2026.
 
 \end{thebibliography}

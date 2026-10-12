@@ -175,7 +175,7 @@ def path_length_px(path):
 
 
 def run_multi_base(image, mask, forecasts, contours, cluster_edges, points, weather, geo_center, scale_factor,
-                   max_bases, session_root="data/output", show=True):
+                   max_bases, session_root="data/output", show=True, coordinate_fn=None):
     """Multi-base mission planning (MAIN's algorithm), one QGC WPL 110 file per base.
 
     Dry drop points -> flood-clear base candidates -> select_bases (1..max_bases bases, every drop
@@ -447,7 +447,7 @@ def run_multi_base(image, mask, forecasts, contours, cluster_edges, points, weat
         try:
             generate_mission_file(plan["full_path"], plan["drop_indices"], plan["home"], image_center_px,
                                   geo_center, meters_per_pixel, filename=str(waypoint_file),
-                                  reload_indices=plan["reload_indices"])
+                                  reload_indices=plan["reload_indices"], coordinate_fn=coordinate_fn)
             problems = validate_waypoints_file(str(waypoint_file))
         except Exception as e:
             problems = [f"generation failed: {e}"]
@@ -533,8 +533,11 @@ def main():
     parser.add_argument("image_path", nargs="?", default="data/input/varanasi.png", help="Input map image path")
     parser.add_argument("--display-width", "-w", type=int, default=750, help="Resize display width")
     parser.add_argument("--min-area", type=int, default=200, help="Minimum contour area to keep")
+    parser.add_argument("--max-mask-fraction", type=float, default=None,
+                        help="Reject an implausibly broad flood mask before planning (for example 0.8); review the source map")
     parser.add_argument("--lat", type=float, default=25.3176, help="Latitude of the image centre (used for weather API and mission coordinates)")
     parser.add_argument("--lon", type=float, default=82.9739, help="Longitude of the image centre (used for weather API and mission coordinates)")
+    parser.add_argument("--geotiff-reference", help="GeoTIFF with the same original pixel dimensions as the input image; use its affine transform and CRS for mission coordinates")
     parser.add_argument("--horizon", type=float, default=2.0, help="Hours for flood spread prediction")
     parser.add_argument("--dummy-weather", action="store_true", help="Use dummy extreme weather data to force visible flood spread")
     parser.add_argument("--mode", choices=("single", "multi"), default="single",
@@ -549,6 +552,8 @@ def main():
 
     if args.display_width <= 0:
         parser.error("--display-width must be a positive number of pixels")
+    if args.max_mask_fraction is not None and not 0 < args.max_mask_fraction < 1:
+        parser.error("--max-mask-fraction must be between 0 and 1")
     if args.mode == "single" and (args.max_bases is not None or args.session_root is not None):
         parser.error("--max-bases and --session-root apply only to --mode multi")
     max_bases = settings.MAX_BASES if args.max_bases is None else args.max_bases
@@ -559,6 +564,15 @@ def main():
     session_root = args.session_root or "data/output"
     if args.mode == "multi" and os.path.exists(session_root) and not os.path.isdir(session_root):
         parser.error(f"--session-root {session_root!r} exists and is not a folder")
+    geo_reference = None
+    if args.geotiff_reference:
+        from src.mission.geotiff import GeoTiffReference
+        try:
+            geo_reference = GeoTiffReference.from_file(args.geotiff_reference)
+        except (OSError, ValueError) as e:
+            parser.error(f"invalid --geotiff-reference: {e}")
+        args.lat, args.lon = geo_reference.centre
+        settings.METERS_PER_PIXEL = geo_reference.local_mpp
     # Reject an unusable geographic reference or scale before any work (or the earlier mission) is touched
     try:
         pixel_to_latlon(0, 0, (0, 0), (args.lat, args.lon), settings.METERS_PER_PIXEL)
@@ -607,6 +621,8 @@ def main():
     if image is None:
         logging.error("Error loading image file. Please check the path.")
         sys.exit(1)
+    if geo_reference and (image.shape[1], image.shape[0]) != (geo_reference.width, geo_reference.height):
+        parser.error("--geotiff-reference dimensions must match the original input image")
 
     # This run can now produce a mission: remove the one from any earlier run, so a run that ends without
     # generating a mission cannot leave an older file that looks like this run's output.
@@ -624,6 +640,8 @@ def main():
         new_h = int(round(h * scale_factor))
         image = cv2.resize(image, (DISPLAY_WIDTH, new_h), interpolation=cv2.INTER_AREA)
         logging.info(f"Resized image to {DISPLAY_WIDTH}x{new_h}")
+    coordinate_fn = (None if geo_reference is None else
+                     lambda x, y: geo_reference.display_to_latlon(x, y, scale_factor))
 
     proc = ImageProcessor()
     try:
@@ -648,6 +666,12 @@ def main():
                 mask = ((mask - m) / (M - m) * 255.0).astype("uint8")
             else:
                 mask = (mask * 255.0).astype("uint8")
+    if args.max_mask_fraction is not None:
+        mask_fraction = float(np.count_nonzero(mask)) / mask.size
+        if mask_fraction > args.max_mask_fraction:
+            logging.error("Flood mask occupies %.1f%% of the image, above the %.1f%% review gate; no mission exported.",
+                          100 * mask_fraction, 100 * args.max_mask_fraction)
+            sys.exit(2)
 
     show_image_safe("Flood Mask", mask, wait=True)
 
@@ -681,7 +705,7 @@ def main():
 
     if args.mode == "multi":
         run_multi_base(image, mask, forecasts, contours, cluster_edges, points, weather, (args.lat, args.lon),
-                       scale_factor, max_bases, session_root=session_root)
+                       scale_factor, max_bases, session_root=session_root, coordinate_fn=coordinate_fn)
         return
 
     # Safe points from cluster edges
@@ -735,7 +759,8 @@ def main():
             image_center_px, 
             geo_center, 
             meters_per_pixel,
-            filename=output_file
+            filename=output_file,
+            coordinate_fn=coordinate_fn
         )
         logging.info(f"Mission file '{output_file}' generated successfully.")
     except Exception as e:

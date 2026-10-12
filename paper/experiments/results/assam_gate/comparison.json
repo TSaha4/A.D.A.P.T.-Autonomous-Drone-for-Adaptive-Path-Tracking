@@ -1,0 +1,23 @@
+[
+  {
+    "map": "varanasi",
+    "exit": 0,
+    "mission_exists": true,
+    "gate_fraction": 0.8,
+    "baseline_mask_fraction": 0.08097682709447415
+  },
+  {
+    "map": "kanpur",
+    "exit": 0,
+    "mission_exists": true,
+    "gate_fraction": 0.8,
+    "baseline_mask_fraction": 0.15083917340521114
+  },
+  {
+    "map": "assam",
+    "exit": 2,
+    "mission_exists": false,
+    "gate_fraction": 0.8,
+    "baseline_mask_fraction": 0.8310220541902962
+  }
+]

@@ -1,0 +1,79 @@
+{
+  "source": "https://mapping.emergency.copernicus.eu/activations/EMSR504/",
+  "utm_crs": "EPSG:32756",
+  "cell_m": 30,
+  "grid": [
+    279,
+    407
+  ],
+  "pairs": [
+    {
+      "start": "initial",
+      "end": "monitor1",
+      "start_acquisition_utc": "2021-03-19T19:07",
+      "end_acquisition_utc": "2021-03-21T19:07",
+      "horizon_hours": 48.0,
+      "weather_at_start": {
+        "precipitation": 0.0,
+        "wind_speed_10m": 4.6,
+        "wind_direction_10m": 288
+      },
+      "valid_pixels": 113474,
+      "observed_current_pixels": 33129,
+      "observed_next_pixels": 41250,
+      "predicted_pixels": 33129,
+      "persistence": {
+        "tp": 33129,
+        "fp": 0,
+        "fn": 8121,
+        "iou": 0.8031272727272727,
+        "f1": 0.8908159561166459,
+        "precision": 1.0,
+        "recall": 0.8031272727272727
+      },
+      "proxy": {
+        "tp": 33129,
+        "fp": 0,
+        "fn": 8121,
+        "iou": 0.8031272727272727,
+        "f1": 0.8908159561166459,
+        "precision": 1.0,
+        "recall": 0.8031272727272727
+      }
+    },
+    {
+      "start": "monitor1",
+      "end": "monitor2",
+      "start_acquisition_utc": "2021-03-21T19:07",
+      "end_acquisition_utc": "2021-03-22T20:01",
+      "horizon_hours": 24.9,
+      "weather_at_start": {
+        "precipitation": 0.4,
+        "wind_speed_10m": 7.6,
+        "wind_direction_10m": 25
+      },
+      "valid_pixels": 113545,
+      "observed_current_pixels": 41259,
+      "observed_next_pixels": 40908,
+      "predicted_pixels": 41259,
+      "persistence": {
+        "tp": 39944,
+        "fp": 1315,
+        "fn": 964,
+        "iou": 0.9460246784927646,
+        "f1": 0.972263804203634,
+        "precision": 0.9681281659759083,
+        "recall": 0.976434927153613
+      },
+      "proxy": {
+        "tp": 39944,
+        "fp": 1315,
+        "fn": 964,
+        "iou": 0.9460246784927646,
+        "f1": 0.972263804203634,
+        "precision": 0.9681281659759083,
+        "recall": 0.976434927153613
+      }
+    }
+  ]
+}

@@ -13,3 +13,4 @@ data/output/*
 .DS_Store
 .vscode/
 .idea/
+paper/experiments/cache/

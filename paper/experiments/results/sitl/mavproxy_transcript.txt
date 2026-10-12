@@ -1,0 +1,22 @@
+Connect tcp:127.0.0.1:5760 source_system=255
+Note: Not saving telemetry logs
+Waiting for heartbeat from tcp:127.0.0.1:5760
+MAV> Detected vehicle 1:1 on link 0
+online system 1
+moSTABILIZE> Mode STABILIZE
+de STABILIZE
+wp load paper/experiments/results/sitl/varanasi_full.waypoints
+fence present
+waypoint 1
+STABILIZE> wp load paper/experiments/results/sitl/varanasi_full.waypoints
+STABILIZE> Loaded 364 waypoints from paper/experiments/results/sitl/varanasi_full.waypoints
+Got COMMAND_ACK: DO_SET_MODE: ACCEPTED
+Loaded 364 waypoints in 0.67s
+Sent all 364 waypoints
+Got MISSION_ACK: TYPE_MISSION: ACCEPTED
+wp status
+AP: Flight plan received
+STABILIZE> Have 364 of 364 waypoints
+wp save paper/experiments/results/sitl/mavproxy_downloaded.waypoints
+STABILIZE> Requesting 364 waypoints t=Mon Oct 12 22:58:22 2026 now=Mon Oct 12 22:58:22 2026
+Saved 364 waypoints to paper/experiments/results/sitl/mavproxy_downloaded.waypoints

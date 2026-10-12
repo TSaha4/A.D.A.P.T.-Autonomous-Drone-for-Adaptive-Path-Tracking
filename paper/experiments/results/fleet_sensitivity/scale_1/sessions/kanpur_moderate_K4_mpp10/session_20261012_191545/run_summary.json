@@ -1,0 +1,489 @@
+{
+  "mode": "multi",
+  "max_bases": 4,
+  "geo_anchor": [
+    25.3176,
+    82.9739
+  ],
+  "session_dir": "paper/experiments/results/fleet_sensitivity/scale_1/sessions/kanpur_moderate_K4_mpp10/session_20261012_191545",
+  "weather": {
+    "precipitation": 3.0,
+    "wind_speed_10m": 12.0,
+    "wind_direction_10m": 270.0
+  },
+  "scale_factor": 0.7684426229508197,
+  "meters_per_pixel_display": 13.013333333333334,
+  "image_center_px": [
+    374.5,
+    370.5
+  ],
+  "forecast_hours": [
+    0.0,
+    1.0,
+    2.0
+  ],
+  "drop_points": [
+    [
+      409,
+      657
+    ],
+    [
+      485,
+      701
+    ],
+    [
+      466,
+      652
+    ],
+    [
+      264,
+      603
+    ],
+    [
+      318,
+      608
+    ],
+    [
+      528,
+      595
+    ],
+    [
+      213,
+      583
+    ],
+    [
+      489,
+      571
+    ],
+    [
+      559,
+      569
+    ],
+    [
+      288,
+      581
+    ],
+    [
+      206,
+      548
+    ],
+    [
+      253,
+      546
+    ],
+    [
+      445,
+      592
+    ],
+    [
+      171,
+      538
+    ],
+    [
+      397,
+      514
+    ],
+    [
+      346,
+      512
+    ],
+    [
+      522,
+      483
+    ],
+    [
+      552,
+      559
+    ],
+    [
+      267,
+      511
+    ],
+    [
+      94,
+      488
+    ],
+    [
+      652,
+      497
+    ],
+    [
+      339,
+      463
+    ],
+    [
+      84,
+      429
+    ],
+    [
+      87,
+      428
+    ],
+    [
+      151,
+      308
+    ],
+    [
+      162,
+      295
+    ],
+    [
+      462,
+      268
+    ],
+    [
+      332,
+      406
+    ],
+    [
+      432,
+      403
+    ],
+    [
+      567,
+      436
+    ],
+    [
+      402,
+      277
+    ],
+    [
+      504,
+      262
+    ],
+    [
+      431,
+      198
+    ],
+    [
+      63,
+      153
+    ],
+    [
+      262,
+      120
+    ],
+    [
+      256,
+      298
+    ],
+    [
+      239,
+      374
+    ],
+    [
+      300,
+      257
+    ],
+    [
+      373,
+      97
+    ],
+    [
+      378,
+      68
+    ],
+    [
+      229,
+      32
+    ]
+  ],
+  "home_candidates": {
+    "grid_points": 1722,
+    "dry": 1447,
+    "with_clearance": 969
+  },
+  "selection": {
+    "mode": "multi",
+    "bases": [
+      [
+        207,
+        531
+      ],
+      [
+        441,
+        639
+      ],
+      [
+        369,
+        81
+      ],
+      [
+        63,
+        405
+      ]
+    ],
+    "best_single_reach": 3,
+    "coverable": 30
+  },
+  "overlap_repairs": [],
+  "not_planned": {},
+  "path_overlaps": [],
+  "outcome": "MULTI_BASE_4",
+  "bases": [
+    {
+      "base": 1,
+      "home": [
+        207,
+        531
+      ],
+      "assigned": 3,
+      "clearance_px": 16.0,
+      "connectivity_excluded": 0,
+      "refinement": {
+        "status": "converged",
+        "iterations": 3,
+        "cap": 5
+      },
+      "visited": 1,
+      "unreachable": 2,
+      "legs": {
+        "total": 2,
+        "dstar": 2,
+        "same_cell": 0,
+        "fallback": 0
+      },
+      "route_flooded_px_arrival": 0,
+      "route_flooded_px_current": 0,
+      "planner_sortie_battery": [
+        0.3272938581915843
+      ],
+      "routed_sortie_battery": [
+        0.32729385819158435
+      ],
+      "waypoint_file": "paper/experiments/results/fleet_sensitivity/scale_1/sessions/kanpur_moderate_K4_mpp10/session_20261012_191545/base1.waypoints",
+      "waypoint_problems": [],
+      "route_length_m": 628.6436910387138,
+      "cruise_time_s": 125.72873820774275,
+      "sorties": 1
+    },
+    {
+      "base": 2,
+      "home": [
+        441,
+        639
+      ],
+      "assigned": 3,
+      "clearance_px": 17.381397247314453,
+      "connectivity_excluded": 0,
+      "refinement": {
+        "status": "converged",
+        "iterations": 1,
+        "cap": 5
+      },
+      "visited": 3,
+      "unreachable": 0,
+      "legs": {
+        "total": 8,
+        "dstar": 6,
+        "same_cell": 2,
+        "fallback": 0
+      },
+      "route_flooded_px_arrival": 0,
+      "route_flooded_px_current": 0,
+      "planner_sortie_battery": [
+        0.40448378842145605,
+        0.7419707566099296,
+        0.759665542791421
+      ],
+      "routed_sortie_battery": [
+        0.4044837884214561,
+        0.7419707566099296,
+        0.7596655427914208
+      ],
+      "waypoint_file": "paper/experiments/results/fleet_sensitivity/scale_1/sessions/kanpur_moderate_K4_mpp10/session_20261012_191545/base2.waypoints",
+      "waypoint_problems": [],
+      "route_length_m": 3661.145290635269,
+      "cruise_time_s": 732.2290581270538,
+      "sorties": 3
+    },
+    {
+      "base": 3,
+      "home": [
+        369,
+        81
+      ],
+      "assigned": 2,
+      "clearance_px": 16.0,
+      "connectivity_excluded": 0,
+      "refinement": {
+        "status": "converged",
+        "iterations": 1,
+        "cap": 4
+      },
+      "visited": 2,
+      "unreachable": 0,
+      "legs": {
+        "total": 3,
+        "dstar": 3,
+        "same_cell": 0,
+        "fallback": 0
+      },
+      "route_flooded_px_arrival": 0,
+      "route_flooded_px_current": 0,
+      "planner_sortie_battery": [
+        0.5290411482317461
+      ],
+      "routed_sortie_battery": [
+        0.529041148231746
+      ],
+      "waypoint_file": "paper/experiments/results/fleet_sensitivity/scale_1/sessions/kanpur_moderate_K4_mpp10/session_20261012_191545/base3.waypoints",
+      "waypoint_problems": [],
+      "route_length_m": 1005.9617813755322,
+      "cruise_time_s": 201.19235627510642,
+      "sorties": 1
+    },
+    {
+      "base": 4,
+      "home": [
+        63,
+        405
+      ],
+      "assigned": 2,
+      "clearance_px": 20.0,
+      "connectivity_excluded": 0,
+      "refinement": {
+        "status": "converged",
+        "iterations": 1,
+        "cap": 4
+      },
+      "visited": 2,
+      "unreachable": 0,
+      "legs": {
+        "total": 3,
+        "dstar": 2,
+        "same_cell": 1,
+        "fallback": 0
+      },
+      "route_flooded_px_arrival": 0,
+      "route_flooded_px_current": 0,
+      "planner_sortie_battery": [
+        0.4865346150341163
+      ],
+      "routed_sortie_battery": [
+        0.4865346150341165
+      ],
+      "waypoint_file": "paper/experiments/results/fleet_sensitivity/scale_1/sessions/kanpur_moderate_K4_mpp10/session_20261012_191545/base4.waypoints",
+      "waypoint_problems": [],
+      "route_length_m": 925.7993747769268,
+      "cruise_time_s": 185.15987495538536,
+      "sorties": 1
+    }
+  ],
+  "base_separation_min_px": 191.34262462922368,
+  "base_separation_required_px": 150.0,
+  "territory_violations": [],
+  "assignment": {
+    "0": 2,
+    "2": 2,
+    "6": 1,
+    "10": 1,
+    "12": 2,
+    "13": 1,
+    "22": 4,
+    "23": 4,
+    "38": 3,
+    "39": 3
+  },
+  "unreachable_by_any_base": {
+    "7": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "8": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "9": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "11": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "17": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "26": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "28": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "30": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "31": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "35": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "37": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "1": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "3": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "4": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "5": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "14": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "15": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "16": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "18": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "19": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "20": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "21": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "24": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "25": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "27": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "29": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "32": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "33": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "34": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "36": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed",
+    "40": "unreachable by any base: the 4-base cap was reached before a base covering it could be placed"
+  },
+  "drops_visited": 8,
+  "reloads": 2,
+  "unreachable": 2,
+  "connectivity_excluded": 0,
+  "legs": {
+    "total": 16,
+    "dstar": 13,
+    "same_cell": 3,
+    "fallback": 0
+  },
+  "route_flooded_px_arrival": 0,
+  "route_flooded_px_current": 0,
+  "routed_sortie_battery": [
+    0.32729385819158435,
+    0.4044837884214561,
+    0.7419707566099296,
+    0.7596655427914208,
+    0.529041148231746,
+    0.4865346150341165
+  ],
+  "waypoint_problems": [],
+  "total_route_length_m": 6221.550137826442,
+  "refinement": {
+    "status": "converged",
+    "per_base": [
+      {
+        "status": "converged",
+        "iterations": 3,
+        "cap": 5
+      },
+      {
+        "status": "converged",
+        "iterations": 1,
+        "cap": 5
+      },
+      {
+        "status": "converged",
+        "iterations": 1,
+        "cap": 4
+      },
+      {
+        "status": "converged",
+        "iterations": 1,
+        "cap": 4
+      }
+    ]
+  },
+  "stage_counts": {
+    "zones": 33,
+    "zones_with_drop_point": 33,
+    "drop_points": 41,
+    "unreachable_by_any_base": 31,
+    "assigned": 10,
+    "not_planned": 0,
+    "visited": 8
+  },
+  "map": {
+    "ok": true,
+    "dominant_colour": [
+      224,
+      247,
+      209
+    ],
+    "dominant_fraction": 0.050643306379155435,
+    "shape_match": true,
+    "correlation": 0.8826801139279494,
+    "unchanged_fraction": 0.8721689128481581
+  }
+}
