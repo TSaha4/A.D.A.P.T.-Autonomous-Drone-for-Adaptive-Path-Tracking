@@ -1,7 +1,8 @@
-% A.D.A.P.T. manuscript. Drafted with IEEEtran (journal mode) for compilation and review.
-% Primary target: IEEE Access (original research article). Before submission, port the body to the official
-% IEEE Access LaTeX template (https://ieeeaccess.ieee.org/authors/preparing-your-article/); see README.md.
-\documentclass[journal]{IEEEtran}
+% A.D.A.P.T. faculty-review manuscript; evaluated source: research-validation fdb9cb3.
+% Venue-specific typesetting can be applied after experimental and declaration gaps close.
+\documentclass[9pt,a4paper,twocolumn]{extarticle}
+\usepackage[margin=15mm]{geometry}
+\linespread{0.94}
 
 \usepackage[T1]{fontenc}
 \usepackage{cite}
@@ -11,33 +12,24 @@
 \usepackage{multirow}
 \usepackage{array}
 \usepackage{xcolor}
-\usepackage{algorithm}
-\usepackage{algorithmic}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric}
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={A.D.A.P.T.: A Weather-Informed, Verifiable Pipeline from Annotated Flood Maps to Executable UAV Relief Missions},pdfauthor={}}
 
 \newcommand{\adapt}{A.D.A.P.T.}
 \newcommand{\yes}{\checkmark}
-\newcommand{\part}{(\checkmark)}
+\newcommand{\partialcheck}{(\checkmark)}
 \newcommand{\no}{--}
-\renewcommand{\algorithmicrequire}{\textbf{Input:}}
-\renewcommand{\algorithmicensure}{\textbf{Output:}}
-% Empty frame reserved for a screenshot the authors will take from their own simulation run.
-% #1: placeholder tag, #2: width, #3: height. Replace the whole \simplaceholder{...} by \includegraphics.
-\newcommand{\simplaceholder}[3]{\fbox{\parbox[c][#3][c]{#2}{\centering\footnotesize\textbf{[FIGURE PLACEHOLDER --- #1]}\\[3pt]\scriptsize image to be inserted by the authors from their own simulation run}}}
+\newenvironment{IEEEkeywords}{\par\smallskip\noindent\textbf{Keywords: }}{\par\smallskip}
 
 \begin{document}
 
 \title{A.D.A.P.T.: A Weather-Informed, Verifiable Pipeline from Annotated Flood Maps to Executable UAV Relief Missions}
 
-\author{[Author~1], [Author~2], and [Faculty~Advisor]%
-  \thanks{Manuscript draft prepared October 2026. [Funding statement: to be provided by the authors.]}%
-  \thanks{The authors are with [Department], [Institution], [City], [Country] (e-mail: [corresponding.author@institution.edu]).}%
-}
-
-\markboth{Draft manuscript --- not peer reviewed}{[Author~1] \MakeLowercase{\textit{et al.}}: A.D.A.P.T.}
+\author{}
+\date{}
 
 \maketitle
 
@@ -48,14 +40,13 @@
 \input{sections/architecture}
 \input{sections/methodology}
 \input{sections/multi_uav}
+\input{sections/verification}
 \input{sections/experiments}
 \input{sections/limitations}
-\input{sections/comparison}
-\input{sections/future_work}
 \input{sections/conclusion}
 \input{sections/backmatter}
 
-\bibliographystyle{IEEEtran}
+\bibliographystyle{unsrt}
 \bibliography{references}
 
 \end{document}

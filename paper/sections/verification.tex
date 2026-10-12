@@ -1,0 +1,14 @@
+\section{Verification Methodology}
+\label{sec:verif}
+
+\subsection{Independent geodetic oracle}
+A test-only WGS84 oracle implements Vincenty's direct and inverse solutions without importing production code \cite{vincenty1975direct}. It is checked against a published worked geodesic to 1~mm and $0.01''$, an equatorial degree of longitude and the WGS84 meridian quadrant. A pixel's reference position is the point reached from the supplied centre by a geodesic of length $\sqrt{E^2+N^2}$ at azimuth $\operatorname{atan2}(E,N)$. Model error is bounded using the ellipsoid's radii of curvature. Randomised forward/inverse round trips test valid and rejected inputs.
+
+\subsection{Mission validator}
+An independent specification-based validator reads each exported WPL file and checks item order, command parameters, coordinate ranges, drop actions and pixel-to-coordinate correspondence. It does not import production mission code. Thirty-six corrupted-mission cases exercise the validator itself. Passing it establishes format and declared-model consistency, not autopilot acceptance.
+
+\subsection{Metamorphic, mutation and fuzz tests}
+The same synthetic map is run through the entry point at nine display widths to check ground-position consistency. Mutation testing injects 33 plausible defects in a copy of the code, including axis and scale errors, servo-slot mistakes, a disabled crossing gate and broken reload bookkeeping. Seeded random grids, pathological end-to-end inputs and 500 multi-base scenarios check regression invariants. These tests use the pushed suite and recorded outputs.
+
+\subsection{SITL protocol and status}
+ArduCopter SITL should load an exported WPL mission and record item acceptance, servo-channel activation at drop altitude, RTL, intermediate LAND/TAKEOFF reload behaviour and battery response. A ground-station view, altitude and servo telemetry, and planned-versus-flown trajectory would be the evidence. The pushed repository contains no such run or telemetry; Section~\ref{sec:sim} reports its status without assuming success.

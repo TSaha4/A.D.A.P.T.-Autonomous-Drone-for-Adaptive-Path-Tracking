@@ -1,4 +1,4 @@
-\section{Methodology}
+\section{Proposed Method}
 \label{sec:method}
 
 This section specifies each stage exactly as implemented in the evaluated version of \adapt{}. Parameter values are the defaults used in all experiments (Table~\ref{tab:config}).
@@ -32,29 +32,14 @@ Current conditions at $(\varphi_0,\lambda_0)$ are requested from the Open-Meteo 
 
 \subsection{Weather-Driven Spread Rule}
 \label{sec:spread}
-\adapt{} estimates near-term flood growth with a deterministic, terrain-free rule applied to the binary mask (Algorithm~\ref{alg:spread}). It can be read as a cellular automaton whose cells become flooded if any cell within an elliptical neighbourhood is flooded (isotropic growth), combined with a rigid advection of the flooded set in the downwind direction. With
+\adapt{} estimates near-term flood growth with a deterministic, terrain-free rule applied to the binary mask (The spread rule). It can be read as a cellular automaton whose cells become flooded if any cell within an elliptical neighbourhood is flooded (isotropic growth), combined with a rigid advection of the flooded set in the downwind direction. With
 \begin{equation}
 b=\max(0,\lfloor P/5\rfloor),\ \ v=\max(0,\lfloor V/10\rfloor),\ \ \alpha=\theta+180^\circ,
 \label{eq:spread}
 \end{equation}
 the shift is $(\Delta x,\Delta y)=(\operatorname{round}(v\sin\alpha),\operatorname{round}(-v\cos\alpha))$ display pixels, and $N=\max(1,\lfloor T\rfloor)$ iterations are applied. For the experimental weather, $b=2$, $v=3$, $\alpha=90^\circ$ (eastward), $(\Delta x,\Delta y)=(3,0)$ and $N=2$ for $T=2$~h. The rule has not been calibrated against observed flood evolution or compared with hydrodynamic models; its coefficients are documented in the code as heuristic. It is used only to make the planner keep clear of areas that may flood soon.
 
-\begin{algorithm}[t]
-\caption{Weather-driven spread rule (Stage E)}
-\label{alg:spread}
-\begin{algorithmic}[1]
-\REQUIRE mask $M$, weather $(P,V,\theta)$, horizon $T$ (h)
-\ENSURE predicted mask $\hat M\supseteq M$
-\STATE $b\gets\max(0,\lfloor P/5\rfloor)$; $v\gets\max(0,\lfloor V/10\rfloor)$; $\alpha\gets\theta+180^\circ$
-\STATE $\Delta x\gets\operatorname{round}(v\sin\alpha)$; $\Delta y\gets\operatorname{round}(-v\cos\alpha)$
-\STATE $\hat M\gets M$
-\FOR{$t=1$ \TO $\max(1,\lfloor T\rfloor)$}
-  \IF{$b>0$} \STATE $\hat M\gets\hat M\oplus E_{2b+1}$ \COMMENT{dilation, elliptical element} \ENDIF
-  \IF{$v>0$} \STATE $\hat M\gets\hat M\cup\tau_{(\Delta x,\Delta y)}(\hat M)$ \COMMENT{shift, zero fill} \ENDIF
-\ENDFOR
-\RETURN $\hat M$
-\end{algorithmic}
-\end{algorithm}
+
 
 \subsection{Obstacle Modelling}
 The obstacle set is $O=M\cup\hat M$, which equals $\hat M$ because the rule only adds pixels. Using $O$ rather than $M$ trades route exposure to predicted flooding against free-space connectivity; Section~\ref{sec:results} quantifies both sides of this trade-off.
@@ -83,28 +68,9 @@ k(u)=\big[\mu(u)+h(s,u)+k_m;\ \mu(u)\big],
 \end{equation}
 where $s$ is the start cell and the search runs from the goal. Every occupied cell is registered through the standard vertex-update procedure before the shortest path is computed, and the path is extracted by repeatedly moving to the successor that minimises $c(u,v)+g(v)$. The implementation documents D*~Lite as chosen for efficient replanning when obstacles are discovered. However, because each leg uses a fresh instance on a static grid, $k_m$ remains $0$ and no search effort is reused: \emph{the incremental-replanning property of D*~Lite is not exercised in the present offline pipeline}.
 
-\emph{Failure behaviour.} If the start cell has infinite cost-to-go, no intermediate points are added for that leg, so the mission flies a straight segment between the two stops, possibly across $O$; this is logged as an error. Interior path cells $(g_x,g_y)$ are mapped back to display pixels as $(5g_x,5g_y)$, the top-left corner of each block; the row actually sampled by the resampling can differ from it by up to two pixels. Algorithm~\ref{alg:leg} summarises the procedure.
+\emph{Failure behaviour.} If the start cell has infinite cost-to-go, no intermediate points are added for that leg, so the mission flies a straight segment between the two stops, possibly across $O$; this is logged as an error. Interior path cells $(g_x,g_y)$ are mapped back to display pixels as $(5g_x,5g_y)$, the top-left corner of each block; the row actually sampled by the resampling can differ from it by up to two pixels.
 
-\begin{algorithm}[t]
-\caption{Per-leg planning (Stage I)}
-\label{alg:leg}
-\begin{algorithmic}[1]
-\REQUIRE ordered stops $(h,d_{\pi_1},\dots,d_{\pi_n},h)$, obstacle mask $O$
-\ENSURE pixel route $P$ and stop indices
-\STATE $G\gets$ nearest-neighbour downsample of $O$ by $f=5$
-\FOR{each consecutive pair $(p,q)$}
-  \STATE append $p$ to $P$ and mark it as a stop
-  \STATE $(u,v)\gets(\lfloor p/f\rfloor,\lfloor q/f\rfloor)$, clamped to $G$
-  \STATE snap $u$, $v$ to the nearest free cell (BFS, radius 10) if occupied
-  \IF{$u\neq v$}
-    \STATE $\sigma\gets$ \textsc{DStarLite}$(G,u,v)$ \COMMENT{new instance}
-    \IF{$\sigma=\emptyset$} \STATE log error; add nothing (straight leg)
-    \ELSE \STATE append $f\cdot\sigma_2,\dots,f\cdot\sigma_{|\sigma|-1}$ to $P$ \ENDIF
-  \ENDIF
-\ENDFOR
-\STATE append final stop $h$
-\end{algorithmic}
-\end{algorithm}
+
 
 \subsection{Pixel-to-Geodetic Conversion}
 \label{sec:geo}
@@ -157,6 +123,5 @@ $m$ & NAV\_LAND (21) & 0 & at HOME\\
 \end{tabular}
 \end{table}
 
-\subsection{Verification Methodology}
-\label{sec:verif}
-Correctness of the geospatial and mission layers is established independently of the implementation through five mechanisms. (i) \emph{Regression and unit tests} cover every stage touched by verification, including all rejection cases of the conversion. (ii) \emph{An independent geodetic oracle} implements Vincenty's direct and inverse solutions on WGS84 \cite{vincenty1975direct} in test code that does not import the production code. Before use, it is checked against a published worked geodesic (to 1~mm and $0.01''$), the equatorial length of one degree of longitude and the WGS84 meridian quadrant. Physical ground truth for a pixel is the point reached from the reference by a geodesic of length $\sqrt{E^2+N^2}$ at azimuth $\operatorname{atan2}(E,N)$, and a first- and second-order bound on the model error is derived from the radii of curvature. (iii) \emph{A specification-based mission validator} re-implements the expected item structure, parameter slots, coordinate ranges and pixel-to-coordinate correspondence without importing production code. It is itself exercised by 36 adversarial test cases built from corrupted missions, and its blind spots are asserted explicitly. (iv) \emph{Metamorphic resize tests} run the same synthetic map through the unmodified entry point at several display widths and require the waypoints to stay at the same ground position. (v) \emph{Mutation testing} injects 33 plausible defects into a copy of the code, such as sign and axis errors, wrong constants, missing wrapping or validation, and wrong parameter slots, and since the integration of the multi-base mode also defects in its scale, crossing gate, reload encoding and repair bookkeeping. It requires the test suite to detect each one.
+\subsection{Complexity}
+With $A=W'H'$ display pixels, fixed-size morphology and contour extraction each scan $O(A)$ pixels per pass; $N$ spread iterations cost $O(NA)$ for fixed kernels. Nearest-neighbour ordering of $n$ drops costs $O(n^2)$. The grid has $V_g\approx A/25$ cells. Because a fresh D*~Lite instance is constructed for every leg, the implementation cannot reuse earlier search work; one leg may explore the whole grid, so the search cost grows with both $n$ and $V_g$. In the fleet mode, shortest-path fields are computed for candidate-to-drop distances, then up to $K$ bases are scored and independent sorties are planned. Pairwise crossing checks grow quadratically in the total number of route segments. These are structural bounds, not measured scaling laws; only the recorded runtimes in Section~\ref{sec:results} are empirical.

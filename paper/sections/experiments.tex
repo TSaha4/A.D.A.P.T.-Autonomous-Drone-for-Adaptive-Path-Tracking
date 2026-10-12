@@ -1,5 +1,5 @@
-\section{Experimental Setup and Results}
-\label{sec:results}
+\section{Experimental Setup}
+\label{sec:setup}
 
 \subsection{Data}
 \label{sec:data}
@@ -31,7 +31,7 @@ All experiments run the unmodified pipeline entry point on a laptop with an Inte
 \label{tab:config}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}ll@{}}
+\resizebox{\columnwidth}{!}{\begin{tabular}{@{}ll@{}}
 \toprule
 Parameter & Value\\
 \midrule
@@ -51,21 +51,24 @@ Speed $v$; endurance $E$; $c_m$; $c_w$ & 5 m/s; 7 min; 0.08/kg; 0.025 s/m\\
 Payload per drop; capacity; reserve $r$ & 0.25 kg; 8 kg; 20\%\\
 Large region; extra drop per; max.\ drops & 2500 px$^2$; 3000 px$^2$; 4\\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \subsection{Metrics}
 We report the \emph{flood-mask fraction} (share of display pixels in $M$) and the corresponding obstacle fraction for $O$; the number of regions, which equals the number of deliveries; planned legs and \emph{no-path legs}, the latter flown as straight segments; endpoints moved off obstacles and endpoints that could not be moved (\emph{unsnappable}); route points, mission items and runtime. For the ablation we use \emph{route exposure}, the fraction of route length lying over a given pixel set, sampled every 0.5~px. For route ordering we use the ratio of the nearest-neighbour tour length to the optimum, and for geospatial verification the deviations in degrees, metres and pixels against the oracle.
 
+\section{Results and Discussion}
+\label{sec:results}
+
 \subsection{End-to-End Results}
 \label{sec:e2e}
-Table~\ref{tab:e2e} and Fig.~\ref{fig:pipeline} summarise the end-to-end runs. All three runs complete and produce missions that pass the validator with no errors or warnings. Path planning accounts for more than 99\% of runtime; every other stage takes less than 0.1~s. Three findings qualify these outcomes.
+Table~\ref{tab:e2e} and Fig.~\ref{fig:pipeline-pair} summarise the end-to-end runs. All three runs complete and produce missions that pass the validator with no errors or warnings. Path planning accounts for more than 99\% of runtime; every other stage takes less than 0.1~s. Three findings qualify these outcomes.
 \begin{enumerate}
-\item \emph{No-path legs.} Half of the Varanasi legs (8 of 16) and 6 of 33 Kanpur legs have no path on the planning grid. The mission therefore flies straight segments across obstacles on these legs (red segments in Fig.~\ref{fig:pipeline}d). The independent A* baseline (Section~\ref{sec:baselines}) confirms that these endpoints are genuinely disconnected on the grid: after snapping, they lie in free pockets enclosed by the inflated flood mask.
+\item \emph{No-path legs.} Half of the Varanasi legs (8 of 16) and 6 of 33 Kanpur legs have no path on the planning grid. The mission therefore flies straight segments across obstacles on these legs (red segments in Fig.~\ref{fig:pipeline-pair}). The independent A* baseline (Section~\ref{sec:baselines}) confirms that these endpoints are genuinely disconnected on the grid: after snapping, they lie in free pockets enclosed by the inflated flood mask.
 \item \emph{Segmentation failure on the thematic map.} For Assam, the sampled patches include white background, $\ell_S$ falls to $0$ and achromatic pixels pass the red hue test (Section~\ref{sec:method}-B). Of the image, 83.1\% is labelled flood, the whole map becomes a single region, and both endpoints of the only (zero-length) leg remain inside obstacles. The resulting 10-item mission is structurally valid but meaningless.
 \item \emph{Geography.} All missions lie within about 2~km of the default reference, irrespective of the map content (Section~\ref{sec:geovalid}).
 \end{enumerate}
-Figs.~\ref{fig:sim-input} and~\ref{fig:sim-single} are reserved for the corresponding screenshots from the authors' own runs.
+
 
 \begin{table}[t]
 \centering
@@ -92,31 +95,18 @@ Share of runtime in planning & 99.4\% & 99.6\% & --\\
 \end{tabular}
 \end{table}
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.92\textwidth]{figures/fig_pipeline.pdf}
-\caption{Pipeline stages for the Varanasi map. (a) Input after display scaling (third-party map; see Data Availability). (b) Flood mask $M$. (c) Obstacles: $M$ (blue) and predicted-only pixels $\hat M\setminus M$ (orange). (d) Drop points, HOME, nearest-neighbour order (dashed), planned route (green) and the 8 no-path legs flown as straight segments (red).}
-\label{fig:pipeline}
-\end{figure*}
+
+
 
 \begin{figure*}[t]
 \centering
-\begin{minipage}[t]{0.32\textwidth}\centering\simplaceholder{INPUT FLOOD MAP}{0.93\linewidth}{3.6cm}\\[2pt]{\footnotesize (a)}\end{minipage}\hfill
-\begin{minipage}[t]{0.32\textwidth}\centering\simplaceholder{FLOOD REGION DETECTION}{0.93\linewidth}{3.6cm}\\[2pt]{\footnotesize (b)}\end{minipage}\hfill
-\begin{minipage}[t]{0.32\textwidth}\centering\simplaceholder{SAFE DROP POINTS}{0.93\linewidth}{3.6cm}\\[2pt]{\footnotesize (c)}\end{minipage}
-\caption{Reserved for screenshots from the authors' own run of the pipeline. (a) Input flood map. (b) Detected flood regions (mask and contours). (c) Drop points: hull vertices on the region boundary in the single-UAV mode, dry points beside the regions in the multi-base mode. [To be inserted by the authors.]}
-\label{fig:sim-input}
+\includegraphics[width=0.88\textwidth]{figures/fig_pipeline_pair.pdf}
+\caption{Recorded pipeline outputs for Varanasi and Kanpur: annotated input, extracted flood mask, and planned route over current (blue) and predicted-only (orange) obstacles. Red route segments mark long straight fallbacks; they are not validated flight paths. The third-party input imagery is reproduced for research review only.}
+\label{fig:pipeline-pair}
 \end{figure*}
-
-\begin{figure}[t]
-\centering
-\simplaceholder{SINGLE-UAV OPTIMIZED ROUTE}{0.93\columnwidth}{4.2cm}
-\caption{Reserved for Approach A (one drone, single-UAV mode) from the authors' run: the route visiting every drop point in nearest-neighbour order with per-leg D*~Lite. The order is a heuristic and is not optimal (Section~\ref{sec:baselines}). [To be inserted by the authors.]}
-\label{fig:sim-single}
-\end{figure}
 
 \subsection{Ablation: Predicted-Flood Obstacles}
-Table~\ref{tab:ablation} and Fig.~\ref{fig:ablation} compare planning on $O=M\cup\hat M$ with planning on $M$ alone. Predicted-only pixels cover 7.7\% (Varanasi) and 14.0\% (Kanpur) of the image. Without predicted obstacles, 33.8\% and 47.9\% of the route length lies over predicted-only area. With them, exposure falls to 17.9\% and 11.6\%. Exposure does not reach zero because the no-path legs fly straight. The same inflation, however, causes \emph{all} no-path legs: there are none with $M$ alone, against 8 and 6 with $O$. It also increases planning time by a factor of 2.2--2.9, and for Varanasi it slightly increases exposure to the current flood (3.4\% to 4.8\%). The prediction stage is therefore not uniformly beneficial: in its current form, the benefit it is designed for comes with a loss of planner completeness.
+Table~\ref{tab:ablation} compares planning on $O=M\cup\hat M$ with planning on $M$ alone. Predicted-only pixels cover 7.7\% (Varanasi) and 14.0\% (Kanpur) of the image. Without predicted obstacles, 33.8\% and 47.9\% of the route length lies over predicted-only area. With them, exposure falls to 17.9\% and 11.6\%. Exposure does not reach zero because the no-path legs fly straight. The same inflation, however, causes \emph{all} no-path legs: there are none with $M$ alone, against 8 and 6 with $O$. It also increases planning time by a factor of 2.2--2.9, and for Varanasi it slightly increases exposure to the current flood (3.4\% to 4.8\%). The prediction stage is therefore not uniformly beneficial: in its current form, the benefit it is designed for comes with a loss of planner completeness.
 
 \begin{table}[t]
 \centering
@@ -136,12 +126,6 @@ Kanpur & $M$ & 0 & 733 & 16.5 & 47.9\% & 5.5\%\\
 \end{tabular}
 \end{table}
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.92\textwidth]{figures/fig_ablation.pdf}
-\caption{Planned routes with current-only obstacles (a, c) and with current and predicted obstacles (b, d). Blue: $M$; orange: $\hat M\setminus M$; red: no-path legs flown straight. Predicted obstacles move routes away from the predicted area but disconnect several drop points.}
-\label{fig:ablation}
-\end{figure*}
 
 \subsection{Sensitivity}
 Table~\ref{tab:sens} varies the colour margins and the number of operator clicks. The hue margin $\delta_H\in\{10,20,30\}$ has \emph{no} effect on any map, because the red-wrap rule replaces the hue interval. The saturation/value margin $\delta_{SV}\in\{15,30,45\}$ has a moderate effect on the two dot maps, while the Assam result is insensitive to every setting: its contamination is structural rather than a tuning artefact. Using 16 instead of 8 clicks raises the Varanasi flood fraction from 8.1\% to 9.7\% and the region count from 16 to 23, so the interactive step is a material source of variability. The ground scale $\rho$ affects only the geodetic conversion: the Varanasi route length scales linearly at 2.83~km per m/px, so the 5.66~km mission at $\rho=2$~m/px would be 263~km at the landmark-estimated scale of the map (Section~\ref{sec:geovalid}).
@@ -177,7 +161,7 @@ The per-leg planner was compared with a plain grid A* \cite{hart1968formal} usin
 \label{tab:baselines}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}lrrr@{}}
+\resizebox{\columnwidth}{!}{\begin{tabular}{@{}lrrr@{}}
 \toprule
 \multicolumn{4}{@{}l}{\emph{Nearest neighbour / optimal tour length (random instances)}}\\
 Points $n$ (instances) & Mean & Max & Optimal found\\
@@ -193,12 +177,12 @@ Legs; reachability agreement & 16; 16/16 & 33; 33/33 & \\
 Max.\ $|$cost difference$|$ & $4\times10^{-14}$ & $1\times10^{-13}$ & \\
 Runtime D*~Lite / A* (s) & 12.67 / 0.21 & 30.83 / 0.28 & \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \subsection{One Drone vs.\ a Drone Fleet (Single- vs.\ Multi-UAV Planning)}
 \label{sec:multires}
-\emph{Protocol.} The multi-base mode (Section~\ref{sec:multi}) was run on the three maps with the simulated operator, under the dummy weather and under a moderate preset (3~mm, 12~km/h, $270^\circ$), with base caps $K\in\{1,2,3,4\}$ (24 runs). For a given map and weather, all caps share the drop points, the obstacles and the vehicle model, so $K$ is the only variable. $K=1$ is the single-UAV case, in which one vehicle flies all sorties from one base. All metrics are read from each run's own outputs, and every exported mission was re-checked by the independent validator against its route file. The \emph{estimated completion time} is the routed length of the longest mission divided by $v=5$~m/s. It assumes that all vehicles launch together and excludes take-off, landing, drop manoeuvres and reload turnaround, so it is a lower bound rather than a prediction of mission time. Table~\ref{tab:multiuav} gives the results, and Figs.~\ref{fig:sim-multi} and~\ref{fig:sim-compare} are reserved for the corresponding maps from the authors' runs.
+\emph{Protocol.} The multi-base mode (Section~\ref{sec:multi}) was run on the three maps with the simulated operator, under the dummy weather and under a moderate preset (3~mm, 12~km/h, $270^\circ$), with base caps $K\in\{1,2,3,4\}$ (24 runs). For a given map and weather, all caps share the drop points, the obstacles and the vehicle model, so $K$ is the only variable. $K=1$ is the single-UAV case, in which one vehicle flies all sorties from one base. All metrics are read from each run's own outputs, and every exported mission was re-checked by the independent validator against its route file. The \emph{estimated completion time} is the routed length of the longest mission divided by $v=5$~m/s. It assumes that all vehicles launch together and excludes take-off, landing, drop manoeuvres and reload turnaround, so it is a lower bound rather than a prediction of mission time. Table~\ref{tab:multiuav} gives the results; Fig.~\ref{fig:fleet-performance} plots coverage and completion time, and Fig.~\ref{fig:fleet-routes} reconstructs the Kanpur routes from the committed route files.
 
 \input{figures/tab_multi_uav}
 
@@ -244,24 +228,25 @@ The longest mission therefore stays at 11.0~km, and the completion estimate at 3
 \end{itemize}
 Three cases were compared: calm weather on both maps, and a moderate-weather Varanasi case in which two reassignment repairs occur. In all three, the base positions, the assignment, every route point and every drop and reload index are identical. Assam could not be compared, because the reference rejects its flood mask (83\% coverage) before planning.
 
+
+
 \begin{figure*}[t]
 \centering
-\begin{minipage}[t]{0.48\textwidth}\centering\simplaceholder{MULTI-UAV TASK ALLOCATION}{0.95\linewidth}{4.6cm}\\[2pt]{\footnotesize (a)}\end{minipage}\hfill
-\begin{minipage}[t]{0.48\textwidth}\centering\simplaceholder{MULTI-UAV ROUTES}{0.95\linewidth}{4.6cm}\\[2pt]{\footnotesize (b)}\end{minipage}
-\caption{Reserved for Approach B (drone fleet, multi-base mode) on one map from the authors' run. (a) Selected bases, with the cluster of drop points assigned to each drone and the unreachable drops (logged assignment table and run summary). (b) Per-base routes with outbound and return legs of every sortie, reload stops and base territories, as rendered by the mode (\texttt{mission\_route\_map.png}). [To be inserted by the authors.]}
-\label{fig:sim-multi}
+\includegraphics[width=0.78\textwidth]{figures/fig_fleet_performance.pdf}
+\caption{Moderate-weather fleet experiment from committed results. Drop coverage and optimistic completion time versus the allowed number of bases $K$; Varanasi uses three bases when $K=4$. The completion estimate excludes takeoff, landing, drop and reload time.}
+\label{fig:fleet-performance}
 \end{figure*}
 
 \begin{figure}[t]
 \centering
-\simplaceholder{SINGLE VS MULTI UAV}{0.93\columnwidth}{4.2cm}
-\caption{Reserved for a side-by-side comparison of the two approaches on the same mission: one drone ($K=1$) and a fleet of up to four drones ($K=4$) planned by the multi-base mode, or a chart of Table~\ref{tab:multiuav}. [To be inserted by the authors.]}
-\label{fig:sim-compare}
+\includegraphics[width=0.92\columnwidth]{figures/fig_fleet_routes.pdf}
+\caption{Kanpur, moderate weather, $K=4$: four bases (stars), their served drops (dots), and planned routes. Reconstructed from committed route records; the map image has no georeference.}
+\label{fig:fleet-routes}
 \end{figure}
 
 \subsection{Geospatial and Mission Verification}
 \label{sec:verres}
-Table~\ref{tab:verif} summarises the verification results; Fig.~\ref{fig:geodesy} shows resize consistency and model error. Every result in this subsection concerns \emph{software correctness}, that is, whether the code computes what its model specifies. None of it shows that the generated coordinates match real places.
+Table~\ref{tab:verif} summarises the verification results. Every result in this subsection concerns \emph{software correctness}, that is, whether the code computes what its model specifies. None of it shows that the generated coordinates match real places.
 \begin{itemize}
 \item \emph{Synthetic ground truth.} On a $1000\times1000$~px synthetic image at 10~m/px, the implementation matches an independent re-derivation of \eqref{eq:enu}--\eqref{eq:geo} to within $1.4\times10^{-14}$~degrees at nine control points. Against the WGS84 geodesic ground truth, the largest error is 25.9~m at the image corners, dominated by the 0.49\% north--south scale error of $L$ at $25^\circ$, and every point is within the derived bound.
 \item \emph{Round trips and edge cases.} Of 100\,000 randomised round trips through a test-only inverse, covering mid-latitudes, near-polar and near-antimeridian references, image sizes and scales from 0.05 to 633~m/px, 98\,789 are representable and agree within $6.8\times10^{-8}$~px; the remaining 1\,211 are correctly rejected.
@@ -285,7 +270,7 @@ During verification, the procedure exposed and led to the correction of defects 
 \label{tab:verif}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}lr@{}}
+\resizebox{\columnwidth}{!}{\begin{tabular}{@{}lr@{}}
 \toprule
 Check & Result\\
 \midrule
@@ -310,31 +295,17 @@ Ground-station load test (Mission Planner, QGC) & not performed\\
 Software-in-the-loop (ArduPilot/PX4 SITL) & not performed\\
 Hardware-in-the-loop / physical flight & not performed\\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures/fig_geodesy.pdf}
-\caption{(a) Maximum deviation of drop coordinates from the model across display widths, against the ground size of one display pixel. (b) Worst-case model error against WGS84 versus map half-diagonal: the configured 2~m/px setting and the landmark-estimated real extents of the three maps.}
-\label{fig:geodesy}
-\end{figure}
 
 \subsection{Geographic Validity of the Supplied Maps}
 \label{sec:geovalid}
-To test whether the configured geography could describe the maps, a similarity transform was fitted between visible place-name labels and approximate public coordinates of those towns. This was done for 5, 10 and 12 labels on the Varanasi, Kanpur and Assam maps; the label positions were read off by eye. The estimate is a plausibility check, not a georeference. Residuals are 15--26~px and the rotations are $-0.5^\circ$, $-1.0^\circ$ and $-4.8^\circ$. The fitted scales are about 93, 130 and 633~m/px, which is 46, 65 and 317 times the configured 2.0~m/px. The default reference lies 23~km, 319~km and about 1\,000~km from the estimated image centres. At those extents, the flat-earth model itself would err by up to 345~m, 563~m and 7.7~km (Fig.~\ref{fig:geodesy}b), and the maps' web-Mercator basemaps violate the uniform-scale assumption \cite{battersby2014implications}. The generated missions are therefore \emph{not} geographically meaningful for these maps. The cause lies in the inputs and configuration, not in the conversion code.
+To test whether the configured geography could describe the maps, a similarity transform was fitted between visible place-name labels and approximate public coordinates of those towns. This was done for 5, 10 and 12 labels on the Varanasi, Kanpur and Assam maps; the label positions were read off by eye. The estimate is a plausibility check, not a georeference. Residuals are 15--26~px and the rotations are $-0.5^\circ$, $-1.0^\circ$ and $-4.8^\circ$. The fitted scales are about 93, 130 and 633~m/px, which is 46, 65 and 317 times the configured 2.0~m/px. The default reference lies 23~km, 319~km and about 1\,000~km from the estimated image centres. At those extents, the flat-earth model itself would err by up to 345~m, 563~m and 7.7~km (from the WGS84 oracle), and the maps' web-Mercator basemaps violate the uniform-scale assumption \cite{battersby2014implications}. The generated missions are therefore \emph{not} geographically meaningful for these maps. The cause lies in the inputs and configuration, not in the conversion code.
 
 \subsection{Mission Semantics}
 The command parameters were audited against the MAVLink definitions and the ArduPilot and PX4 documentation \cite{mavlink_common,mavlink_mission,ardupilot_missioncmds,px4_missions}; the findings are given in Section~\ref{sec:method}-K and Section~\ref{sec:limits}. The lower block of Table~\ref{tab:verif} separates what has and has not been validated. The reload stop of the multi-base mode, a LAND followed by a TAKEOFF at the base, was not covered by this audit. Whether an autopilot resumes the mission after an intermediate LAND depends on its configuration, for example disarming after landing, and must be established in simulation.
 
 \subsection{Simulation and Mission Execution}
 \label{sec:sim}
-No simulation or ground-station execution has been performed for this manuscript (Table~\ref{tab:verif}). Fig.~\ref{fig:sim-exec} reserves space for the planned check. Each exported mission (one file in the single-UAV mode, one file per base in the multi-base mode) is to be loaded in QGroundControl or Mission Planner and flown in ArduPilot SITL, with one simulated vehicle per base in the multi-base mode. The check should confirm that every item is accepted, that the servo actuates at each drop, how the reload LAND/TAKEOFF pair behaves, and how the vehicle executes RTL. Until it has been carried out, the operational-validity statements of Section~\ref{sec:limits} apply unchanged.
-
-\begin{figure*}[t]
-\centering
-\begin{minipage}[t]{0.48\textwidth}\centering\simplaceholder{UAV SIMULATION}{0.95\linewidth}{4.6cm}\\[2pt]{\footnotesize (a)}\end{minipage}\hfill
-\begin{minipage}[t]{0.48\textwidth}\centering\simplaceholder{MISSION EXECUTION}{0.95\linewidth}{4.6cm}\\[2pt]{\footnotesize (b)}\end{minipage}
-\caption{Reserved for the planned simulation check (Section~\ref{sec:sim}; not yet performed). (a) The simulated vehicle(s) in ArduPilot SITL flying an exported mission. (b) Mission execution as shown by the ground station (QGroundControl or Mission Planner), including a payload drop. [To be inserted by the authors after the SITL runs; the text must then be updated to report their outcome.]}
-\label{fig:sim-exec}
-\end{figure*}
+No simulation or ground-station execution has been performed for this manuscript (Table~\ref{tab:verif}). Each exported mission (one file in the single-UAV mode, one file per base in the multi-base mode) is to be loaded in QGroundControl or Mission Planner and flown in ArduPilot SITL, with one simulated vehicle per base in the multi-base mode. The check should confirm that every item is accepted, that the servo actuates at each drop, how the reload LAND/TAKEOFF pair behaves, and how the vehicle executes RTL. Until it has been carried out, the operational-validity statements of Section~\ref{sec:limits} apply unchanged.

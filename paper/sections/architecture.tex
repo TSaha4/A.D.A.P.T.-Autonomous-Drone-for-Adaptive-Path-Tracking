@@ -4,16 +4,27 @@
 \subsection{Notation}
 Let $I$ be the input raster of $W_0\times H_0$ pixels. If $W_0$ exceeds a display width $D$ (750~px by default), the image is resized to $I'$ of size $W'\times H'$ with $W'=D$, $H'=\operatorname{round}(H_0 s)$ and $s=D/W_0$; otherwise $I'=I$ and $s=1$. All perception and planning operate on the pixel domain $\Omega=\{0,\dots,W'-1\}\times\{0,\dots,H'-1\}$ of $I'$, with OpenCV conventions: $x$ is the column (increasing to the east of a north-up map) and $y$ the row (increasing to the south), and integer coordinates denote pixel centres.
 
-The pipeline produces the following objects:
-\begin{itemize}
-\item a binary flood mask $M\subseteq\Omega$ extracted from $I'$;
-\item weather $w=(P,V,\theta)$: precipitation $P$ (mm), wind speed $V$ (km/h) and meteorological wind direction $\theta$ (degrees, direction the wind blows \emph{from});
-\item a predicted mask $\hat M\supseteq M$ after a horizon of $T$ hours, and an obstacle set $O=M\cup\hat M$;
-\item flood regions $R_1,\dots,R_n$, the external contours of $M$ with area at least $a_{\min}$;
-\item drop points $d_i\in\mathcal{V}(\operatorname{conv}R_i)$, one vertex of the convex hull of each region, and a HOME point $h\in\{d_i\}$;
-\item a visiting order $\pi$ and a pixel route $P=(p_0,\dots,p_m)$ with $p_0=p_m=h$;
-\item a mission $\mathcal{W}$, a sequence of MAVLink mission items with geodetic coordinates $(\varphi,\lambda)$ derived from a reference $(\varphi_0,\lambda_0)$ and a ground scale $\rho$ (METERS\_PER\_PIXEL, metres per \emph{original} pixel).
-\end{itemize}
+The principal symbols and outputs are in Table~\ref{tab:symbols}.
+\begin{table}[t]
+\centering
+\caption{Symbols and parameters used by both planning modes.}
+\label{tab:symbols}
+\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}p{1.05cm}p{6.6cm}@{}}
+\toprule
+Symbol & Meaning \\
+\midrule
+$I,I'$ & Input raster and resized display image; $s=D/W_0$ is their scale.\\
+$M,\hat M,O$ & Detected flood, predicted flood, and planning obstacles $M\cup\hat M$.\\
+$P,V,\theta$ & Precipitation, wind speed, and meteorological wind direction.\\
+$R_i,d_i,h$ & Flood region, assigned drop point, and HOME or launch base.\\
+$G,\pi,P_r$ & Occupancy grid, visit order, and pixel route.\\
+$K,E,r$ & Base cap, loaded endurance, and reserved battery fraction.\\
+$\varphi_0,\lambda_0,\rho$ & Centre latitude/longitude and metres per original image pixel.\\
+$\mathcal W$ & WPL~110 mission item sequence.\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Problem Statement}
 Given $(I,w,\varphi_0,\lambda_0,\rho)$, produce $\mathcal{W}$ such that the vehicle takes off at $h$, visits every $d_i$ once at cruise altitude, descends and releases a payload at each $d_i$, avoids $O$ wherever a free path exists on the planning grid, and returns to $h$. \adapt{} does not solve this as a joint optimisation problem. It decomposes it into a fixed sequence of heuristic stages (Fig.~\ref{fig:architecture}), each of which is specified in Section~\ref{sec:method}. No optimality is claimed for the composition. In particular, visit ordering ignores obstacles, and path planning is optimal only per leg and on a coarse grid.

@@ -27,25 +27,25 @@ Table~\ref{tab:gap} summarises the capabilities reported by representative work.
 
 \begin{table*}[t]
 \centering
-\caption{Capabilities reported by representative related work and by \adapt{}. \yes{}: addressed; \part{}: partially or under strong simplification; \no{}: not addressed in the cited work as reported. The table reflects the stated scope of each paper and is not exhaustive.}
+\caption{Capabilities reported by representative related work and by \adapt{}. \yes{}: addressed; \partialcheck{}: partially or under strong simplification; \no{}: not addressed in the cited work as reported. The table reflects the stated scope of each paper and is not exhaustive.}
 \label{tab:gap}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}p{4.9cm}cccccccc@{}}
+\resizebox{\textwidth}{!}{\begin{tabular}{@{}p{4.9cm}cccccccc@{}}
 \toprule
 Work (group) & \shortstack{Flood\\perception} & \shortstack{Hazard\\evolution} & \shortstack{Weather\\input} & \shortstack{Obstacle-aware\\path planning} & \shortstack{Delivery-point\\selection} & \shortstack{Visit\\ordering} & \shortstack{Executable\\autopilot mission} & \shortstack{Geo/mission\\verification}\\
 \midrule
 Flood segmentation \cite{gebrehiwot2019deep,simantiris2024unsupervised,rahnemoonfar2021floodnet} & \yes & \no & \no & \no & \no & \no & \no & \no\\
 SAR flood mapping \cite{twele2016sentinel,bonafilia2020sen1floods11} & \yes & \no & \no & \no & \no & \no & \no & \no\\
-Inundation models \cite{bates2000simple,ghimire2013formulation,guidolin2016weighted,jamali2019cellular} & \no & \yes & \part & \no & \no & \no & \no & \no\\
+Inundation models \cite{bates2000simple,ghimire2013formulation,guidolin2016weighted,jamali2019cellular} & \no & \yes & \partialcheck & \no & \no & \no & \no & \no\\
 Incremental grid planning \cite{stentz1994optimal,koenig2005fast} & \no & \no & \no & \yes & \no & \no & \no & \no\\
 Relief / drone routing \cite{murray2015flying,rabta2018drone} & \no & \no & \no & \no & \no & \yes & \no & \no\\
-Flood-rescue collaborative delivery \cite{dong2026path} & \no & \no & \no & \part & \no & \yes & \no & \no\\
-Safe landing-zone detection \cite{patterson2014timely,kaljahi2019automatic} & \part & \no & \no & \no & \part & \no & \no & \no\\
-Multi-UAV SAR / flood deployment \cite{alotaibi2019lsar,li2025urban} & \no & \no & \no & \part & \no & \yes & \no & \no\\
+Flood-rescue collaborative delivery \cite{dong2026path} & \no & \no & \no & \partialcheck & \no & \yes & \no & \no\\
+Safe landing-zone detection \cite{patterson2014timely,kaljahi2019automatic} & \partialcheck & \no & \no & \no & \partialcheck & \no & \no & \no\\
+Multi-UAV SAR / flood deployment \cite{alotaibi2019lsar,li2025urban} & \no & \no & \no & \partialcheck & \no & \yes & \no & \no\\
 \midrule
-\adapt{} (this work) & \part{}$^{a}$ & \part{}$^{b}$ & \yes{}$^{c}$ & \yes & \part{}$^{d}$ & \part{}$^{e}$ & \yes & \yes{}$^{f}$\\
+\adapt{} (this work) & \partialcheck{}$^{a}$ & \partialcheck{}$^{b}$ & \yes{}$^{c}$ & \yes & \partialcheck{}$^{d}$ & \partialcheck{}$^{e}$ & \yes & \yes{}$^{f}$\\
 \bottomrule
-\end{tabular}\\[2pt]
+\end{tabular}}\\[2pt]
 \parbox{\textwidth}{\scriptsize $^{a}$Annotated map products only, operator-sampled colour thresholds. $^{b}$Terrain-free morphological proxy, uncalibrated. $^{c}$Current precipitation and wind only. $^{d}$Boundary geometry only, no safety model. $^{e}$Nearest-neighbour heuristic; the optional multi-base mode assigns drops to up to $K$ bases by a nearest-feasible rule under a battery model. $^{f}$Software verification only; no ground-station, SITL or flight validation.}
 \end{table*}
