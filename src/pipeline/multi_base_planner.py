@@ -83,8 +83,8 @@ def run_multi_base(image, mask, forecasts, contours, cluster_edges, points, weat
                  "(%d drop points)", raw_count, 200, len(contours), zones_with_point,
                  generated_drop_count)
 
-    # Sample base candidates on a ~40x40 spatial grid of dry pixels.
-    stride = max(1, int(max(image.shape[:2]) / 40))
+    # Sample base candidates on a ~60x60 spatial grid of dry pixels.
+    stride = max(1, int(max(image.shape[:2]) / 60))
     grid_y, grid_x = np.mgrid[stride // 2:image.shape[0]:stride, stride // 2:image.shape[1]:stride]
     grid_points = list(zip(grid_x.ravel().tolist(), grid_y.ravel().tolist()))
     dry = [(x, y) for x, y in grid_points if combined_obstacle_mask[y, x] == 0]
@@ -106,7 +106,7 @@ def run_multi_base(image, mask, forecasts, contours, cluster_edges, points, weat
 
     # Reach and cost use routed distances around flood zones on the D* Lite grid.
     headwind = wind_kmh_to_mps(weather.get("wind_speed_10m", 0.0))
-    routing_grid = build_routing_grid(combined_obstacle_mask, 5)
+    routing_grid = build_routing_grid(combined_obstacle_mask, downsample_factor=3)
     routed_distance = routed_distance_function(routing_grid, safe_points, meters_per_pixel)
     selection = select_bases(
         candidates, safe_points, routed_distance, combined_obstacle_mask,
@@ -151,7 +151,7 @@ def run_multi_base(image, mask, forecasts, contours, cluster_edges, points, weat
         logging.info("%s at %s (flood clearance %.1f px): planning %d assigned drop points.",
                      tag, result["home"], result["clearance_px"], len(drops))
         drops, excluded = filter_drops_by_home_connectivity(drops, home, combined_obstacle_mask,
-                                                            downsample_factor=5)
+                                                            downsample_factor=3)
         result["connectivity_excluded"] = len(excluded)
         logging.info("%s drop connectivity filter: reachable=%d excluded=%d", tag, len(drops), len(excluded))
         if not drops:

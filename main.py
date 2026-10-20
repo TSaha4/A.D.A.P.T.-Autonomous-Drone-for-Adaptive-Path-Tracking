@@ -77,13 +77,12 @@ def main():
 
     image_path = args.image_path or args.image_positional
 
-    # Automatic mode resolution: default to multi if running full pipeline with --image or dummy weather,
-    # default to single when called with bare positional argument (for compatibility with single-mode unit tests)
+    # Automatic mode resolution: always default to multi-base planning unless
+    # the user explicitly passed --mode single. Multi-base planning places bases
+    # across the map to cover all reachable flood zones; single-base is only
+    # useful for constrained testing or compatibility.
     if args.mode is None:
-        if args.image_path is not None or args.dummy_weather_moderate or args.dummy_weather:
-            args.mode = "multi"
-        else:
-            args.mode = "single"
+        args.mode = "multi"
 
     if args.mode == "single" and (args.max_bases is not None or args.session_root is not None):
         parser.error("--max-bases and --session-root apply only to --mode multi")

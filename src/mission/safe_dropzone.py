@@ -67,12 +67,21 @@ def find_safe_drop_points(clustered_contours, path_order, path_points, obstacle_
     safe_points = []
     path_points = [np.array(p, dtype=float) for p in path_points]
 
+    dist_dry = None
+    dry_labels = None
+    label_sizes = None
+    if obstacle_mask is not None:
+        mask_arr = np.asarray(obstacle_mask)
+        dist_dry = cv2.distanceTransform((mask_arr == 0).astype(np.uint8), cv2.DIST_L2, 5)
+        _, dry_labels = cv2.connectedComponents((mask_arr == 0).astype(np.uint8), connectivity=8)
+        label_sizes = np.bincount(dry_labels.ravel())
+
     for cluster_idx in path_order:
-        # Prefer the original raw contour for area and perimeter calculations if available
-        if raw_contours is not None and cluster_idx < len(raw_contours):
-            cnt_ref = raw_contours[cluster_idx]
-        else:
-            cnt_ref = clustered_contours[cluster_idx]
+        # Use the clustered contour geometry directly — cluster_idx is an index
+        # into the filtered contours (via cluster_contours), NOT into raw_contours
+        # whose ordering comes from cv2.findContours on the full mask and doesn't
+        # align with the filtered/clustered indices.
+        cnt_ref = clustered_contours[cluster_idx]
 
         contour_points = np.squeeze(cnt_ref)
 
@@ -99,7 +108,7 @@ def find_safe_drop_points(clustered_contours, path_order, path_points, obstacle_
             target_points = 1
             cat_label = "Standard"
 
-        # Generate dry candidates just outside the contour.
+        # Generate dry candidates just outside the contour with safe clearance.
         candidates = []
         perimeter_candidates = None
         if obstacle_mask is not None:
@@ -107,23 +116,27 @@ def find_safe_drop_points(clustered_contours, path_order, path_points, obstacle_
             contour_mask = np.zeros(mask.shape[:2], dtype=np.uint8)
             polygon = np.rint(contour_points).astype(np.int32).reshape(-1, 1, 2)
             cv2.fillPoly(contour_mask, [polygon], 255)
-            max_radius = max(2, min(25, int(np.ceil(max(mask.shape) * 0.035))))
-            for radius in range(1, max_radius + 1):
-                kernel_size = 2 * radius + 1
-                expanded = cv2.dilate(contour_mask, np.ones((kernel_size, kernel_size), np.uint8))
-                band = (expanded > 0) & (mask == 0)
-                ys, xs = np.where(band)
+            max_radius = max(5, min(35, int(np.ceil(max(mask.shape) * 0.04))))
+            kernel_size = 2 * max_radius + 1
+            expanded = cv2.dilate(contour_mask, np.ones((kernel_size, kernel_size), np.uint8))
+            cand_mask = (expanded > 0) & (mask == 0)
+
+            for min_c in [5.0, 3.5, 2.0, 0.5]:
+                ys, xs = np.where(cand_mask & (dist_dry >= min_c))
                 if len(xs):
-                    candidates.extend(np.column_stack((xs, ys)))
-                if candidates:
+                    pts_cand = np.column_stack((xs, ys))
+                    if dry_labels is not None and label_sizes is not None:
+                        c_labels = dry_labels[ys, xs]
+                        c_sizes = label_sizes[c_labels]
+                        max_s = np.max(c_sizes)
+                        if max_s > 0:
+                            pts_cand = pts_cand[c_sizes >= max_s * 0.5]
+                    candidates = pts_cand
                     break
-            if target_points > 1:
-                # Multi-point zones search the full candidate band around the perimeter
-                kernel_size = 2 * max_radius + 1
-                expanded = cv2.dilate(contour_mask, np.ones((kernel_size, kernel_size), np.uint8))
-                ys, xs = np.where((expanded > 0) & (mask == 0))
-                if len(xs):
-                    perimeter_candidates = np.column_stack((xs, ys))
+            if len(candidates) == 0:
+                ys, xs = np.where(cand_mask)
+                candidates = np.column_stack((xs, ys)) if len(xs) else contour_points
+            perimeter_candidates = candidates
         else:
             candidates = contour_points
 
@@ -213,7 +226,7 @@ def find_safe_drop_points(clustered_contours, path_order, path_points, obstacle_
 
 
 
-def filter_drops_by_home_connectivity(drop_points, home, obstacle_mask, downsample_factor=5):
+def filter_drops_by_home_connectivity(drop_points, home, obstacle_mask, downsample_factor=3):
     """Keep drops in the same 8-connected free-space component as HOME.
 
     Uses ``build_routing_grid`` and ``locate_cell`` from the router, i.e. the

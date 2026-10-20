@@ -79,11 +79,11 @@ REGION_PRESETS = {
 }
 
 # Minimum distance (display px) from any flood pixel (current or forecast) for a base.
-HOME_CLEARANCE_PX = _env("HOME_CLEARANCE_PX", "15")
+HOME_CLEARANCE_PX = _env("HOME_CLEARANCE_PX", "5.0")
 
 # Multi-base planning: when no single base can reach every coverable drop point
 # within battery range, up to MAX_BASES bases are placed (fewest that cover all),
 # each at least MIN_BASE_SEPARATION_PX (display px) from every other base.
 # MAX_BASES=1 restricts the planner to a single base (one UAV).
-MAX_BASES = _env("MAX_BASES", "4", int)
+MAX_BASES = _env("MAX_BASES", "6", int)
 MIN_BASE_SEPARATION_PX = _env("MIN_BASE_SEPARATION_PX", "150")

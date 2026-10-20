@@ -87,12 +87,11 @@ def snap_to_nearest_free_cell(point, obstacles, max_w, max_h, max_search_radius=
 RoutingGrid = namedtuple("RoutingGrid", "occupancy obstacles labels factor width height mask")
 
 
-def build_routing_grid(obstacle_mask, downsample_factor=5):
+def build_routing_grid(obstacle_mask, downsample_factor=3):
     """Downsampled 8-connected occupancy grid shared by D* Lite and drop filtering.
 
-    A cell is blocked when any pixel of its block, after a one-pixel safety
-    dilation, is flooded. Sampling a single pixel per block would let flood
-    strips narrower than the block slip between samples and be routed through.
+    A cell is blocked when any pixel of its block is flooded. For coarse grids
+    (factor > 3), a safety dilation is applied to avoid thin flood strips slipping through.
     """
     mask = np.asarray(obstacle_mask)
     h, w = mask.shape[:2]
@@ -101,8 +100,11 @@ def build_routing_grid(obstacle_mask, downsample_factor=5):
     if width == 0 or height == 0:
         factor, width, height = 1, w, h
     occupied = (mask > 0).astype(np.uint8)
-    if factor > 1:
+    if factor > 3:
         occupied = cv2.dilate(occupied, np.ones((3, 3), np.uint8))
+        blocks = occupied[:height * factor, :width * factor]
+        occupancy = blocks.reshape(height, factor, width, factor).max(axis=(1, 3))
+    elif factor > 1:
         blocks = occupied[:height * factor, :width * factor]
         occupancy = blocks.reshape(height, factor, width, factor).max(axis=(1, 3))
     else:
