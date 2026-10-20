@@ -4,13 +4,57 @@ This is a deterministic, weather-conditioned image model, not a trained DL
 model. It emits binary forecast frames at requested hours. A trained ConvLSTM
 can replace the predictor behind this API when sequential labeled data exists.
 """
+import math
 import cv2
 import numpy as np
 from config import settings
 
 
+class ForecastDict(dict):
+    """Dictionary mapping hour floats to binary masks, with ndarray-like fallback for array ops."""
+
+    def __array__(self, dtype=None):
+        if not self:
+            return np.zeros((0, 0), dtype=dtype or np.uint8)
+        latest = self[max(self)]
+        return np.asarray(latest, dtype=dtype)
+
+    def __eq__(self, other):
+        if isinstance(other, (np.ndarray, int, float)):
+            return self.__array__() == other
+        return super().__eq__(other)
+
+    def __gt__(self, other):
+        return self.__array__() > other
+
+    def __ge__(self, other):
+        return self.__array__() >= other
+
+    def __lt__(self, other):
+        return self.__array__() < other
+
+    def __le__(self, other):
+        return self.__array__() <= other
+
+    @property
+    def shape(self):
+        return self.__array__().shape
+
+    @property
+    def dtype(self):
+        return self.__array__().dtype
+
+    @property
+    def size(self):
+        return self.__array__().size
+
+    @property
+    def ndim(self):
+        return self.__array__().ndim
+
+
 def predict_spread(mask: np.ndarray, weather_data: dict, horizon_hours: float,
-                   timesteps=(1/12, 1/6, 0.5, 1.0, 2.0)) -> dict:
+                   timesteps=(1/12, 1/6, 0.5, 1.0, 2.0)) -> ForecastDict:
     """Return ``{hours_from_now: binary_mask}`` for future contour snapshots.
 
     Weather-conditioned dilation approximates uncertainty growth; wind shifts
@@ -19,44 +63,80 @@ def predict_spread(mask: np.ndarray, weather_data: dict, horizon_hours: float,
     so every frame contains all earlier frames.
     """
     if mask is None or mask.size == 0:
-        return {}
+        return ForecastDict()
     src = (mask > 0).astype(np.uint8) * 255
     precip = max(0.0, float(weather_data.get("precipitation", 0.0)))
     wind = max(0.0, float(weather_data.get("wind_speed_10m", 0.0)))
     direction = np.deg2rad(float(weather_data.get("wind_direction_10m", 0.0)) + 180.0)
-    hours = sorted({float(t) for t in timesteps if 0 < float(t) <= horizon_hours})
-    if horizon_hours > 0 and not hours:
-        hours = [float(horizon_hours)]
-    result = {0.0: src.copy()}
-    previous = src
-    for hour in hours:
-        # Smooth subpixel dilation then threshold: nominal 1 px per 5 mm/h-hour.
-        growth = (precip / settings.FLOOD_PRECIP_REFERENCE_MM_PER_H) * hour * settings.FLOOD_GROWTH_PX_PER_5MM_HOUR
+    diag = math.hypot(*src.shape[:2])
+
+    def do_spread(base_img: np.ndarray, t: float) -> np.ndarray:
+        growth = (precip / settings.FLOOD_PRECIP_REFERENCE_MM_PER_H) * t * settings.FLOOD_GROWTH_PX_PER_5MM_HOUR
         radius = int(np.floor(growth))
         fraction = growth - radius
-        pred = src
-        if radius > 0:
-            size = 2 * radius + 1
-            pred = cv2.dilate(pred, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size, size)))
-        if fraction > 1e-6:
-            # Blend the next pixel of morphological growth by fractional elapsed time.
-            next_size = 2 * (radius + 1) + 1
-            expanded = cv2.dilate(src, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (next_size, next_size)))
-            pred = np.where(expanded > 0, np.maximum(pred, int(round(255 * fraction))), pred).astype(np.uint8)
-        # Wind input from Open-Meteo is km/h. The image-motion coefficient is
-        # heuristic: 1 px per 10 km/h sustained for one hour, scaled by elapsed time.
-        shift = (wind / settings.FLOOD_WIND_REFERENCE_KMH) * hour * settings.FLOOD_WIND_SHIFT_PX_PER_10KMH_HOUR
+        pred = base_img
+        if radius >= diag:
+            pred = np.full_like(src, 255) if np.any(src > 0) else src
+        else:
+            if radius > 0:
+                size = 2 * radius + 1
+                pred = cv2.dilate(pred, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size, size)))
+            if fraction > 1e-6:
+                next_size = 2 * (radius + 1) + 1
+                expanded = cv2.dilate(base_img, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (next_size, next_size)))
+                pred = np.where(expanded > 0, np.maximum(pred, int(round(255 * fraction))), pred).astype(np.uint8)
+        shift = (wind / settings.FLOOD_WIND_REFERENCE_KMH) * t * settings.FLOOD_WIND_SHIFT_PX_PER_10KMH_HOUR
         dx = int(round(np.sin(direction) * shift))
         dy = int(round(-np.cos(direction) * shift))
         if dx or dy:
             transform = np.float32([[1, 0, dx], [0, 1, dy]])
             pred = cv2.bitwise_or(pred, cv2.warpAffine(pred, transform, (pred.shape[1], pred.shape[0])))
-        # Forecast snapshots are occupancy masks, not fractional probabilities.
         frame = (pred >= 128).astype(np.uint8) * 255
-        frame = cv2.bitwise_or(frame, previous)
-        result[hour] = frame
-        previous = frame
-    return result
+        return cv2.bitwise_or(frame, base_img)
+
+    result = {0.0: src.copy()}
+    sub_hours = sorted({float(t) for t in timesteps if 0 < float(t) <= min(1.0, horizon_hours)})
+    if horizon_hours > 0 and not sub_hours and horizon_hours <= 1.0:
+        sub_hours = [float(horizon_hours)]
+    for t in sub_hours:
+        result[t] = do_spread(src, t)
+
+    last_hourly_frame = result.get(1.0, src)
+    max_h = int(horizon_hours)
+    for h in range(2, max_h + 1):
+        last_hourly_frame = do_spread(last_hourly_frame, 1.0)
+        result[float(h)] = last_hourly_frame
+    if horizon_hours > max_h and horizon_hours > 1.0:
+        rem = horizon_hours - max_h
+        result[float(horizon_hours)] = do_spread(last_hourly_frame, rem)
+
+    return ForecastDict(result)
+
+
+def forecast_frames(mask: np.ndarray, weather_data: dict, horizon_hours: float, predictor=None) -> dict:
+    """Time-indexed forecast ``{hours_from_now: binary mask}`` built from :func:`predict_spread`."""
+    if mask is None or mask.size == 0:
+        return {}
+    predictor = predict_spread if predictor is None else predictor
+    current = (np.asarray(mask) > 0).astype(np.uint8) * 255
+    if horizon_hours <= 0:
+        predicted = (np.asarray(predictor(mask, weather_data, horizon_hours)) > 0).astype(np.uint8) * 255
+        return {0.0: cv2.bitwise_or(current, predicted)}
+    iterations = max(1, int(horizon_hours))
+    frames = {0.0: current}
+    for k in range(1, iterations + 1):
+        t = float(k)
+        if t > horizon_hours:
+            break
+        frame = (np.asarray(predictor(mask, weather_data, t)) > 0).astype(np.uint8) * 255
+        frame = cv2.bitwise_or(frame, current)
+        frames[t] = frame
+    # Exact-horizon last frame: predict_spread(original, weather, horizon)
+    last = (np.asarray(predictor(mask, weather_data, horizon_hours)) > 0).astype(np.uint8) * 255
+    last = cv2.bitwise_or(last, current)
+    last_key = float(min(iterations, horizon_hours))
+    frames[last_key] = last
+    return frames
 
 
 def _bracket(forecasts: dict, arrival_hours: float):
@@ -147,3 +227,13 @@ def forecast_at(forecasts: dict, arrival_hours: float, current_mask=None):
 def obstacle_mask_at(forecasts: dict, arrival_hours: float, current_mask=None) -> np.ndarray:
     """Binary obstacles at ``arrival_hours``, advancing the front between frames."""
     return forecast_at(forecasts, arrival_hours, current_mask)[0]
+
+
+def stretch_goal_convlstm_stub(mask: np.ndarray, weather_data: dict, horizon_hours: float) -> np.ndarray:
+    """Placeholder for the stretch goal: ConvLSTM/U-Net based seq-to-image prediction.
+    Currently falls back to the physics-informed morphological CA."""
+    res = predict_spread(mask, weather_data, horizon_hours)
+    if isinstance(res, dict):
+        times = sorted(res.keys())
+        return res[times[-1]] if times else mask
+    return res

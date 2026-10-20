@@ -1,0 +1,55 @@
+{
+  "mode": "multi",
+  "max_bases": 3,
+  "geo_anchor": [
+    25.3176,
+    82.9739
+  ],
+  "session_dir": "A:\\Work\\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\\paper\\experiments\\results\\multi_uav\\sessions\\assam_moderate_K3\\session_20261008_104345",
+  "weather": {
+    "precipitation": 3.0,
+    "wind_speed_10m": 12.0,
+    "wind_direction_10m": 270.0
+  },
+  "scale_factor": 0.7156488549618321,
+  "meters_per_pixel_display": 2.7946666666666666,
+  "image_center_px": [
+    374.5,
+    264.0
+  ],
+  "forecast_hours": [
+    0.0,
+    1.0,
+    2.0
+  ],
+  "drop_points": [
+    [
+      105,
+      194
+    ],
+    [
+      62,
+      366
+    ],
+    [
+      56,
+      326
+    ],
+    [
+      720,
+      58
+    ]
+  ],
+  "home_candidates": {
+    "grid_points": 1218,
+    "dry": 189,
+    "with_clearance": 19
+  },
+  "selection": {
+    "mode": "none",
+    "bases": [],
+    "best_single_reach": 0,
+    "coverable": 0
+  },
+  "outcome": "NO_BASE_REACHES_ANY_DROP"
+}

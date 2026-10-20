@@ -1,0 +1,10 @@
+# LaTeX build artifacts (main.pdf and main.bbl are kept as deliverables)
+*.aux
+*.log
+*.out
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+build.log
+__pycache__/

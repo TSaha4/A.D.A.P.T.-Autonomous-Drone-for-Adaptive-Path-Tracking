@@ -26,19 +26,33 @@ HOUSE_OUTLINE = np.array([[-0.8, 0.8], [0.8, 0.8], [0.8, -0.1], [1.0, -0.1],
 def _wp_line(seq, frame, command, params, lat, lon, alt, current=0):
     p1, p2, p3, p4 = params
     return (f"{seq}\t{current}\t{frame}\t{command}\t{p1:g}\t{p2:g}\t{p3:g}\t{p4:g}\t"
-            f"{lat:.8f}\t{lon:.8f}\t{alt:g}\t1\n")
+            f"{lat}\t{lon}\t{alt:g}\t1\n")
 
 
-def generate_mission_file(full_path, drop_indices, home, image_center_px, geo_center, meters_per_pixel, filename="mission.waypoints", base_altitude=100, drop_altitude=10, reload_indices=None):
-    # Mission:
-    # Takeoff at home → visit waypoints → drop packages at drop indices → return home → land.
-    servo = (settings.DROP_SERVO_CHANNEL, settings.DROP_SERVO_PWM, 0, 0)
+def generate_mission_file(full_path, drop_indices, home, image_center_px, geo_center, meters_per_pixel,
+                          filename="mission.waypoints", base_altitude=100, drop_altitude=10,
+                          servo_channel=None, servo_pwm=None, reload_indices=None, coordinate_fn=None):
+    """
+    Generate a QGC WPL 110 mission file.
+    Takeoff at home -> visit waypoints -> drop packages at drop indices -> return home -> land.
+    """
+    channel = settings.DROP_SERVO_CHANNEL if servo_channel is None else int(servo_channel)
+    pwm = settings.DROP_SERVO_PWM if servo_pwm is None else int(servo_pwm)
+    servo = (channel, pwm, 0, 0)
     rel = MAV_FRAME_GLOBAL_RELATIVE_ALT
+
+    to_geo = coordinate_fn or (lambda x, y: pixel_to_latlon(x, y, image_center_px, geo_center, meters_per_pixel))
+    home_lat, home_lon = to_geo(home[0], home[1])
+    path_latlon = [to_geo(pt[0], pt[1]) for pt in full_path]
+
+    reload_set = set(reload_indices or [])
+    for r in reload_set:
+        if not (0 < r < len(full_path) - 1) or tuple(full_path[r]) != tuple(home) or r in drop_indices:
+            raise ValueError(f"reload index {r} is not an intermediate return to HOME")
+
     with open(filename, "w") as f:
         f.write("QGC WPL 110\n")
         seq = 0
-
-        home_lat, home_lon = pixel_to_latlon(home[0], home[1], image_center_px, geo_center, meters_per_pixel)
 
         # 0: Home location (QGC convention: current=1, absolute frame)
         f.write(_wp_line(seq, MAV_FRAME_GLOBAL, MAV_CMD_NAV_WAYPOINT, (0, 0, 0, 0), home_lat, home_lon, 0, current=1))
@@ -48,16 +62,15 @@ def generate_mission_file(full_path, drop_indices, home, image_center_px, geo_ce
         f.write(_wp_line(seq, rel, MAV_CMD_NAV_TAKEOFF, (0, 0, 0, 0), home_lat, home_lon, base_altitude))
         seq += 1
 
-        reload_indices = set(reload_indices or [])
-        drop_indices = set(drop_indices or [])
+        drop_set = set(drop_indices or [])
         for i, pt in enumerate(full_path):
-            lat, lon = pixel_to_latlon(pt[0], pt[1], image_center_px, geo_center, meters_per_pixel)
+            lat, lon = path_latlon[i]
 
             # If it's the home point (start or end of mission), skip unless it's a drop (usually not)
             if i == 0 and tuple(pt) == tuple(home):
                 continue
 
-            if i in reload_indices:
+            if i in reload_set:
                 # Land at base for physical reload, then take off again.
                 f.write(_wp_line(seq, rel, MAV_CMD_NAV_LAND, (0, 0, 0, 0), home_lat, home_lon, 0))
                 seq += 1
@@ -69,7 +82,7 @@ def generate_mission_file(full_path, drop_indices, home, image_center_px, geo_ce
             f.write(_wp_line(seq, rel, MAV_CMD_NAV_WAYPOINT, (0, 0, 0, 0), lat, lon, base_altitude))
             seq += 1
 
-            if i in drop_indices and tuple(pt) != tuple(home):
+            if i in drop_set and 0 < i < len(full_path) - 1:
                 # Loiter 5 sec
                 f.write(_wp_line(seq, rel, MAV_CMD_NAV_LOITER_TIME, (5, 0, 0, 0), lat, lon, base_altitude))
                 seq += 1
@@ -253,9 +266,8 @@ def split_sorties(full_path, drop_indices, reload_indices):
     return [sortie for sortie in sorties if sortie["drops"]]
 
 
-def display_path_on_map(image, contours, pred_mask, full_path, drop_indices, home=None,
-                        reload_indices=None,
-                        save_path=None, show=True, bases=None, territories=None):
+def display_path_on_map(image, contours, pred_mask, full_path=None, drop_indices=None, home=None,
+                        reload_indices=None, save_path=None, show=True, bases=None, territories=None):
     """Render the mission map.
 
     Single base: pass ``full_path``/``drop_indices``/``home``/``reload_indices``.
@@ -268,12 +280,16 @@ def display_path_on_map(image, contours, pred_mask, full_path, drop_indices, hom
     from pathlib import Path
     from matplotlib.patches import FancyArrowPatch
     vis = image.copy()
+    if bases is None and isinstance(full_path, list) and full_path and isinstance(full_path[0], dict):
+        bases = full_path
+        full_path = None
     if bases is None:
         bases = [{"home": home, "full_path": full_path, "drop_indices": drop_indices,
                   "reload_indices": reload_indices}]
     bases = [dict(base) for base in bases]
     multi = len(bases) > 1
-    for base in bases:
+    for k, base in enumerate(bases, 1):
+        base["number"] = int(base.get("number") or k)
         base["drop_indices"] = list(base.get("drop_indices") or [])
         base["reload_indices"] = sorted({int(i) for i in (base.get("reload_indices") or [])
                                          if 0 <= int(i) < len(base["full_path"])})
@@ -306,7 +322,7 @@ def display_path_on_map(image, contours, pred_mask, full_path, drop_indices, hom
         vis[edge & dots] = (40, 40, 40)
 
     # Global sortie list, coloured from the palette in order
-    drawn = [(b, base, sortie) for b, base in enumerate(bases, 1) for sortie in base["sorties"]]
+    drawn = [(base["number"], base, sortie) for base in bases for sortie in base["sorties"]]
     if len(drawn) > len(SORTIE_PALETTE_HEX):
         logging.warning("MAP PALETTE: %d sorties exceed the %d distinct path colours; colours repeat.",
                         len(drawn), len(SORTIE_PALETTE_HEX))
@@ -332,7 +348,8 @@ def display_path_on_map(image, contours, pred_mask, full_path, drop_indices, hom
         cv2.putText(vis, text, at, cv2.FONT_HERSHEY_SIMPLEX, scale, (0, 255, 255), 2, cv2.LINE_AA)
 
     any_reload = False
-    for b, base in enumerate(bases, 1):
+    for base in bases:
+        b = base["number"]
         if base["home"] is None:
             continue
         home_pt = tuple(map(int, base["home"]))
@@ -351,7 +368,8 @@ def display_path_on_map(image, contours, pred_mask, full_path, drop_indices, hom
         house = (HOUSE_OUTLINE * 11 + np.array(home_pt)).astype(np.int32)
         cv2.polylines(vis, [house.reshape(-1, 1, 2)], True, (255, 255, 255), 4, cv2.LINE_AA)
         cv2.fillPoly(vis, [house.reshape(-1, 1, 2)], (0, 0, 0), cv2.LINE_AA)
-        label(f"BASE {b}" if multi else "BASE", (home_pt[0] + 16, home_pt[1] - 10), 0.65)
+        b_num = base.get("number", b)
+        label(f"BASE {b_num}" if multi else "BASE", (home_pt[0] + 16, home_pt[1] - 10), 0.65)
         if reloads_at_base:
             star = (home_pt[0] + 22, home_pt[1] + 13)
             cv2.drawMarker(vis, star, (0, 0, 0), cv2.MARKER_STAR, 16, 4)
@@ -422,3 +440,9 @@ def display_path_on_map(image, contours, pred_mask, full_path, drop_indices, hom
         plt.show()
     plt.close(fig)
     return vis
+
+
+def display_multi_base_map(image, contours, pred_mask, bases, territories=None, save_path=None, show=True):
+    """Render the mission map of the multi-base mode (one or more bases)."""
+    return display_path_on_map(image, contours, pred_mask, bases=bases, territories=territories,
+                              save_path=save_path, show=show)

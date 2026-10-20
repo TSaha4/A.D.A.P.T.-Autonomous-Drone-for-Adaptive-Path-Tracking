@@ -1,0 +1,86 @@
+[
+ {
+  "map": "varanasi",
+  "weather": "calm",
+  "sampling": "simulated",
+  "exit": [
+   0,
+   0
+  ],
+  "bases": 2,
+  "repairs": [],
+  "route_points": 1125,
+  "identical": {
+   "samples": true,
+   "bases": true,
+   "assignment": true,
+   "unreachable": true,
+   "repairs": true,
+   "plans": true
+  },
+  "all_identical": true
+ },
+ {
+  "map": "kanpur",
+  "weather": "calm",
+  "sampling": "simulated",
+  "exit": [
+   0,
+   0
+  ],
+  "bases": 4,
+  "repairs": [],
+  "route_points": 1517,
+  "identical": {
+   "samples": true,
+   "bases": true,
+   "assignment": true,
+   "unreachable": true,
+   "repairs": true,
+   "plans": true
+  },
+  "all_identical": true
+ },
+ {
+  "map": "varanasi",
+  "weather": "moderate",
+  "sampling": "reference_auto",
+  "exit": [
+   0,
+   0
+  ],
+  "bases": 4,
+  "repairs": [
+   {
+    "tier": 0,
+    "type": "reassign",
+    "drops": [
+     16,
+     20,
+     27
+    ],
+    "from_base": 3,
+    "to_base": 1
+   },
+   {
+    "tier": 0,
+    "type": "reassign",
+    "drops": [
+     3
+    ],
+    "from_base": 1,
+    "to_base": 4
+   }
+  ],
+  "route_points": 809,
+  "identical": {
+   "samples": true,
+   "bases": true,
+   "assignment": true,
+   "unreachable": true,
+   "repairs": true,
+   "plans": true
+  },
+  "all_identical": true
+ }
+]

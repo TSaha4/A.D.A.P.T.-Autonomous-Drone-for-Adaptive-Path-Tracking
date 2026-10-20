@@ -2,12 +2,12 @@ import cv2
 import numpy as np
 
 class ImageProcessor:
-    def __init__(self):
+    def __init__(self, image=None):
         self.sample_points = []       
         self.hsv_lower = None
         self.hsv_upper = None
         self.is_red_wrap = False
-        self.image = None
+        self.image = image.copy() if image is not None else None
 
     def select_sample_points(self, image):
         #Let user select multiple flood points by clicking

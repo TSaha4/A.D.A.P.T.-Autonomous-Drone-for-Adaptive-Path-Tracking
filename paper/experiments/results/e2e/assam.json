@@ -1,0 +1,153 @@
+{
+ "tag": "assam",
+ "image": "data\\input\\assam.png",
+ "n_clicks": 8,
+ "predict": true,
+ "hue_margin": 20,
+ "sv_margin": 30,
+ "display_width": 750,
+ "clicks": [
+  [
+   590,
+   345
+  ],
+  [
+   590,
+   448
+  ],
+  [
+   292,
+   260
+  ],
+  [
+   184,
+   283
+  ],
+  [
+   291,
+   253
+  ],
+  [
+   299,
+   255
+  ],
+  [
+   375,
+   423
+  ],
+  [
+   314,
+   267
+  ]
+ ],
+ "hsv_lower": [
+  0,
+  0,
+  44
+ ],
+ "hsv_upper": [
+  179,
+  255,
+  255
+ ],
+ "red_wrap": true,
+ "display_shape": [
+  529,
+  750
+ ],
+ "regions": 1,
+ "safe_points": [
+  [
+   749.0,
+   0.0
+  ]
+ ],
+ "ordered_points": [
+  [
+   749.0,
+   0.0
+  ],
+  [
+   749.0,
+   0.0
+  ],
+  [
+   749.0,
+   0.0
+  ]
+ ],
+ "full_path": [
+  [
+   749.0,
+   0.0
+  ],
+  [
+   749.0,
+   0.0
+  ],
+  [
+   749.0,
+   0.0
+  ]
+ ],
+ "drop_indices": [
+  0,
+  1,
+  2
+ ],
+ "home": [
+  749.0,
+  0.0
+ ],
+ "image_center_px": [
+  374.5,
+  264.0
+ ],
+ "geo_center": [
+  25.3176,
+  82.9739
+ ],
+ "meters_per_pixel": 2.7946666666666666,
+ "mission": "paper\\experiments\\results\\e2e\\assam.waypoints",
+ "exit": 0,
+ "total_s": 0.03351440000005823,
+ "no_path_legs": 0,
+ "unsnappable_endpoints": 4,
+ "snapped_endpoints": 0,
+ "planned_legs": 0,
+ "log_warnings": 4,
+ "log_errors": 0,
+ "stage_seconds": {
+  "hsv_thresholds": 0.00034140000025217887,
+  "mask_and_morphology": 0.0021147000006749295,
+  "flood_prediction": 0.0012522999986686045,
+  "contours": 0.00044189999971422367,
+  "hull_centroids": 3.380000089237001e-05,
+  "safe_drop_points": 2.59000007645227e-05,
+  "route_ordering": 3.849999848171137e-05,
+  "path_planning": 0.005605300000752322,
+  "mission_generation": 0.0004769000006490387
+ },
+ "mask_fraction": 0.8310220541902962,
+ "pred_fraction": 0.9224045368620037,
+ "obstacle_fraction": 0.9224045368620037,
+ "route_length_px": 0.0,
+ "route_points": 3,
+ "mission_items": 10,
+ "mission_drops": 1,
+ "route_length_m": 0.0,
+ "lat_bounds": [
+  25.32422766798419,
+  25.32422766798419
+ ],
+ "lon_bounds": [
+  82.9843007255907,
+  82.9843007255907
+ ],
+ "original_shape": [
+  739,
+  1048
+ ],
+ "validator_errors": 0,
+ "validator_warnings": 0
+}

@@ -35,7 +35,7 @@ def nearest_neighbor_tsp(points, home=None):
 
     return order, ordered_points
 
-def snap_to_nearest_free_cell(point, obstacles, max_w, max_h, max_search_radius=15, target_component=None, labels=None,
+def snap_to_nearest_free_cell(point, obstacles, max_w, max_h, max_search_radius=10, target_component=None, labels=None,
                               accept=None):
     """
     Finds the nearest non-obstacle cell using BFS.
@@ -390,3 +390,7 @@ def polyline_intersections(path_a, path_b, return_segments=False):
         return [(int(a_index[k + 1]) - 1, int(b_index[m + 1]) - 1) for k, m in zip(i, j)]
     return [tuple(float(v) for v in (p[k, 0] + np.clip(np.nan_to_num(t[k, m]), 0, 1) * r[k, 0]).round(1))
             for k, m in zip(i, j)]
+
+
+# Alias for multi-base / paper script compatibility
+compute_routed_path = compute_full_path

@@ -1,0 +1,58 @@
+[
+  {
+    "map": "varanasi",
+    "weather": "moderate",
+    "outcome": "MULTI_BASE_3",
+    "visited": 18,
+    "drop_points": 22,
+    "n_uavs": 3,
+    "makespan_cruise_min": 26.091099048235773,
+    "route_gini": 0.343800631198894,
+    "total_route_km": 13.895030064889735,
+    "mission_valid": true,
+    "overlaps_remaining": 0,
+    "max_sortie_battery": 0.7955272128608014
+  },
+  {
+    "map": "varanasi",
+    "weather": "dummy",
+    "outcome": "MULTI_BASE_4",
+    "visited": 12,
+    "drop_points": 22,
+    "n_uavs": 4,
+    "makespan_cruise_min": 7.053903171243085,
+    "route_gini": 0.23888787434800782,
+    "total_route_km": 5.698624597682268,
+    "mission_valid": true,
+    "overlaps_remaining": 0,
+    "max_sortie_battery": 0.6897897851194535
+  },
+  {
+    "map": "kanpur",
+    "weather": "moderate",
+    "outcome": "MULTI_BASE_4",
+    "visited": 35,
+    "drop_points": 41,
+    "n_uavs": 4,
+    "makespan_cruise_min": 28.572259522896143,
+    "route_gini": 0.1983324742707186,
+    "total_route_km": 21.0118838512444,
+    "mission_valid": true,
+    "overlaps_remaining": 0,
+    "max_sortie_battery": 0.7994303922865369
+  },
+  {
+    "map": "kanpur",
+    "weather": "dummy",
+    "outcome": "MULTI_BASE_4",
+    "visited": 23,
+    "drop_points": 41,
+    "n_uavs": 4,
+    "makespan_cruise_min": 10.735799449637707,
+    "route_gini": 0.21932342847785066,
+    "total_route_km": 9.365621723053806,
+    "mission_valid": true,
+    "overlaps_remaining": 0,
+    "max_sortie_battery": 0.778455869072093
+  }
+]

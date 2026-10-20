@@ -1,0 +1,12 @@
+\section{Introduction}
+\label{sec:intro}
+
+Floods interrupt roads when isolated communities need supplies. UAVs can map affected areas and carry small urgent payloads \cite{erdelj2017help,mohddaud2022applications}. Flood extents are available in satellite and aerial products \cite{twele2016sentinel,bonafilia2020sen1floods11}, yet a relief mission still requires an operator to identify drops, order visits, avoid hazards, convert image locations to coordinates, and encode autopilot commands. The reviewed segmentation, routing and inundation studies usually stop at one of these stages \cite{gebrehiwot2019deep,teng2017flood,otto2018optimization}. Mission generation and its geographic correctness deserve evaluation as part of the chain.
+
+\subsection{Motivation and gap}
+\adapt{} accepts an annotated flood-map raster, weather and a geographic reference. Its two modes turn detected regions into QGroundControl WPL~110 mission files. Existing perception methods often end at a mask, while routing studies usually assume known demand locations. The capability matrix in Table~\ref{tab:gap} shows the narrower gap addressed here: an image-to-mission chain with independently checked coordinate and mission layers. The reviewed set is targeted, so it cannot establish an absolute priority claim.
+
+\subsection{Contributions}
+The paper makes three checkable contributions. First, it specifies and evaluates the image-to-mission pipeline from operator-sampled flood pixels through routing to mission items, including straight fallback legs when a grid path fails (Sections~\ref{sec:arch}--\ref{sec:method}). Second, it evaluates the multi-base planner under battery, payload and geometric crossing constraints, comparing $K=1$ with up to four bases on identical map inputs (Section~\ref{sec:multi}). Third, it separates software correctness from geographic and operational validity using an independent WGS84 oracle, a specification-based WPL validator, adversarial tests and recorded end-to-end results (Section~\ref{sec:verif}). These are integration and verification claims; no optimality or flight-readiness claim follows.
+
+The remainder reviews related work, formalises both planning modes, describes the method and verification, reports experiments, and closes with limits and next steps.

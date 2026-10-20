@@ -1,11 +1,14 @@
-import sys
+"""Route-crossing repair of the multi-base mode, ported from MAIN.
+
+Adapted to the integrated signatures: repairs no longer write waypoint files (main exports once,
+after deconfliction), so session_dir / geo_anchor are gone and the ground scale is the explicit
+meters_per_pixel argument. MAIN's Bhopal-session test is not included: it needs MAIN's local
+output folder and MAIN's pixel conventions and was always skipped.
+"""
 import unittest
-from pathlib import Path
-from tempfile import TemporaryDirectory
 
 import numpy as np
 
-from config import settings
 from src.mission.overlap_repair import (
     execute_overlap_repairs,
     find_leg_index,
@@ -56,18 +59,13 @@ class TestOverlapRepair(unittest.TestCase):
         segs = polyline_intersections(p1, p2, return_segments=True)
         self.assertTrue(len(segs) > 0)
 
-        with TemporaryDirectory() as tmp:
-            session_dir = Path(tmp)
-            res = try_reroute_leg(
-                plan1, plan2, segs, mask, None, 0.0, session_dir,
-                (120, 120), (25.0, 82.0)
-            )
-            self.assertIsNotNone(res)
-            updated_plan1, leg_idx, hits = res
-            self.assertEqual(hits, 0)
-            # Verify new intersections is 0
-            new_hits = polyline_intersections(updated_plan1["full_path"], p2)
-            self.assertEqual(len(new_hits), 0)
+        res = try_reroute_leg(plan1, plan2, segs, mask, None, 0.0, meters_per_pixel=2.0)
+        self.assertIsNotNone(res)
+        updated_plan1, leg_idx, hits = res
+        self.assertEqual(hits, 0)
+        # Verify new intersections is 0
+        new_hits = polyline_intersections(updated_plan1["full_path"], p2)
+        self.assertEqual(len(new_hits), 0)
 
     def test_tier2_nudge_resolves_crossing(self):
         # When rerouting cannot detour (e.g. wall bounds), nudging base resolves it
@@ -131,75 +129,6 @@ class TestOverlapRepair(unittest.TestCase):
         self.assertNotEqual(new_site, (20, 20))
         self.assertEqual(len(polyline_intersections(new_plan["full_path"], plan2["full_path"])), 0)
 
-    def test_bhopal_session_172629_case_resolves_to_zero_overlap(self):
-        # Test exact waypoints from Bhopal session 172629
-        w1_path = Path("data/output/session_20261004_172629/base1.waypoints")
-        w2_path = Path("data/output/session_20261004_172629/base2.waypoints")
-        if not w1_path.exists() or not w2_path.exists():
-            self.skipTest("Session 172629 waypoints not present")
-
-        geo_lat, geo_lon = 23.37, 78.03
-        cx, cy = 616 // 2, 501 // 2
-        m_per_px = 2.0
-
-        def read_wpl_px(path):
-            pts = []
-            with open(path) as f:
-                for line in f:
-                    if not line.strip() or line.startswith("QGC"):
-                        continue
-                    p = line.strip().split("\t")
-                    if int(p[3]) in (16, 22):
-                        lat, lon = float(p[8]), float(p[9])
-                        dy_m = (lat - geo_lat) * 111320.0
-                        dx_m = (lon - geo_lon) * (111320.0 * np.cos(np.radians(geo_lat)))
-                        pts.append((int(round(cx + dx_m / m_per_px)), int(round(cy - dy_m / m_per_px))))
-            return pts
-
-        p1 = read_wpl_px(w1_path)
-        p2 = read_wpl_px(w2_path)
-        initial_hits = polyline_intersections(p1, p2, return_segments=True)
-        self.assertEqual(len(initial_hits), 15)
-
-        # Plan 1 with crossing leg
-        # Find stops in p1
-        home1 = (352, 277)
-        drops1 = [(384, 322), (369, 359), (426, 361), (454, 325), (478, 312),
-                  (525, 359), (301, 336), (285, 280), (186, 205), (198, 185), (216, 176)]
-        stops1_idx = [i for i, pt in enumerate(p1) if pt == home1 or pt in drops1]
-        route_points1 = [p1[i] for i in stops1_idx]
-
-        plan1 = {
-            "base": 1,
-            "home": home1,
-            "full_path": p1,
-            "stop_indices": stops1_idx,
-            "route_points": route_points1,
-            "drop_indices": [i for i, pt in enumerate(p1) if pt in drops1],
-            "reload_indices": [i for i, pt in enumerate(p1) if pt == home1 and 0 < i < len(p1) - 1],
-        }
-        plan2 = {
-            "base": 2,
-            "home": (172, 442),
-            "full_path": p2,
-            "stop_indices": [0, len(p2) - 1],
-            "route_points": [(172, 442), p2[-1]],
-            "drop_indices": [len(p2) - 1],
-            "reload_indices": [],
-        }
-
-        with TemporaryDirectory() as tmp:
-            session_dir = Path(tmp)
-            res = try_reroute_leg(
-                plan1, plan2, initial_hits, np.zeros((501, 616), dtype=np.uint8),
-                None, 8.33, session_dir, (501, 616), (23.37, 78.03)
-            )
-            self.assertIsNotNone(res)
-            updated_p1, leg_idx, hits = res
-            self.assertEqual(hits, 0)
-            remaining = polyline_intersections(updated_p1["full_path"], p2)
-            self.assertEqual(len(remaining), 0)
-
     def test_hard_error_enforced_when_all_tiers_fail(self):
         # Two parallel walls forming a 1-cell corridor where paths must cross and cannot detour
         mask = np.ones((50, 50), dtype=np.uint8) * 255
@@ -231,15 +160,14 @@ class TestOverlapRepair(unittest.TestCase):
         def mock_plan(num, home, assigned):
             return None
 
-        with TemporaryDirectory() as tmp:
-            repairs, remaining = execute_overlap_repairs(
-                plans_by_base, bases, selection, safe_points, [set(), set()],
-                {}, mask, None, clearance, lambda a, b: 100.0, 0.0,
-                mock_plan, mock_plan, Path(tmp), (50, 50), (25.0, 82.0),
-                max_rounds=2
-            )
-            # Unresolved crossing remains
-            self.assertGreater(len(remaining), 0)
+        repairs, remaining = execute_overlap_repairs(
+            plans_by_base, bases, selection, safe_points, [set(), set()],
+            {}, mask, None, clearance, lambda a, b: 100.0, 0.0,
+            mock_plan, mock_plan, (50, 50), meters_per_pixel=2.0,
+            max_rounds=2
+        )
+        # Unresolved crossing remains
+        self.assertGreater(len(remaining), 0)
 
 
 if __name__ == "__main__":

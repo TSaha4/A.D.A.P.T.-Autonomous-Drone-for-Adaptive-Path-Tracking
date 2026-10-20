@@ -1,0 +1,3 @@
+[INFO] return: RTL is followed by LAND; ArduCopter's RTL normally lands by itself, so the LAND item may never run
+[INFO] route: every compared row matches its pixel coordinate within 0.0e+00 deg
+[INFO] summary: 10 items, 1 drops, route 0.000 km, max range from HOME 0.000 km, bbox lat [25.324228, 25.324228] lon [82.984301, 82.984301]

@@ -13,3 +13,8 @@ data/output/*
 .DS_Store
 .vscode/
 .idea/
+paper/experiments/cache/
+# Preserve recorded faculty-paper mission outputs in Git.
+!paper/experiments/results/**/*.waypoints
+# Preserve golden baseline outputs
+!data/golden_baseline/**

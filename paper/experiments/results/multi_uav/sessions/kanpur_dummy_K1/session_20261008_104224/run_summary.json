@@ -1,0 +1,349 @@
+{
+  "mode": "multi",
+  "max_bases": 1,
+  "geo_anchor": [
+    25.3176,
+    82.9739
+  ],
+  "session_dir": "A:\\Work\\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\\paper\\experiments\\results\\multi_uav\\sessions\\kanpur_dummy_K1\\session_20261008_104224",
+  "weather": {
+    "precipitation": 10.0,
+    "wind_speed_10m": 30.0,
+    "wind_direction_10m": 270.0
+  },
+  "scale_factor": 0.7684426229508197,
+  "meters_per_pixel_display": 2.602666666666667,
+  "image_center_px": [
+    374.5,
+    370.5
+  ],
+  "forecast_hours": [
+    0.0,
+    1.0,
+    2.0
+  ],
+  "drop_points": [
+    [
+      409,
+      653
+    ],
+    [
+      491,
+      698
+    ],
+    [
+      459,
+      639
+    ],
+    [
+      239,
+      590
+    ],
+    [
+      349,
+      575
+    ],
+    [
+      509,
+      580
+    ],
+    [
+      195,
+      570
+    ],
+    [
+      486,
+      594
+    ],
+    [
+      552,
+      586
+    ],
+    [
+      287,
+      586
+    ],
+    [
+      181,
+      557
+    ],
+    [
+      251,
+      563
+    ],
+    [
+      443,
+      522
+    ],
+    [
+      147,
+      544
+    ],
+    [
+      397,
+      520
+    ],
+    [
+      340,
+      510
+    ],
+    [
+      535,
+      479
+    ],
+    [
+      563,
+      558
+    ],
+    [
+      219,
+      505
+    ],
+    [
+      93,
+      507
+    ],
+    [
+      659,
+      487
+    ],
+    [
+      337,
+      466
+    ],
+    [
+      57,
+      422
+    ],
+    [
+      95,
+      438
+    ],
+    [
+      139,
+      326
+    ],
+    [
+      156,
+      297
+    ],
+    [
+      462,
+      264
+    ],
+    [
+      331,
+      402
+    ],
+    [
+      422,
+      385
+    ],
+    [
+      575,
+      439
+    ],
+    [
+      400,
+      286
+    ],
+    [
+      501,
+      247
+    ],
+    [
+      451,
+      218
+    ],
+    [
+      40,
+      139
+    ],
+    [
+      261,
+      117
+    ],
+    [
+      252,
+      301
+    ],
+    [
+      239,
+      370
+    ],
+    [
+      297,
+      269
+    ],
+    [
+      354,
+      118
+    ],
+    [
+      384,
+      78
+    ],
+    [
+      206,
+      28
+    ]
+  ],
+  "home_candidates": {
+    "grid_points": 1722,
+    "dry": 1234,
+    "with_clearance": 884
+  },
+  "selection": {
+    "mode": "single",
+    "bases": [
+      [
+        369,
+        549
+      ]
+    ],
+    "best_single_reach": 10,
+    "coverable": 26
+  },
+  "overlap_repairs": [],
+  "path_overlaps": [],
+  "outcome": "SINGLE_BASE",
+  "bases": [
+    {
+      "base": 1,
+      "home": [
+        369,
+        549
+      ],
+      "assigned": 10,
+      "clearance_px": 16.390697479248047,
+      "connectivity_excluded": 0,
+      "refinement": {
+        "status": "converged",
+        "iterations": 2,
+        "cap": 6
+      },
+      "visited": 10,
+      "unreachable": 0,
+      "legs": {
+        "total": 15,
+        "dstar": 13,
+        "same_cell": 2,
+        "fallback": 0
+      },
+      "route_flooded_px_arrival": 0,
+      "route_flooded_px_current": 0,
+      "planner_sortie_battery": [
+        0.7654762405553759,
+        0.568161321355426,
+        0.47535013332811626
+      ],
+      "routed_sortie_battery": [
+        0.7654762405553763,
+        0.5681613213554261,
+        0.4753501333281164
+      ],
+      "waypoint_file": "A:\\Work\\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\\paper\\experiments\\results\\multi_uav\\sessions\\kanpur_dummy_K1\\session_20261008_104224\\base1.waypoints",
+      "waypoint_problems": [],
+      "route_length_m": 3052.2627626185745,
+      "cruise_time_s": 610.4525525237149,
+      "sorties": 3
+    }
+  ],
+  "base_separation_min_px": null,
+  "base_separation_required_px": 150.0,
+  "territory_violations": [],
+  "assignment": {
+    "0": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "9": 1,
+    "11": 1,
+    "12": 1,
+    "14": 1,
+    "15": 1,
+    "21": 1
+  },
+  "unreachable_by_any_base": {
+    "5": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "8": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "16": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "17": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "20": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "25": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "26": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "27": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "29": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "30": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "31": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "32": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "35": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "36": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "37": "unreachable by any base: no flood-clear base site can serve it within battery",
+    "1": "unreachable by any base: the 1-base cap was reached before a base covering it could be placed",
+    "6": "unreachable by any base: the 1-base cap was reached before a base covering it could be placed",
+    "7": "unreachable by any base: the 1-base cap was reached before a base covering it could be placed",
+    "10": "unreachable by any base: the 1-base cap was reached before a base covering it could be placed",
+    "13": "unreachable by any base: the 1-base cap was reached before a base covering it could be placed",
+    "18": "unreachable by any base: the 1-base cap was reached before a base covering it could be placed",
+    "19": "unreachable by any base: the 1-base cap was reached before a base covering it could be placed",
+    "22": "unreachable by any base: the 1-base cap was reached before a base covering it could be placed",
+    "23": "unreachable by any base: the 1-base cap was reached before a base covering it could be placed",
+    "24": "unreachable by any base: the 1-base cap was reached before a base covering it could be placed",
+    "28": "unreachable by any base: the 1-base cap was reached before a base covering it could be placed",
+    "33": "unreachable by any base: the 1-base cap was reached before a base covering it could be placed",
+    "34": "unreachable by any base: the 1-base cap was reached before a base covering it could be placed",
+    "38": "unreachable by any base: the 1-base cap was reached before a base covering it could be placed",
+    "39": "unreachable by any base: the 1-base cap was reached before a base covering it could be placed",
+    "40": "unreachable by any base: the 1-base cap was reached before a base covering it could be placed"
+  },
+  "drops_visited": 10,
+  "reloads": 2,
+  "unreachable": 0,
+  "connectivity_excluded": 0,
+  "legs": {
+    "total": 15,
+    "dstar": 13,
+    "same_cell": 2,
+    "fallback": 0
+  },
+  "route_flooded_px_arrival": 0,
+  "route_flooded_px_current": 0,
+  "routed_sortie_battery": [
+    0.7654762405553763,
+    0.5681613213554261,
+    0.4753501333281164
+  ],
+  "waypoint_problems": [],
+  "total_route_length_m": 3052.2627626185745,
+  "refinement": {
+    "status": "converged",
+    "per_base": [
+      {
+        "status": "converged",
+        "iterations": 2,
+        "cap": 6
+      }
+    ]
+  },
+  "stage_counts": {
+    "zones": 33,
+    "zones_with_drop_point": 33,
+    "drop_points": 41,
+    "unreachable_by_any_base": 31,
+    "assigned": 10,
+    "visited": 10
+  },
+  "map": {
+    "ok": true,
+    "dominant_colour": [
+      30,
+      75,
+      140
+    ],
+    "dominant_fraction": 0.0702911051212938,
+    "shape_match": true,
+    "correlation": 0.8351144028247305,
+    "unchanged_fraction": 0.8337933513027853
+  }
+}

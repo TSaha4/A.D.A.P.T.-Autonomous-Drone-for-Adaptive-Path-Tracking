@@ -1,0 +1,617 @@
+..........FF.FF...FFFFFFFFFFFF.FFFFFFFF............................F.... [ 66%]
+...................................F                                     [100%]
+================================== FAILURES ===================================
+_____________________ test_non_finite_horizon[single-nan] _____________________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmpqzq861m5', horizon = 'nan'
+mode = 'single'
+
+    @pytest.mark.parametrize("horizon", ["nan", "inf", "-inf"])
+    @pytest.mark.parametrize("mode", ["single", "multi"])
+    def test_non_finite_horizon(tmp, horizon, mode):
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], args=["--horizon", horizon, "--mode", mode])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught ValueError: cannot convert float NaN to integer
+E       assert ValueError('cannot convert float NaN to integer') is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:89: AssertionError
+---------------------------- Captured stdout call -----------------------------
+Mask created. Non-zero pixels: 2601
+_____________________ test_non_finite_horizon[single-inf] _____________________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmp66bc5evm', horizon = 'inf'
+mode = 'single'
+
+    @pytest.mark.parametrize("horizon", ["nan", "inf", "-inf"])
+    @pytest.mark.parametrize("mode", ["single", "multi"])
+    def test_non_finite_horizon(tmp, horizon, mode):
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], args=["--horizon", horizon, "--mode", mode])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught OverflowError: cannot convert float infinity to integer
+E       assert OverflowError('cannot convert float infinity to integer') is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:89: AssertionError
+---------------------------- Captured stdout call -----------------------------
+Mask created. Non-zero pixels: 2601
+_____________________ test_non_finite_horizon[multi-nan] ______________________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmp30vb_vuj', horizon = 'nan'
+mode = 'multi'
+
+    @pytest.mark.parametrize("horizon", ["nan", "inf", "-inf"])
+    @pytest.mark.parametrize("mode", ["single", "multi"])
+    def test_non_finite_horizon(tmp, horizon, mode):
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], args=["--horizon", horizon, "--mode", mode])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught ValueError: cannot convert float NaN to integer
+E       assert ValueError('cannot convert float NaN to integer') is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:89: AssertionError
+---------------------------- Captured stdout call -----------------------------
+Mask created. Non-zero pixels: 2601
+_____________________ test_non_finite_horizon[multi-inf] ______________________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmpji6i16eu', horizon = 'inf'
+mode = 'multi'
+
+    @pytest.mark.parametrize("horizon", ["nan", "inf", "-inf"])
+    @pytest.mark.parametrize("mode", ["single", "multi"])
+    def test_non_finite_horizon(tmp, horizon, mode):
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], args=["--horizon", horizon, "--mode", mode])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught OverflowError: cannot convert float infinity to integer
+E       assert OverflowError('cannot convert float infinity to integer') is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:89: AssertionError
+---------------------------- Captured stdout call -----------------------------
+Mask created. Non-zero pixels: 2601
+______________ test_incomplete_weather_from_api[single-weather0] ______________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmpnhvzktdt'
+weather = {'precipitation': None, 'wind_speed_10m': 5.0, 'wind_direction_10m': 90.0, 'status': 'success'}
+mode = 'single'
+
+    @pytest.mark.parametrize("weather", [
+        {"precipitation": None, "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": None, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": 5.0, "wind_direction_10m": None, "status": "success"},
+        {"precipitation": float("nan"), "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"status": "success"},
+    ])
+    @pytest.mark.parametrize("mode", ["single", "multi"])
+    def test_incomplete_weather_from_api(tmp, weather, mode):
+        """Open-Meteo can return null for a field; the run must not crash with a TypeError."""
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], weather=weather, args=["--mode", mode])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught TypeError: '>' not supported between instances of 'NoneType' and 'float'
+E       assert TypeError("'>' not supported between instances of 'NoneType' and 'float'") is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:110: AssertionError
+______________ test_incomplete_weather_from_api[single-weather1] ______________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmpy8tjpwxx'
+weather = {'precipitation': 1.0, 'wind_speed_10m': None, 'wind_direction_10m': 90.0, 'status': 'success'}
+mode = 'single'
+
+    @pytest.mark.parametrize("weather", [
+        {"precipitation": None, "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": None, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": 5.0, "wind_direction_10m": None, "status": "success"},
+        {"precipitation": float("nan"), "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"status": "success"},
+    ])
+    @pytest.mark.parametrize("mode", ["single", "multi"])
+    def test_incomplete_weather_from_api(tmp, weather, mode):
+        """Open-Meteo can return null for a field; the run must not crash with a TypeError."""
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], weather=weather, args=["--mode", mode])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught TypeError: '>' not supported between instances of 'NoneType' and 'float'
+E       assert TypeError("'>' not supported between instances of 'NoneType' and 'float'") is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:110: AssertionError
+______________ test_incomplete_weather_from_api[single-weather2] ______________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmpd0144t88'
+weather = {'precipitation': 1.0, 'wind_speed_10m': 5.0, 'wind_direction_10m': None, 'status': 'success'}
+mode = 'single'
+
+    @pytest.mark.parametrize("weather", [
+        {"precipitation": None, "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": None, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": 5.0, "wind_direction_10m": None, "status": "success"},
+        {"precipitation": float("nan"), "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"status": "success"},
+    ])
+    @pytest.mark.parametrize("mode", ["single", "multi"])
+    def test_incomplete_weather_from_api(tmp, weather, mode):
+        """Open-Meteo can return null for a field; the run must not crash with a TypeError."""
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], weather=weather, args=["--mode", mode])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught TypeError: unsupported operand type(s) for +: 'NoneType' and 'float'
+E       assert TypeError("unsupported operand type(s) for +: 'NoneType' and 'float'") is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:110: AssertionError
+---------------------------- Captured stdout call -----------------------------
+Mask created. Non-zero pixels: 2601
+______________ test_incomplete_weather_from_api[single-weather3] ______________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmpgkev5jr_'
+weather = {'precipitation': nan, 'wind_speed_10m': 5.0, 'wind_direction_10m': 90.0, 'status': 'success'}
+mode = 'single'
+
+    @pytest.mark.parametrize("weather", [
+        {"precipitation": None, "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": None, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": 5.0, "wind_direction_10m": None, "status": "success"},
+        {"precipitation": float("nan"), "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"status": "success"},
+    ])
+    @pytest.mark.parametrize("mode", ["single", "multi"])
+    def test_incomplete_weather_from_api(tmp, weather, mode):
+        """Open-Meteo can return null for a field; the run must not crash with a TypeError."""
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], weather=weather, args=["--mode", mode])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught ValueError: cannot convert float NaN to integer
+E       assert ValueError('cannot convert float NaN to integer') is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:110: AssertionError
+---------------------------- Captured stdout call -----------------------------
+Mask created. Non-zero pixels: 2601
+______________ test_incomplete_weather_from_api[single-weather4] ______________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmpmyxjlcsy'
+weather = {'status': 'success'}, mode = 'single'
+
+    @pytest.mark.parametrize("weather", [
+        {"precipitation": None, "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": None, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": 5.0, "wind_direction_10m": None, "status": "success"},
+        {"precipitation": float("nan"), "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"status": "success"},
+    ])
+    @pytest.mark.parametrize("mode", ["single", "multi"])
+    def test_incomplete_weather_from_api(tmp, weather, mode):
+        """Open-Meteo can return null for a field; the run must not crash with a TypeError."""
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], weather=weather, args=["--mode", mode])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught KeyError: 'wind_speed_10m'
+E       assert KeyError('wind_speed_10m') is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:110: AssertionError
+______________ test_incomplete_weather_from_api[multi-weather0] _______________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmpcebzsabu'
+weather = {'precipitation': None, 'wind_speed_10m': 5.0, 'wind_direction_10m': 90.0, 'status': 'success'}
+mode = 'multi'
+
+    @pytest.mark.parametrize("weather", [
+        {"precipitation": None, "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": None, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": 5.0, "wind_direction_10m": None, "status": "success"},
+        {"precipitation": float("nan"), "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"status": "success"},
+    ])
+    @pytest.mark.parametrize("mode", ["single", "multi"])
+    def test_incomplete_weather_from_api(tmp, weather, mode):
+        """Open-Meteo can return null for a field; the run must not crash with a TypeError."""
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], weather=weather, args=["--mode", mode])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught TypeError: '>' not supported between instances of 'NoneType' and 'float'
+E       assert TypeError("'>' not supported between instances of 'NoneType' and 'float'") is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:110: AssertionError
+______________ test_incomplete_weather_from_api[multi-weather1] _______________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmp2avi95fv'
+weather = {'precipitation': 1.0, 'wind_speed_10m': None, 'wind_direction_10m': 90.0, 'status': 'success'}
+mode = 'multi'
+
+    @pytest.mark.parametrize("weather", [
+        {"precipitation": None, "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": None, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": 5.0, "wind_direction_10m": None, "status": "success"},
+        {"precipitation": float("nan"), "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"status": "success"},
+    ])
+    @pytest.mark.parametrize("mode", ["single", "multi"])
+    def test_incomplete_weather_from_api(tmp, weather, mode):
+        """Open-Meteo can return null for a field; the run must not crash with a TypeError."""
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], weather=weather, args=["--mode", mode])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught TypeError: '>' not supported between instances of 'NoneType' and 'float'
+E       assert TypeError("'>' not supported between instances of 'NoneType' and 'float'") is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:110: AssertionError
+______________ test_incomplete_weather_from_api[multi-weather2] _______________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmpq7znc8gw'
+weather = {'precipitation': 1.0, 'wind_speed_10m': 5.0, 'wind_direction_10m': None, 'status': 'success'}
+mode = 'multi'
+
+    @pytest.mark.parametrize("weather", [
+        {"precipitation": None, "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": None, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": 5.0, "wind_direction_10m": None, "status": "success"},
+        {"precipitation": float("nan"), "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"status": "success"},
+    ])
+    @pytest.mark.parametrize("mode", ["single", "multi"])
+    def test_incomplete_weather_from_api(tmp, weather, mode):
+        """Open-Meteo can return null for a field; the run must not crash with a TypeError."""
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], weather=weather, args=["--mode", mode])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught TypeError: unsupported operand type(s) for +: 'NoneType' and 'float'
+E       assert TypeError("unsupported operand type(s) for +: 'NoneType' and 'float'") is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:110: AssertionError
+---------------------------- Captured stdout call -----------------------------
+Mask created. Non-zero pixels: 2601
+______________ test_incomplete_weather_from_api[multi-weather3] _______________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmpf89aurbr'
+weather = {'precipitation': nan, 'wind_speed_10m': 5.0, 'wind_direction_10m': 90.0, 'status': 'success'}
+mode = 'multi'
+
+    @pytest.mark.parametrize("weather", [
+        {"precipitation": None, "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": None, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": 5.0, "wind_direction_10m": None, "status": "success"},
+        {"precipitation": float("nan"), "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"status": "success"},
+    ])
+    @pytest.mark.parametrize("mode", ["single", "multi"])
+    def test_incomplete_weather_from_api(tmp, weather, mode):
+        """Open-Meteo can return null for a field; the run must not crash with a TypeError."""
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], weather=weather, args=["--mode", mode])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught ValueError: cannot convert float NaN to integer
+E       assert ValueError('cannot convert float NaN to integer') is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:110: AssertionError
+---------------------------- Captured stdout call -----------------------------
+Mask created. Non-zero pixels: 2601
+______________ test_incomplete_weather_from_api[multi-weather4] _______________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmpz89ij4kv'
+weather = {'status': 'success'}, mode = 'multi'
+
+    @pytest.mark.parametrize("weather", [
+        {"precipitation": None, "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": None, "wind_direction_10m": 90.0, "status": "success"},
+        {"precipitation": 1.0, "wind_speed_10m": 5.0, "wind_direction_10m": None, "status": "success"},
+        {"precipitation": float("nan"), "wind_speed_10m": 5.0, "wind_direction_10m": 90.0, "status": "success"},
+        {"status": "success"},
+    ])
+    @pytest.mark.parametrize("mode", ["single", "multi"])
+    def test_incomplete_weather_from_api(tmp, weather, mode):
+        """Open-Meteo can return null for a field; the run must not crash with a TypeError."""
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], weather=weather, args=["--mode", mode])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught KeyError: 'wind_speed_10m'
+E       assert KeyError('wind_speed_10m') is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:110: AssertionError
+_____________________ test_extreme_precipitation_from_api _____________________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmp2yv_sp4p'
+
+    def test_extreme_precipitation_from_api(tmp):
+        w = {"precipitation": 1e6, "wind_speed_10m": 0.0, "wind_direction_10m": 0.0, "status": "success"}
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], weather=w)
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\core\src\alloc.cpp:73: error: (-4:Insufficient memory) Failed to allocate 160000800001 bytes in function 'cv::OutOfMemoryError'
+E         
+E       assert error("OpenCV(5.0.0) D:\\a\\opencv-python\\opencv-python\\opencv\\modules\\core\\src\\alloc.cpp:73: error: (-4:Insufficient memory) Failed to allocate 160000800001 bytes in function 'cv::OutOfMemoryError'\n") is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:116: AssertionError
+---------------------------- Captured stdout call -----------------------------
+Mask created. Non-zero pixels: 2601
+------------------------------ Captured log call ------------------------------
+WARNING  root:main.py:571 HEAVY RAIN WARNING: Drone operations may be unsafe.
+____________________ test_dummy_weather_file_variants[{}] _____________________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmpctx5i9he', content = '{}'
+
+    @pytest.mark.parametrize("content", ["{}", "{not json", '{"precipitation": 5}', "[]"])
+    def test_dummy_weather_file_variants(tmp, content):
+        os.makedirs(os.path.join(tmp, "data", "input"))
+        open(os.path.join(tmp, "data", "input", "dummy_weather.json"), "w").write(content)
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], args=["--dummy-weather"])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught KeyError: 'wind_speed_10m'
+E       assert KeyError('wind_speed_10m') is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:124: AssertionError
+___________ test_dummy_weather_file_variants[{"precipitation": 5}] ____________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmpj4ckjgen'
+content = '{"precipitation": 5}'
+
+    @pytest.mark.parametrize("content", ["{}", "{not json", '{"precipitation": 5}', "[]"])
+    def test_dummy_weather_file_variants(tmp, content):
+        os.makedirs(os.path.join(tmp, "data", "input"))
+        open(os.path.join(tmp, "data", "input", "dummy_weather.json"), "w").write(content)
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], args=["--dummy-weather"])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught KeyError: 'wind_speed_10m'
+E       assert KeyError('wind_speed_10m') is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:124: AssertionError
+____________________ test_dummy_weather_file_variants[[]] _____________________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmppcq2ej_q', content = '[]'
+
+    @pytest.mark.parametrize("content", ["{}", "{not json", '{"precipitation": 5}', "[]"])
+    def test_dummy_weather_file_variants(tmp, content):
+        os.makedirs(os.path.join(tmp, "data", "input"))
+        open(os.path.join(tmp, "data", "input", "dummy_weather.json"), "w").write(content)
+        code, exc = single(tmp, [("rect", 100, 100, 150, 150)], args=["--dummy-weather"])
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught TypeError: list indices must be integers or slices, not str
+E       assert TypeError('list indices must be integers or slices, not str') is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:124: AssertionError
+__________ test_invalid_environment_variables[METERS_PER_PIXEL-abc] ___________
+
+var = 'METERS_PER_PIXEL', value = 'abc'
+
+    @pytest.mark.parametrize("var,value", [("METERS_PER_PIXEL", "abc"), ("MAX_BASES", "four"), ("MAX_BASES", "2.5"),
+                                           ("HOME_CLEARANCE_PX", "x")])
+    def test_invalid_environment_variables(var, value):
+        env = dict(os.environ, **{var: value})
+        r = subprocess.run([PY, "main.py", "--help"], cwd=REPO, env=env, capture_output=True, text=True)
+>       assert "Traceback" not in r.stderr, r.stderr[-400:]
+E       AssertionError: ptive-Path-Tracking\src\mission\constraints.py", line 5, in <module>
+E             from config import settings
+E           File "A:\Work\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\config\settings.py", line 9, in <module>
+E             METERS_PER_PIXEL = float(os.getenv("METERS_PER_PIXEL", "2.0"))
+E                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E         ValueError: could not convert string to float: 'abc'
+E         
+E       assert 'Traceback' not in "Traceback (...oat: 'abc'\n"
+E         
+E         'Traceback' is contained here:
+E           Traceback (most recent call last):
+E         ? +++++++++
+E             File "A:\Work\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\main.py", line 22, in <module>
+E               from src.mission.constraints import plan_mission_stops, log_deviation, wind_kmh_to_mps, sortie_battery_report
+E             File "A:\Work\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\src\mission\constraints.py", line 5, in <module>...
+E         
+E         ...Full output truncated (5 lines hidden), use '-vv' to show
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:132: AssertionError
+_____________ test_invalid_environment_variables[MAX_BASES-four] ______________
+
+var = 'MAX_BASES', value = 'four'
+
+    @pytest.mark.parametrize("var,value", [("METERS_PER_PIXEL", "abc"), ("MAX_BASES", "four"), ("MAX_BASES", "2.5"),
+                                           ("HOME_CLEARANCE_PX", "x")])
+    def test_invalid_environment_variables(var, value):
+        env = dict(os.environ, **{var: value})
+        r = subprocess.run([PY, "main.py", "--help"], cwd=REPO, env=env, capture_output=True, text=True)
+>       assert "Traceback" not in r.stderr, r.stderr[-400:]
+E       AssertionError: P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\src\mission\constraints.py", line 5, in <module>
+E             from config import settings
+E           File "A:\Work\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\config\settings.py", line 44, in <module>
+E             MAX_BASES = int(os.getenv("MAX_BASES", "4"))
+E                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E         ValueError: invalid literal for int() with base 10: 'four'
+E         
+E       assert 'Traceback' not in "Traceback (...10: 'four'\n"
+E         
+E         'Traceback' is contained here:
+E           Traceback (most recent call last):
+E         ? +++++++++
+E             File "A:\Work\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\main.py", line 22, in <module>
+E               from src.mission.constraints import plan_mission_stops, log_deviation, wind_kmh_to_mps, sortie_battery_report
+E             File "A:\Work\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\src\mission\constraints.py", line 5, in <module>...
+E         
+E         ...Full output truncated (5 lines hidden), use '-vv' to show
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:132: AssertionError
+______________ test_invalid_environment_variables[MAX_BASES-2.5] ______________
+
+var = 'MAX_BASES', value = '2.5'
+
+    @pytest.mark.parametrize("var,value", [("METERS_PER_PIXEL", "abc"), ("MAX_BASES", "four"), ("MAX_BASES", "2.5"),
+                                           ("HOME_CLEARANCE_PX", "x")])
+    def test_invalid_environment_variables(var, value):
+        env = dict(os.environ, **{var: value})
+        r = subprocess.run([PY, "main.py", "--help"], cwd=REPO, env=env, capture_output=True, text=True)
+>       assert "Traceback" not in r.stderr, r.stderr[-400:]
+E       AssertionError: .P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\src\mission\constraints.py", line 5, in <module>
+E             from config import settings
+E           File "A:\Work\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\config\settings.py", line 44, in <module>
+E             MAX_BASES = int(os.getenv("MAX_BASES", "4"))
+E                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E         ValueError: invalid literal for int() with base 10: '2.5'
+E         
+E       assert 'Traceback' not in "Traceback (... 10: '2.5'\n"
+E         
+E         'Traceback' is contained here:
+E           Traceback (most recent call last):
+E         ? +++++++++
+E             File "A:\Work\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\main.py", line 22, in <module>
+E               from src.mission.constraints import plan_mission_stops, log_deviation, wind_kmh_to_mps, sortie_battery_report
+E             File "A:\Work\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\src\mission\constraints.py", line 5, in <module>...
+E         
+E         ...Full output truncated (5 lines hidden), use '-vv' to show
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:132: AssertionError
+___________ test_invalid_environment_variables[HOME_CLEARANCE_PX-x] ___________
+
+var = 'HOME_CLEARANCE_PX', value = 'x'
+
+    @pytest.mark.parametrize("var,value", [("METERS_PER_PIXEL", "abc"), ("MAX_BASES", "four"), ("MAX_BASES", "2.5"),
+                                           ("HOME_CLEARANCE_PX", "x")])
+    def test_invalid_environment_variables(var, value):
+        env = dict(os.environ, **{var: value})
+        r = subprocess.run([PY, "main.py", "--help"], cwd=REPO, env=env, capture_output=True, text=True)
+>       assert "Traceback" not in r.stderr, r.stderr[-400:]
+E       AssertionError: tive-Path-Tracking\src\mission\constraints.py", line 5, in <module>
+E             from config import settings
+E           File "A:\Work\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\config\settings.py", line 38, in <module>
+E             HOME_CLEARANCE_PX = float(os.getenv("HOME_CLEARANCE_PX", "15"))
+E                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E         ValueError: could not convert string to float: 'x'
+E         
+E       assert 'Traceback' not in "Traceback (...float: 'x'\n"
+E         
+E         'Traceback' is contained here:
+E           Traceback (most recent call last):
+E         ? +++++++++
+E             File "A:\Work\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\main.py", line 22, in <module>
+E               from src.mission.constraints import plan_mission_stops, log_deviation, wind_kmh_to_mps, sortie_battery_report
+E             File "A:\Work\A.D.A.P.T.-Autonomous-Drone-for-Adaptive-Path-Tracking\src\mission\constraints.py", line 5, in <module>...
+E         
+E         ...Full output truncated (5 lines hidden), use '-vv' to show
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:132: AssertionError
+_________________________ test_session_root_is_a_file _________________________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmpbf49_onk'
+
+    def test_session_root_is_a_file(tmp):
+        blocker = os.path.join(tmp, "blocker")
+        open(blocker, "w").close()
+        img = os.path.join(tmp, "f.png")
+        Hn.make_map(img, [("rect", 100, 100, 150, 150)])
+        code, exc = Hn.run_main([img, "--mode", "multi", "--session-root", blocker], tmp)
+>       assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+E       AssertionError: uncaught FileExistsError: [WinError 183] Cannot create a file when that file already exists: 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmpbf49_onk\\blocker'
+E       assert FileExistsError(17, 'Cannot create a file when that file already exists') is None
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:141: AssertionError
+---------------------------- Captured stdout call -----------------------------
+Mask created. Non-zero pixels: 2601
+Filtered 1 contours with area >= 200
+___________________________ test_unicode_image_path ___________________________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmp5e1dqfzw'
+
+    def test_unicode_image_path(tmp):
+        d = os.path.join(tmp, "\u092c\u093e\u0922\u093c_flood")
+        os.mkdir(d)
+        img = os.path.join(d, "map.png")
+        Hn.make_map(os.path.join(tmp, "plain.png"), [("rect", 100, 100, 150, 150)])
+        os.replace(os.path.join(tmp, "plain.png"), img)
+        code, exc = Hn.run_main([img], tmp)
+        assert exc is None
+>       assert code == 0, "a valid image under a non-ASCII path could not be read"
+E       AssertionError: a valid image under a non-ASCII path could not be read
+E       assert 1 == 0
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:152: AssertionError
+------------------------------ Captured log call ------------------------------
+ERROR    root:main.py:576 Error loading image file. Please check the path.
+_______________________ test_noisy_segmentation[multi] ________________________
+
+tmp = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmppf44ub81', mode = 'multi'
+
+    @pytest.mark.parametrize("mode", ["single", "multi"])
+    def test_noisy_segmentation(tmp, mode):
+        if mode == "single":
+            code, exc = single(tmp, noisy_map(3))
+            assert exc is None and code == 0
+            single_ok(tmp)
+        else:
+            code, exc, session, img = multi(tmp, noisy_map(3))
+>           assert_multi_valid(code, exc, session, img)
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:203: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+code = 0, exc = None
+session = 'C:\\Users\\athar\\AppData\\Local\\Temp\\tmppf44ub81\\s\\session_20261008_122538'
+img = array([[[255, 255, 255],
+        [255, 255, 255],
+        [255, 255, 255],
+        ...,
+        [255, 255, 255],
+     ...    ...,
+        [255, 255, 255],
+        [255, 255, 255],
+        [255, 255, 255]]], shape=(750, 750, 3), dtype=uint8)
+
+    def assert_multi_valid(code, exc, session, img):
+        assert exc is None, f"uncaught {type(exc).__name__}: {exc}"
+        if code == 0 and session:
+            v = Hn.check_multi_session(session, img)
+>           assert v == [], v
+E           AssertionError: ['base 2 clearance 3.2 < 15.0']
+E           assert ['base 2 clea...e 3.2 < 15.0'] == []
+E             
+E             Left contains one more item: 'base 2 clearance 3.2 < 15.0'
+E             Use -v to get more diff
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:63: AssertionError
+---------------------------- Captured stdout call -----------------------------
+Mask created. Non-zero pixels: 37778
+Filtered 6 contours with area >= 200
+------------------------------ Captured log call ------------------------------
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 3; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 4; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 7; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 2; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 3; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 4; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 6; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 2; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 3; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 4; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 6; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 7; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 2; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 3; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 4; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 6; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 7; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 2; inserted return-to-home and reload.
+WARNING  root:constraints.py:202 FORCED MISSION DEVIATION: Battery reserve would be breached before drop 2; inserted return-to-home and reload.
+ERROR    root:main.py:502 MAP SANITY FAILED: {'dominant_colour': (255, 255, 255), 'dominant_fraction': 0.9030648888888889, 'shape_match': True, 'correlation': 0.879150186185804, 'unchanged_fraction': 0.9503342222222222}
+____________ test_api_weather_mutation_does_not_leak_through_cache ____________
+
+    def test_api_weather_mutation_does_not_leak_through_cache():
+        from unittest import mock
+        from src.weather import weather_api
+        weather_api.get_weather_data.cache_clear()
+        with mock.patch("src.weather.weather_api.requests.get", side_effect=weather_api.requests.RequestException("x")):
+            a = weather_api.get_weather_data(1.0, 2.0)
+            a["precipitation"] = 999
+            b = weather_api.get_weather_data(1.0, 2.0)
+        weather_api.get_weather_data.cache_clear()
+>       assert b["precipitation"] == 0.0, "cached weather dict was mutated by a caller"
+E       AssertionError: cached weather dict was mutated by a caller
+E       assert 999 == 0.0
+
+C:\Users\athar\AppData\Local\Temp\claude\A--Work-A-D-A-P-T--Autonomous-Drone-for-Adaptive-Path-Tracking\d3d76194-e758-42ac-8db0-3c313efdd7f3\scratchpad\qa\test_qa_pipeline.py:405: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  src.weather.weather_api:weather_api.py:60 Weather API request failed: x. Using fallback weather data.
+=========================== short test summary info ===========================
+FAILED ::test_non_finite_horizon[single-nan] - AssertionError: uncaught Value...
+FAILED ::test_non_finite_horizon[single-inf] - AssertionError: uncaught Overf...
+FAILED ::test_non_finite_horizon[multi-nan] - AssertionError: uncaught ValueE...
+FAILED ::test_non_finite_horizon[multi-inf] - AssertionError: uncaught Overfl...
+FAILED ::test_incomplete_weather_from_api[single-weather0] - AssertionError: ...
+FAILED ::test_incomplete_weather_from_api[single-weather1] - AssertionError: ...
+FAILED ::test_incomplete_weather_from_api[single-weather2] - AssertionError: ...
+FAILED ::test_incomplete_weather_from_api[single-weather3] - AssertionError: ...
+FAILED ::test_incomplete_weather_from_api[single-weather4] - AssertionError: ...
+FAILED ::test_incomplete_weather_from_api[multi-weather0] - AssertionError: u...
+FAILED ::test_incomplete_weather_from_api[multi-weather1] - AssertionError: u...
+FAILED ::test_incomplete_weather_from_api[multi-weather2] - AssertionError: u...
+FAILED ::test_incomplete_weather_from_api[multi-weather3] - AssertionError: u...
+FAILED ::test_incomplete_weather_from_api[multi-weather4] - AssertionError: u...
+FAILED ::test_extreme_precipitation_from_api - AssertionError: uncaught error...
+FAILED ::test_dummy_weather_file_variants[{}] - AssertionError: uncaught KeyE...
+FAILED ::test_dummy_weather_file_variants[{"precipitation": 5}] - AssertionEr...
+FAILED ::test_dummy_weather_file_variants[[]] - AssertionError: uncaught Type...
+FAILED ::test_invalid_environment_variables[METERS_PER_PIXEL-abc] - Assertion...
+FAILED ::test_invalid_environment_variables[MAX_BASES-four] - AssertionError:...
+FAILED ::test_invalid_environment_variables[MAX_BASES-2.5] - AssertionError: ...
+FAILED ::test_invalid_environment_variables[HOME_CLEARANCE_PX-x] - AssertionE...
+FAILED ::test_session_root_is_a_file - AssertionError: uncaught FileExistsErr...
+FAILED ::test_unicode_image_path - AssertionError: a valid image under a non-...
+FAILED ::test_noisy_segmentation[multi] - AssertionError: ['base 2 clearance ...
+FAILED ::test_api_weather_mutation_does_not_leak_through_cache - AssertionErr...
+26 failed, 82 passed in 1871.98s (0:31:11)

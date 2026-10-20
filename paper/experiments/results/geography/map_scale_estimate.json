@@ -1,0 +1,122 @@
+{
+ "varanasi": {
+  "image_px": [
+   972,
+   970
+  ],
+  "landmarks": 5,
+  "configured": {
+   "meters_per_pixel": 2.0,
+   "reference": [
+    25.3176,
+    82.9739
+   ],
+   "coverage_km": [
+    1.944,
+    1.94
+   ],
+   "bbox": {
+    "north": 25.326304635285663,
+    "south": 25.308895364714335,
+    "west": 82.9642505839702,
+    "east": 82.9835494160298
+   }
+  },
+  "estimated": {
+   "meters_per_pixel": 92.71940487243204,
+   "rotation_deg": -0.5207795829267873,
+   "residual_rms_km": 1.3589384572066547,
+   "residual_rms_px": 14.65646224839719,
+   "coverage_km": [
+    90.12326153600394,
+    89.93782272625909
+   ],
+   "image_centre": [
+    25.151234720240026,
+    83.10203256158454
+   ]
+  },
+  "scale_ratio_estimated_over_configured": 46.35970243621602,
+  "default_reference_to_estimated_centre_km": 22.50150048438792
+ },
+ "kanpur": {
+  "image_px": [
+   976,
+   966
+  ],
+  "landmarks": 10,
+  "configured": {
+   "meters_per_pixel": 2.0,
+   "reference": [
+    25.3176,
+    82.9739
+   ],
+   "coverage_km": [
+    1.952,
+    1.932
+   ],
+   "bbox": {
+    "north": 25.32626870283866,
+    "south": 25.308931297161337,
+    "west": 82.9642108335437,
+    "east": 82.9835891664563
+   }
+  },
+  "estimated": {
+   "meters_per_pixel": 129.58470632613523,
+   "rotation_deg": -0.9895341278088254,
+   "residual_rms_km": 2.307614409742482,
+   "residual_rms_px": 17.80776817855914,
+   "coverage_km": [
+    126.47467337430798,
+    125.17882631104663
+   ],
+   "image_centre": [
+    26.443937397400333,
+    80.04854073177026
+   ]
+  },
+  "scale_ratio_estimated_over_configured": 64.79235316306762,
+  "default_reference_to_estimated_centre_km": 318.6129107671202
+ },
+ "assam": {
+  "image_px": [
+   1048,
+   739
+  ],
+  "landmarks": 12,
+  "configured": {
+   "meters_per_pixel": 2.0,
+   "reference": [
+    25.3176,
+    82.9739
+   ],
+   "coverage_km": [
+    2.096,
+    1.478
+   ],
+   "bbox": {
+    "north": 25.32422953647143,
+    "south": 25.310970463528566,
+    "west": 82.96349532586693,
+    "east": 82.98430467413307
+   }
+  },
+  "estimated": {
+   "meters_per_pixel": 633.4544842604406,
+   "rotation_deg": -4.810518590743576,
+   "residual_rms_km": 16.184139988457083,
+   "residual_rms_px": 25.549017949335536,
+   "coverage_km": [
+    663.8602995049418,
+    468.1228638684656
+   ],
+   "image_centre": [
+    26.148934458773475,
+    92.88473358767645
+   ]
+  },
+  "scale_ratio_estimated_over_configured": 316.7272421302203,
+  "default_reference_to_estimated_centre_km": 998.4875266674245
+ }
+}

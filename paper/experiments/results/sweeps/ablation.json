@@ -1,0 +1,89 @@
+{
+ "varanasi": {
+  "current+predicted": {
+   "obstacle_fraction": 0.1580944741532977,
+   "planned_legs": 16,
+   "no_path_legs": 8,
+   "snapped_endpoints": 30,
+   "unsnappable_endpoints": 0,
+   "route_points": 297,
+   "route_length_px": 2187.029349127677,
+   "mission_items": 364,
+   "total_s": 13.359741100000974,
+   "route_fraction_in_predicted_only_area": 0.1788403637299182,
+   "route_fraction_in_current_flood": 0.04819268496254313
+  },
+  "current-only": {
+   "obstacle_fraction": 0.08097682709447415,
+   "planned_legs": 16,
+   "no_path_legs": 0,
+   "snapped_endpoints": 8,
+   "unsnappable_endpoints": 0,
+   "route_points": 357,
+   "route_length_px": 2091.103756948437,
+   "mission_items": 424,
+   "total_s": 4.704823699999906,
+   "route_fraction_in_predicted_only_area": 0.3375727120177773,
+   "route_fraction_in_current_flood": 0.034039688758862
+  },
+  "predicted_only_area_fraction": 0.07711764705882353
+ },
+ "kanpur": {
+  "current+predicted": {
+   "obstacle_fraction": 0.29057322551662174,
+   "planned_legs": 33,
+   "no_path_legs": 6,
+   "snapped_endpoints": 68,
+   "unsnappable_endpoints": 0,
+   "route_points": 1010,
+   "route_length_px": 7223.129519742548,
+   "mission_items": 1145,
+   "total_s": 36.374611000001096,
+   "route_fraction_in_predicted_only_area": 0.11598093587180425,
+   "route_fraction_in_current_flood": 0.043475045030951086
+  },
+  "current-only": {
+   "obstacle_fraction": 0.15083917340521114,
+   "planned_legs": 33,
+   "no_path_legs": 0,
+   "snapped_endpoints": 34,
+   "unsnappable_endpoints": 0,
+   "route_points": 598,
+   "route_length_px": 3570.888581827171,
+   "mission_items": 733,
+   "total_s": 16.51950450000004,
+   "route_fraction_in_predicted_only_area": 0.47903000603808626,
+   "route_fraction_in_current_flood": 0.05493756471746016
+  },
+  "predicted_only_area_fraction": 0.1397340521114106
+ },
+ "assam": {
+  "current+predicted": {
+   "obstacle_fraction": 0.9224045368620037,
+   "planned_legs": 0,
+   "no_path_legs": 0,
+   "snapped_endpoints": 0,
+   "unsnappable_endpoints": 4,
+   "route_points": 3,
+   "route_length_px": 0.0,
+   "mission_items": 10,
+   "total_s": 0.03531750000001921,
+   "route_fraction_in_predicted_only_area": 0.0,
+   "route_fraction_in_current_flood": 0.0
+  },
+  "current-only": {
+   "obstacle_fraction": 0.8310220541902962,
+   "planned_legs": 0,
+   "no_path_legs": 0,
+   "snapped_endpoints": 0,
+   "unsnappable_endpoints": 4,
+   "route_points": 3,
+   "route_length_px": 0.0,
+   "mission_items": 10,
+   "total_s": 0.03154829999948561,
+   "route_fraction_in_predicted_only_area": 0.0,
+   "route_fraction_in_current_flood": 0.0
+  },
+  "predicted_only_area_fraction": 0.09138248267170762
+ }
+}

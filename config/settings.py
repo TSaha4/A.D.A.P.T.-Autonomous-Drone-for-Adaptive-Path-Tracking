@@ -3,10 +3,21 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+def _env(name, default, cast=float):
+    """Numeric setting from the environment / .env; an unparsable value stops the program with a message
+    naming the variable instead of a bare float()/int() traceback."""
+    raw = os.getenv(name, default)
+    try:
+        return cast(raw)
+    except (TypeError, ValueError):
+        kind = "an integer" if cast is int else "a number"
+        raise SystemExit(f"Configuration error: {name}={raw!r} (environment or .env) is not {kind}.") from None
+
 WEATHER_API_BASE_URL = os.getenv("WEATHER_API_BASE_URL", "https://api.open-meteo.com/v1/forecast")
-MAX_SAFE_WIND_SPEED = float(os.getenv("MAX_SAFE_WIND_SPEED", "40.0"))
-MAX_SAFE_PRECIPITATION = float(os.getenv("MAX_SAFE_PRECIPITATION", "15.0"))
-METERS_PER_PIXEL = float(os.getenv("METERS_PER_PIXEL", "2.0"))
+MAX_SAFE_WIND_SPEED = _env("MAX_SAFE_WIND_SPEED", "40.0")
+MAX_SAFE_PRECIPITATION = _env("MAX_SAFE_PRECIPITATION", "15.0")
+METERS_PER_PIXEL = _env("METERS_PER_PIXEL", "2.0")
 
 # Mission aircraft reference: Garuda Aerospace Agri Kisan Drone (GA-AD).
 # Manufacturer lists 8 kg rated payload, 5 m/s rated speed, and 7 min tested
@@ -33,14 +44,14 @@ FLOOD_PRECIP_REFERENCE_MM_PER_H = 5.0
 FLOOD_WIND_REFERENCE_KMH = 10.0
 
 # Multi-point delivery parameters for large flood contours
-LARGE_CONTOUR_AREA_THRESHOLD = float(os.getenv("LARGE_CONTOUR_AREA_THRESHOLD", "2500.0"))
-LARGE_CONTOUR_AREA_STEP = float(os.getenv("LARGE_CONTOUR_AREA_STEP", "3000.0"))
-MAX_DROPS_PER_CONTOUR = int(os.getenv("MAX_DROPS_PER_CONTOUR", "4"))
-MIN_DROP_SEPARATION_PX = float(os.getenv("MIN_DROP_SEPARATION_PX", "40.0"))
+LARGE_CONTOUR_AREA_THRESHOLD = _env("LARGE_CONTOUR_AREA_THRESHOLD", "2500.0")
+LARGE_CONTOUR_AREA_STEP = _env("LARGE_CONTOUR_AREA_STEP", "3000.0")
+MAX_DROPS_PER_CONTOUR = _env("MAX_DROPS_PER_CONTOUR", "4", int)
+MIN_DROP_SEPARATION_PX = _env("MIN_DROP_SEPARATION_PX", "40.0")
 
 # Payload release: MAV_CMD_DO_SET_SERVO param1 = servo output, param2 = PWM.
-DROP_SERVO_CHANNEL = int(os.getenv("DROP_SERVO_CHANNEL", "9"))
-DROP_SERVO_PWM = int(os.getenv("DROP_SERVO_PWM", "2000"))
+DROP_SERVO_CHANNEL = _env("DROP_SERVO_CHANNEL", "9", int)
+DROP_SERVO_PWM = _env("DROP_SERVO_PWM", "2000", int)
 
 # Flood-mask sanity bounds (fraction of image pixels). Outside these the HSV
 # sampling almost certainly picked non-flood colours and the run is aborted.
@@ -61,11 +72,12 @@ REGION_PRESETS = {
                "approx_m_per_px": 270.0},
 }
 
-# Minimum distance (px) from any flood pixel (current or forecast) for HOME.
-HOME_CLEARANCE_PX = float(os.getenv("HOME_CLEARANCE_PX", "15"))
+# Minimum distance (display px) from any flood pixel (current or forecast) for a base.
+HOME_CLEARANCE_PX = _env("HOME_CLEARANCE_PX", "15")
 
 # Multi-base planning: when no single base can reach every coverable drop point
 # within battery range, up to MAX_BASES bases are placed (fewest that cover all),
-# each at least MIN_BASE_SEPARATION_PX from every other base.
-MAX_BASES = int(os.getenv("MAX_BASES", "4"))
-MIN_BASE_SEPARATION_PX = float(os.getenv("MIN_BASE_SEPARATION_PX", "150"))
+# each at least MIN_BASE_SEPARATION_PX (display px) from every other base.
+# MAX_BASES=1 restricts the planner to a single base (one UAV).
+MAX_BASES = _env("MAX_BASES", "4", int)
+MIN_BASE_SEPARATION_PX = _env("MIN_BASE_SEPARATION_PX", "150")

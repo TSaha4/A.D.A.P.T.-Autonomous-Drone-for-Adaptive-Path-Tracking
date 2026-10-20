@@ -1,0 +1,14 @@
+\section{Verification Methodology}
+\label{sec:verif}
+
+\subsection{Independent geodetic oracle}
+A test-only WGS84 oracle implements Vincenty's direct and inverse solutions without importing production code \cite{vincenty1975direct}. It is checked against a published worked geodesic to 1~mm and $0.01''$, an equatorial degree of longitude and the WGS84 meridian quadrant. A pixel's reference position is the point reached from the supplied centre by a geodesic of length $\sqrt{E^2+N^2}$ at azimuth $\operatorname{atan2}(E,N)$. Model error is bounded using the ellipsoid's radii of curvature. Randomised forward/inverse round trips test valid and rejected inputs.
+
+\subsection{Mission validator}
+An independent specification-based validator reads each exported WPL file and checks item order, command parameters, coordinate ranges, drop actions and pixel-to-coordinate correspondence. It does not import production mission code. Thirty-six corrupted-mission cases exercise the validator itself. Passing it establishes format and declared-model consistency, not autopilot acceptance.
+
+\subsection{Metamorphic, mutation and fuzz tests}
+The same synthetic map is run through the entry point at nine display widths to check ground-position consistency. Mutation testing injects 33 plausible defects in a copy of the code, including axis and scale errors, servo-slot mistakes, a disabled crossing gate and broken reload bookkeeping. Seeded random grids, pathological end-to-end inputs and 500 multi-base scenarios check regression invariants. The reported outcomes are drawn from the recorded test runs.
+
+\subsection{SITL and ground-station protocol}
+An official ArduCopter~4.7.1 SITL binary receives the exported WPL mission through the MAVLink mission-upload protocol. A short mission made by the same production exporter is then flown in AUTO mode to observe takeoff, drop-altitude arrival, servo~9 output, RTL, an intermediate LAND/TAKEOFF pair and final landing. Mission acknowledgements, item progress, relative altitude, servo PWM, position, arming state and battery telemetry are recorded. Separately, MAVProxy loads, uploads, queries and downloads the full WPL through its ground-station command interface; the downloaded item count and command sequence are compared to the export. The full map mission is uploaded but not flown; a separate QGroundControl or Mission Planner graphical-interface test was not performed. Section~\ref{sec:sim} reports the observed outcomes.

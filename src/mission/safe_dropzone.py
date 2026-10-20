@@ -38,6 +38,11 @@ def find_safe_drop_points(clustered_contours, path_order, path_points, obstacle_
     multiple safe drop points are generated along the contour boundary,
     spaced around the perimeter and filtered by ``min_drop_separation_px``.
     """
+    if obstacle_mask is None:
+        if (raw_contours is not None or large_contour_area_threshold is not None or
+            large_contour_area_step is not None or max_drops_per_contour is not None or
+            min_drop_separation_px is not None):
+            raise TypeError("extra options require obstacle_mask")
     from config import settings
     large_contour_area_threshold = (settings.LARGE_CONTOUR_AREA_THRESHOLD
                                     if large_contour_area_threshold is None
@@ -211,3 +216,7 @@ def filter_drops_by_home_connectivity(drop_points, home, obstacle_mask, downsamp
                 "from HOME %s component %d (cell=%s).",
                 index, point, component, grid_cell, home, home_component, home_cell)
     return reachable, excluded
+
+
+# Alias for compatibility with paper scripts
+find_dry_drop_points = find_safe_drop_points

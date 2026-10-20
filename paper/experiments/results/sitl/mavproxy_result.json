@@ -1,0 +1,9 @@
+{
+  "ground_station": "MAVProxy",
+  "uploaded_items": 364,
+  "ack": "MISSION_ACCEPTED",
+  "downloaded_items": 364,
+  "command_sequence_equal": true,
+  "max_navigation_coord_delta_deg": 5.980108710446075e-07,
+  "note": "MAVProxy display rounds coordinates to six decimals; RTL and DO commands need not retain location fields"
+}

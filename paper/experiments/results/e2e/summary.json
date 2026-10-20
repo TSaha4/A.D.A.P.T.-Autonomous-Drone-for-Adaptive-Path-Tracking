@@ -1,0 +1,215 @@
+{
+ "varanasi": {
+  "original_shape": [
+   970,
+   972
+  ],
+  "display_shape": [
+   748,
+   750
+  ],
+  "meters_per_pixel": 2.592,
+  "geo_center": [
+   25.3176,
+   82.9739
+  ],
+  "image_center_px": [
+   374.5,
+   373.5
+  ],
+  "hsv_lower": [
+   0,
+   33,
+   156
+  ],
+  "hsv_upper": [
+   179,
+   255,
+   255
+  ],
+  "red_wrap": true,
+  "mask_fraction": 0.08097682709447415,
+  "pred_fraction": 0.1580944741532977,
+  "obstacle_fraction": 0.1580944741532977,
+  "regions": 16,
+  "planned_legs": 16,
+  "no_path_legs": 8,
+  "snapped_endpoints": 30,
+  "unsnappable_endpoints": 0,
+  "route_points": 297,
+  "route_length_px": 2187.029349127677,
+  "route_length_m": 5662.30860730561,
+  "mission_items": 364,
+  "mission_drops": 16,
+  "home": [
+   358.0,
+   331.0
+  ],
+  "lat_bounds": [
+   25.316843262666186,
+   25.325947394897593
+  ],
+  "lon_bounds": [
+   82.96623691278177,
+   82.9797342495964
+  ],
+  "log_warnings": 0,
+  "log_errors": 8,
+  "validator_errors": 0,
+  "validator_warnings": 0,
+  "stage_seconds": {
+   "hsv_thresholds": 0.000454699998954311,
+   "mask_and_morphology": 0.0033975999995163875,
+   "flood_prediction": 0.0022095999993325677,
+   "contours": 0.0012700999996013707,
+   "hull_centroids": 0.00029349999931582715,
+   "safe_drop_points": 0.021236700000372366,
+   "route_ordering": 0.0002684999999473803,
+   "path_planning": 13.298898999999437,
+   "mission_generation": 0.0023533000003226334
+  },
+  "total_s": 13.376287499999307
+ },
+ "kanpur": {
+  "original_shape": [
+   966,
+   976
+  ],
+  "display_shape": [
+   742,
+   750
+  ],
+  "meters_per_pixel": 2.602666666666667,
+  "geo_center": [
+   25.3176,
+   82.9739
+  ],
+  "image_center_px": [
+   374.5,
+   370.5
+  ],
+  "hsv_lower": [
+   0,
+   0,
+   134
+  ],
+  "hsv_upper": [
+   179,
+   255,
+   255
+  ],
+  "red_wrap": true,
+  "mask_fraction": 0.15083917340521114,
+  "pred_fraction": 0.29057322551662174,
+  "obstacle_fraction": 0.29057322551662174,
+  "regions": 33,
+  "planned_legs": 33,
+  "no_path_legs": 6,
+  "snapped_endpoints": 68,
+  "unsnappable_endpoints": 0,
+  "route_points": 1010,
+  "route_length_px": 7223.129519742548,
+  "route_length_m": 18778.427909660946,
+  "mission_items": 1145,
+  "mission_drops": 33,
+  "home": [
+   340.0,
+   463.0
+  ],
+  "lat_bounds": [
+   25.3108782369146,
+   25.32602850640795
+  ],
+  "lon_bounds": [
+   82.96589500611341,
+   82.9823188223266
+  ],
+  "log_warnings": 0,
+  "log_errors": 6,
+  "validator_errors": 0,
+  "validator_warnings": 0,
+  "stage_seconds": {
+   "hsv_thresholds": 0.00038130000029923394,
+   "mask_and_morphology": 0.0033346000000165077,
+   "flood_prediction": 0.0024771999997028615,
+   "contours": 0.001598000000740285,
+   "hull_centroids": 0.00045390000013867393,
+   "safe_drop_points": 0.08695540000007895,
+   "route_ordering": 0.0005692999984603375,
+   "path_planning": 35.57383860000118,
+   "mission_generation": 0.006817699999373872
+  },
+  "total_s": 35.71393530000023
+ },
+ "assam": {
+  "original_shape": [
+   739,
+   1048
+  ],
+  "display_shape": [
+   529,
+   750
+  ],
+  "meters_per_pixel": 2.7946666666666666,
+  "geo_center": [
+   25.3176,
+   82.9739
+  ],
+  "image_center_px": [
+   374.5,
+   264.0
+  ],
+  "hsv_lower": [
+   0,
+   0,
+   44
+  ],
+  "hsv_upper": [
+   179,
+   255,
+   255
+  ],
+  "red_wrap": true,
+  "mask_fraction": 0.8310220541902962,
+  "pred_fraction": 0.9224045368620037,
+  "obstacle_fraction": 0.9224045368620037,
+  "regions": 1,
+  "planned_legs": 0,
+  "no_path_legs": 0,
+  "snapped_endpoints": 0,
+  "unsnappable_endpoints": 4,
+  "route_points": 3,
+  "route_length_px": 0.0,
+  "route_length_m": 0.0,
+  "mission_items": 10,
+  "mission_drops": 1,
+  "home": [
+   749.0,
+   0.0
+  ],
+  "lat_bounds": [
+   25.32422766798419,
+   25.32422766798419
+  ],
+  "lon_bounds": [
+   82.9843007255907,
+   82.9843007255907
+  ],
+  "log_warnings": 4,
+  "log_errors": 0,
+  "validator_errors": 0,
+  "validator_warnings": 0,
+  "stage_seconds": {
+   "hsv_thresholds": 0.00034140000025217887,
+   "mask_and_morphology": 0.0021147000006749295,
+   "flood_prediction": 0.0012522999986686045,
+   "contours": 0.00044189999971422367,
+   "hull_centroids": 3.380000089237001e-05,
+   "safe_drop_points": 2.59000007645227e-05,
+   "route_ordering": 3.849999848171137e-05,
+   "path_planning": 0.005605300000752322,
+   "mission_generation": 0.0004769000006490387
+  },
+  "total_s": 0.03351440000005823
+ }
+}

@@ -1,0 +1,79 @@
+.......................................... [ 17%]
+........................................................................ [ 47%]
+............................................................................................................................                                   [100%]
+=============================== warnings summary ===============================
+tests/test_faculty_input_guards.py::test_geotiff_dimension_mismatch_rejected_before_operator
+tests/test_faculty_input_guards.py::test_geotiff_cli_uses_affine_after_display_resize
+tests/test_geotiff_reference.py::test_rotated_geotiff_mission_matches_affine_crs
+  src/mission/geotiff.py:44: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+    east, north = transform * (x + 0.5, y + 0.5)
+
+tests/test_faculty_input_guards.py::test_geotiff_cli_uses_affine_after_display_resize
+tests/test_geotiff_reference.py::test_rotated_geotiff_mission_matches_affine_crs
+  src/mission/geotiff.py:61: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+    east, north = self.transform * (float(x) + 0.5, float(y) + 0.5)
+
+tests/test_geotiff_reference.py::test_rotated_geotiff_mission_matches_affine_crs
+  tests/test_geotiff_reference.py:26: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+    east, north = transform * (x + 0.5, y + 0.5)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================== slowest durations ===============================
+38.44s call     tests/test_robustness.py::TestWeatherInputs::test_extreme_precipitation_does_not_exhaust_memory
+10.53s call     tests/test_robustness.py::TestWeatherInputs::test_incomplete_or_non_numeric_weather_does_not_crash
+8.87s call     tests/test_multi_uav.py::TestMultipleUavs::test_base_cap_limits_the_number_of_uavs
+3.58s call     tests/test_multi_base_regressions.py::TestMapRendering::test_rendered_map_keeps_real_basemap
+2.83s call     tests/test_multi_uav.py::TestUnreachableWaypoints::test_drop_sealed_off_by_flood_is_reported_and_everything_else_is_flown
+2.35s call     tests/test_multi_uav.py::TestMultipleUavs::test_three_separated_clusters_get_three_bases
+2.29s call     tests/test_multi_base_regressions.py::TestRoutingConsistency::test_connectivity_filter_agrees_with_dstar_lite
+2.00s call     tests/test_robustness.py::TestWeatherInputs::test_malformed_dummy_weather_file_does_not_crash
+1.85s call     tests/test_multi_uav.py::TestTwoUavs::test_two_far_clusters_get_two_bases_exclusive_assignment_and_valid_missions
+1.51s call     tests/test_multi_uav.py::TestSingleUav::test_max_bases_one_gives_one_base_one_route_one_mission
+1.50s call     tests/test_multi_uav.py::TestSingleUav::test_all_drops_reachable_from_one_site_needs_one_base_even_with_cap_four
+1.49s call     tests/test_multi_base_regressions.py::TestMapRendering::test_basemap_sanity_rejects_corrupted_renders
+1.38s call     tests/test_multi_uav.py::TestScaleConvention::test_resized_input_plans_and_exports_in_metres_per_display_pixel
+1.37s call     tests/test_robustness.py::TestCommandLineAndEnvironment::test_invalid_numeric_environment_variable_gives_a_clear_message
+1.22s call     tests/test_multi_uav.py::TestEmptyAndSmallMissions::test_single_flood_zone_gives_one_base_one_drop
+1.08s call     tests/test_robustness.py::TestMultiBaseBookkeeping::test_drops_of_a_base_without_a_plan_are_reported
+0.75s call     tests/test_multi_uav.py::TestOverlapGate::test_unresolved_crossing_exits_2_and_exports_nothing
+0.30s call     tests/test_multi_uav.py::TestEmptyAndSmallMissions::test_no_base_site_with_clearance_exits_2_without_missions
+0.29s call     tests/test_multi_uav.py::TestCommandLine::test_single_mode_is_unchanged_and_writes_no_session
+0.26s call     tests/test_multi_base_regressions.py::TestMapRendering::test_base_and_reload_labels_do_not_overprint
+0.18s call     tests/test_multi_base_regressions.py::TestMapRendering::test_legend_has_entries_only_for_drawn_sorties
+0.13s call     tests/test_multi_base_regressions.py::TestMapRendering::test_rtb_leg_made_of_grid_steps_is_visibly_dashed
+0.07s call     tests/test_multi_base_regressions.py::TestMapPalette::test_sortie_palette_is_distinct_and_has_no_green
+0.06s setup    tests/test_image_centre.py::TestImageCentre::test_home_matches_true_centre_model_exactly
+0.06s call     tests/test_adversarial_coordinates.py::TestRoundTrip::test_randomised_round_trip_through_independent_inverse
+0.06s setup    tests/test_resize_consistency.py::TestResizeConsistency::test_a_no_resize_home_is_square_corner
+0.04s call     tests/test_multi_uav.py::TestOverlapRepair::test_nudged_base_reach_is_refreshed
+0.04s call     tests/test_overlap_repair.py::TestOverlapRepair::test_tier2_nudge_resolves_crossing
+0.03s call     tests/test_multi_uav.py::TestOverlapRepair::test_repairs_write_no_files
+0.03s call     tests/test_overlap_repair.py::TestOverlapRepair::test_tier1_reroute_resolves_crossing
+0.02s call     tests/test_adversarial_coordinates.py::TestValidDomain::test_every_reference_pixel_and_scale_matches_independent_model
+0.02s call     tests/test_stale_mission.py::TestStaleMission::test_successful_run_replaces_stale_mission
+0.02s call     tests/test_image_centre.py::TestImageCentre::test_resized_reference_is_centre_of_display_image
+0.02s call     tests/test_stale_mission.py::TestStaleMission::test_run_without_flood_regions_leaves_no_mission
+0.02s call     tests/test_multi_base_regressions.py::TestRoutingConsistency::test_dstar_route_is_grid_connected_and_avoids_flood
+0.02s call     tests/test_multi_base_regressions.py::TestVisionSampling::test_original_hsv_algorithm_reproduces_reference_varanasi_mask
+0.02s call     tests/test_stale_mission.py::TestStaleMission::test_unremovable_partial_mission_is_reported_not_crashed
+0.02s call     tests/test_stale_mission.py::TestStaleMission::test_failed_generation_leaves_no_mission
+0.02s call     tests/test_stale_mission.py::TestStaleMission::test_write_failure_leaves_no_partial_mission
+0.01s call     tests/test_stale_mission.py::TestStaleMission::test_missing_output_directory_is_created
+0.01s call     tests/test_robustness.py::TestCommandLineAndEnvironment::test_image_under_a_non_ascii_path_is_read
+0.01s call     tests/test_stale_mission.py::TestStaleMission::test_directory_at_output_path_stops_cleanly
+0.01s call     tests/test_stale_mission.py::TestStaleMission::test_unremovable_previous_mission_stops_cleanly
+0.01s call     tests/test_robustness.py::TestCommandLineAndEnvironment::test_non_finite_horizon_is_rejected_before_any_work
+0.01s call     tests/test_multi_base_regressions.py::TestDropPlacement::test_large_zone_gets_separated_points_when_first_dry_ring_is_one_notch
+0.01s call     tests/test_multi_uav.py::TestEmptyAndSmallMissions::test_no_flood_ends_before_any_session_is_created
+0.01s call     tests/test_faculty_input_guards.py::test_geotiff_dimension_mismatch_rejected_before_operator
+0.01s call     tests/test_multi_uav.py::TestPortedInterfaces::test_sorties_have_distinct_colors_and_base_reload_labels
+0.01s call     tests/test_geotiff_reference.py::test_rotated_geotiff_mission_matches_affine_crs
+0.01s call     tests/test_stale_mission.py::TestStaleMission::test_invalid_reference_or_scale_rejected_before_any_work
+0.01s call     tests/test_multi_uav.py::TestPortedInterfaces::test_map_labels_use_real_base_numbers
+0.01s call     tests/test_adversarial_coordinates.py::TestLongitudeWrapping::test_non_wrapping_values_untouched
+0.01s call     tests/test_stale_mission.py::TestStaleMission::test_invalid_display_width_preserves_previous_mission
+0.01s call     tests/test_faculty_fetch_inputs.py::test_fetch_verifies_download_and_rejects_changed_source
+0.01s call     tests/test_stale_mission.py::TestStaleMission::test_missing_image_preserves_previous_mission
+
+(1179 durations < 0.005s hidden.  Use -vv to show these durations.)
+238 passed, 6 warnings, 520 subtests passed in 85.64s (0:01:25)

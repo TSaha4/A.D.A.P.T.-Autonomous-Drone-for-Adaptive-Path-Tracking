@@ -1,0 +1,27 @@
+[
+  {
+    "map": "varanasi",
+    "points": 16,
+    "objective": "closed Euclidean tour in display pixels",
+    "length_px": {
+      "nearest_neighbor": 1722.2860535576467,
+      "two_opt": 1698.0860871434802,
+      "or_opt": 1668.970433784763,
+      "two_opt_then_or_opt": 1668.9704337847625,
+      "or_tools": 1668.9704337847625
+    },
+    "held_karp_optimal_px": 1668.9704337847625
+  },
+  {
+    "map": "kanpur",
+    "points": 33,
+    "objective": "closed Euclidean tour in display pixels",
+    "length_px": {
+      "nearest_neighbor": 2933.9712682255945,
+      "two_opt": 2457.886707508217,
+      "or_opt": 2457.886707508217,
+      "two_opt_then_or_opt": 2457.886707508217,
+      "or_tools": 2457.886707508217
+    }
+  }
+]

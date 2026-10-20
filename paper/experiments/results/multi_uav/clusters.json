@@ -1,0 +1,265 @@
+[
+ {
+  "map": "varanasi",
+  "weather": "dummy",
+  "cap": 1,
+  "drones": 1,
+  "regions": 16,
+  "regions_served": 4,
+  "regions_split": 0,
+  "regions_per_drone": [
+   4
+  ]
+ },
+ {
+  "map": "varanasi",
+  "weather": "dummy",
+  "cap": 2,
+  "drones": 2,
+  "regions": 16,
+  "regions_served": 6,
+  "regions_split": 1,
+  "regions_per_drone": [
+   4,
+   3
+  ]
+ },
+ {
+  "map": "varanasi",
+  "weather": "dummy",
+  "cap": 3,
+  "drones": 3,
+  "regions": 16,
+  "regions_served": 7,
+  "regions_split": 2,
+  "regions_per_drone": [
+   4,
+   3,
+   3
+  ]
+ },
+ {
+  "map": "varanasi",
+  "weather": "dummy",
+  "cap": 4,
+  "drones": 4,
+  "regions": 16,
+  "regions_served": 8,
+  "regions_split": 2,
+  "regions_per_drone": [
+   4,
+   2,
+   3,
+   2
+  ]
+ },
+ {
+  "map": "varanasi",
+  "weather": "moderate",
+  "cap": 1,
+  "drones": 1,
+  "regions": 16,
+  "regions_served": 8,
+  "regions_split": 0,
+  "regions_per_drone": [
+   8
+  ]
+ },
+ {
+  "map": "varanasi",
+  "weather": "moderate",
+  "cap": 2,
+  "drones": 2,
+  "regions": 16,
+  "regions_served": 13,
+  "regions_split": 1,
+  "regions_per_drone": [
+   8,
+   6
+  ]
+ },
+ {
+  "map": "varanasi",
+  "weather": "moderate",
+  "cap": 3,
+  "drones": 3,
+  "regions": 16,
+  "regions_served": 14,
+  "regions_split": 2,
+  "regions_per_drone": [
+   8,
+   6,
+   2
+  ]
+ },
+ {
+  "map": "varanasi",
+  "weather": "moderate",
+  "cap": 4,
+  "drones": 3,
+  "regions": 16,
+  "regions_served": 14,
+  "regions_split": 2,
+  "regions_per_drone": [
+   8,
+   6,
+   2
+  ]
+ },
+ {
+  "map": "kanpur",
+  "weather": "dummy",
+  "cap": 1,
+  "drones": 1,
+  "regions": 33,
+  "regions_served": 10,
+  "regions_split": 0,
+  "regions_per_drone": [
+   10
+  ]
+ },
+ {
+  "map": "kanpur",
+  "weather": "dummy",
+  "cap": 2,
+  "drones": 2,
+  "regions": 33,
+  "regions_served": 16,
+  "regions_split": 0,
+  "regions_per_drone": [
+   10,
+   6
+  ]
+ },
+ {
+  "map": "kanpur",
+  "weather": "dummy",
+  "cap": 3,
+  "drones": 3,
+  "regions": 33,
+  "regions_served": 21,
+  "regions_split": 0,
+  "regions_per_drone": [
+   10,
+   6,
+   5
+  ]
+ },
+ {
+  "map": "kanpur",
+  "weather": "dummy",
+  "cap": 4,
+  "drones": 4,
+  "regions": 33,
+  "regions_served": 22,
+  "regions_split": 1,
+  "regions_per_drone": [
+   10,
+   6,
+   5,
+   2
+  ]
+ },
+ {
+  "map": "kanpur",
+  "weather": "moderate",
+  "cap": 1,
+  "drones": 1,
+  "regions": 33,
+  "regions_served": 18,
+  "regions_split": 0,
+  "regions_per_drone": [
+   18
+  ]
+ },
+ {
+  "map": "kanpur",
+  "weather": "moderate",
+  "cap": 2,
+  "drones": 2,
+  "regions": 33,
+  "regions_served": 25,
+  "regions_split": 1,
+  "regions_per_drone": [
+   18,
+   8
+  ]
+ },
+ {
+  "map": "kanpur",
+  "weather": "moderate",
+  "cap": 3,
+  "drones": 3,
+  "regions": 33,
+  "regions_served": 29,
+  "regions_split": 1,
+  "regions_per_drone": [
+   17,
+   7,
+   6
+  ]
+ },
+ {
+  "map": "kanpur",
+  "weather": "moderate",
+  "cap": 4,
+  "drones": 4,
+  "regions": 33,
+  "regions_served": 31,
+  "regions_split": 3,
+  "regions_per_drone": [
+   15,
+   7,
+   6,
+   6
+  ]
+ },
+ {
+  "map": "assam",
+  "weather": "dummy",
+  "cap": 1,
+  "drones": 1,
+  "regions": 1,
+  "regions_served": 1,
+  "regions_split": 0,
+  "regions_per_drone": [
+   1
+  ]
+ },
+ {
+  "map": "assam",
+  "weather": "dummy",
+  "cap": 2,
+  "drones": 1,
+  "regions": 1,
+  "regions_served": 1,
+  "regions_split": 0,
+  "regions_per_drone": [
+   1
+  ]
+ },
+ {
+  "map": "assam",
+  "weather": "dummy",
+  "cap": 3,
+  "drones": 1,
+  "regions": 1,
+  "regions_served": 1,
+  "regions_split": 0,
+  "regions_per_drone": [
+   1
+  ]
+ },
+ {
+  "map": "assam",
+  "weather": "dummy",
+  "cap": 4,
+  "drones": 1,
+  "regions": 1,
+  "regions_served": 1,
+  "regions_split": 0,
+  "regions_per_drone": [
+   1
+  ]
+ }
+]

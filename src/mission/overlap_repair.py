@@ -6,20 +6,18 @@ When paths cross:
 2. Tier 1: locally reroute conflicting legs using D* Lite with crossing path cells as soft obstacles.
 3. Tier 2: nudge base location within safe separation and clearance constraints.
 4. Hard error: block mission export (exit code 2) if overlaps cannot be resolved.
+
+Ported from the MAIN branch. Repairs change plans only; main.run_multi_base writes the
+base<N>.waypoints files once, after the final overlap check, so no file can describe a
+plan that was later replaced.
 """
 import logging
 from typing import Dict, List, Optional, Set, Tuple, Any
 
-import cv2
 import numpy as np
 
 from config import settings
-from src.mission.coordinates import pixel_to_latlon
-from src.mission.mission_output import (
-    generate_mission_file,
-    split_sorties,
-    validate_waypoints_file,
-)
+from src.mission.mission_output import split_sorties
 from src.mission.constraints import sortie_battery_report
 from src.mission.multi_base import single_drop_reach
 from src.routing.dstarlite import DStarLite
@@ -42,11 +40,18 @@ def find_leg_index(stop_indices: List[int], seg_index: int) -> int:
 
 
 def sortie_drops(plan: Dict[str, Any], segment: int, coord_index: Dict[Tuple[int, int], int]) -> Set[int]:
-    """Find the set of drop indices belonging to the sortie that contains segment."""
+    """Find the set of drop indices belonging to the sortie that contains segment.
+
+    ``coord_index`` maps a point to its drop index, or to a list of indices when several drops share the point
+    (adjacent regions can choose the same dry pixel); all of them are returned.
+    """
     for sortie in split_sorties(plan["full_path"], plan["drop_indices"], plan["reload_indices"]):
         if sortie["start"] <= segment < sortie["rtb_end"]:
-            return {coord_index[tuple(map(int, plan["full_path"][d]))] for d in sortie["drops"]
-                    if tuple(map(int, plan["full_path"][d])) in coord_index}
+            found = set()
+            for d in sortie["drops"]:
+                ids = coord_index.get(tuple(map(int, plan["full_path"][d])), ())
+                found.update(ids if isinstance(ids, (list, tuple, set)) else (ids,))
+            return found
     return set()
 
 
@@ -57,9 +62,8 @@ def try_reroute_leg(
     combined_obstacle_mask: np.ndarray,
     forecasts: Any,
     headwind: float,
-    session_dir: Any,
-    image_shape: Tuple[int, int],
-    geo_anchor: Tuple[float, float],
+    *,
+    meters_per_pixel: float,
     other_bases_plans: Optional[List[Dict[str, Any]]] = None,
 ) -> Optional[Tuple[Dict[str, Any], int, int]]:
     """Tier 1: Locally reroute a crossing leg with soft obstacles.
@@ -116,9 +120,9 @@ def try_reroute_leg(
         elapsed_dist_m = sum(
             float(np.hypot(b[0] - a[0], b[1] - a[1]))
             for a, b in zip(plan["full_path"][:s_idx], plan["full_path"][1:s_idx + 1])
-        ) * settings.METERS_PER_PIXEL
+        ) * meters_per_pixel
         elapsed_hours = elapsed_dist_m / max(settings.DRONE_SPEED_MPS, 0.1) / 3600.0
-        leg_dist_m = float(np.hypot(goal_pt[0] - start_pt[0], goal_pt[1] - start_pt[1])) * settings.METERS_PER_PIXEL
+        leg_dist_m = float(np.hypot(goal_pt[0] - start_pt[0], goal_pt[1] - start_pt[1])) * meters_per_pixel
         estimated_arrival = elapsed_hours + leg_dist_m / max(settings.DRONE_SPEED_MPS, 0.1) / 3600.0
 
         leg_mask = combined_obstacle_mask
@@ -178,7 +182,7 @@ def try_reroute_leg(
         # Battery verification
         new_sorties = sortie_battery_report(
             new_full_path, new_drop_indices, new_reload_indices,
-            meters_per_pixel=settings.METERS_PER_PIXEL, headwind_mps=headwind
+            meters_per_pixel=meters_per_pixel, headwind_mps=headwind
         )
         limit = 1.0 - settings.BATTERY_RESERVE_FRACTION
         if any(s["battery_fraction"] > limit + 1e-9 for s in new_sorties):
@@ -200,27 +204,13 @@ def try_reroute_leg(
             if has_other_crossing:
                 continue
 
-        # Valid reroute found: regenerate waypoints file
-        waypoint_file = session_dir / f"base{plan['base']}.waypoints"
-        try:
-            generate_mission_file(
-                new_full_path, new_drop_indices, plan["home"],
-                (image_shape[1] // 2, image_shape[0] // 2), geo_anchor,
-                settings.METERS_PER_PIXEL, filename=str(waypoint_file),
-                reload_indices=new_reload_indices
-            )
-            problems = validate_waypoints_file(str(waypoint_file))
-        except Exception as e:
-            problems = [f"generation failed: {e}"]
-
+        # Valid reroute found (the waypoint file is written after deconfliction)
         updated_plan = dict(plan)
         updated_plan["full_path"] = new_full_path
         updated_plan["stop_indices"] = new_stop_indices
         updated_plan["drop_indices"] = new_drop_indices
         updated_plan["reload_indices"] = new_reload_indices
         updated_plan["routed_sortie_battery"] = [s["battery_fraction"] for s in new_sorties]
-        updated_plan["waypoint_file"] = str(waypoint_file)
-        updated_plan["waypoint_problems"] = problems
 
         return updated_plan, leg_idx, new_hits
 
@@ -303,9 +293,9 @@ def execute_overlap_repairs(
     headwind: float,
     plan_base_fn: Any,
     plan_assigned_fn: Any,
-    session_dir: Any,
     image_shape: Tuple[int, int],
-    geo_anchor: Tuple[float, float],
+    *,
+    meters_per_pixel: float,
     max_rounds: int = 5,
 ) -> Tuple[List[Dict[str, Any]], List[Tuple[int, int, Any]]]:
     """Execute complete two-tier repair workflow when reassignment fails."""
@@ -322,6 +312,11 @@ def execute_overlap_repairs(
                 if segs:
                     found.append((first, second, segs))
         return found
+
+    def refresh_reach(b):
+        base_reach[b] = single_drop_reach(
+            [bases[b]], safe_points, routed_distance, headwind_mps=headwind,
+            per_drop_kg=settings.PAYLOAD_PER_DROP_KG, reserve=settings.BATTERY_RESERVE_FRACTION)[0]
 
     repairs = []
     for round_idx in range(max_rounds):
@@ -362,8 +357,8 @@ def execute_overlap_repairs(
         other_bp_first = [plans_by_base[k] for k in sorted(plans_by_base) if k not in (first, second) and plans_by_base[k]]
         reroute_result = try_reroute_leg(
             plans_by_base[first], plans_by_base[second], segs,
-            combined_obstacle_mask, forecasts, headwind, session_dir,
-            image_shape, geo_anchor, other_bp_first
+            combined_obstacle_mask, forecasts, headwind,
+            meters_per_pixel=meters_per_pixel, other_bases_plans=other_bp_first
         )
         if reroute_result:
             updated_plan, leg_idx, remaining_hits = reroute_result
@@ -380,8 +375,8 @@ def execute_overlap_repairs(
         other_bp_second = [plans_by_base[k] for k in sorted(plans_by_base) if k not in (first, second) and plans_by_base[k]]
         reroute_result_b = try_reroute_leg(
             plans_by_base[second], plans_by_base[first], segs_reversed,
-            combined_obstacle_mask, forecasts, headwind, session_dir,
-            image_shape, geo_anchor, other_bp_second
+            combined_obstacle_mask, forecasts, headwind,
+            meters_per_pixel=meters_per_pixel, other_bases_plans=other_bp_second
         )
         if reroute_result_b:
             updated_plan, leg_idx, remaining_hits = reroute_result_b
@@ -407,6 +402,7 @@ def execute_overlap_repairs(
             new_site, new_plan = nudge_result_a
             old_site = bases[first]
             bases[first] = new_site
+            refresh_reach(first)
             plans_by_base[first] = new_plan
             repairs.append({"tier": 2, "type": "nudge", "base": first + 1, "from": old_site, "to": new_site})
             logging.info(
@@ -424,6 +420,7 @@ def execute_overlap_repairs(
             new_site, new_plan = nudge_result_b
             old_site = bases[second]
             bases[second] = new_site
+            refresh_reach(second)
             plans_by_base[second] = new_plan
             repairs.append({"tier": 2, "type": "nudge", "base": second + 1, "from": old_site, "to": new_site})
             logging.info(

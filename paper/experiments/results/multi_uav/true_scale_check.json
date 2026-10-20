@@ -1,0 +1,26 @@
+[
+ {
+  "map": "varanasi",
+  "weather": "moderate",
+  "cap": 4,
+  "meters_per_pixel": 93.0,
+  "exit": 2,
+  "wall_s": 1.977930699999888,
+  "session": "results\\multi_uav\\sessions\\varanasi_moderate_K4_mpp93\\session_20261008_104622",
+  "outcome": "NO_BASE_REACHES_ANY_DROP",
+  "meters_per_pixel_display": 120.528,
+  "drop_points": 22
+ },
+ {
+  "map": "kanpur",
+  "weather": "moderate",
+  "cap": 4,
+  "meters_per_pixel": 130.0,
+  "exit": 2,
+  "wall_s": 3.8131251999993765,
+  "session": "results\\multi_uav\\sessions\\kanpur_moderate_K4_mpp130\\session_20261008_104622",
+  "outcome": "NO_BASE_REACHES_ANY_DROP",
+  "meters_per_pixel_display": 169.17333333333335,
+  "drop_points": 41
+ }
+]

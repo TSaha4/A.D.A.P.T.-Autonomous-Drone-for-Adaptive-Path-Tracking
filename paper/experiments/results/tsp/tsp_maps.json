@@ -1,0 +1,18 @@
+{
+ "varanasi": {
+  "safe_points": 16,
+  "nn_length_px": 1722.2860535576467,
+  "optimal_length_px": 1668.9704337847625,
+  "nn_over_optimal": 1.03194521526183
+ },
+ "kanpur": {
+  "safe_points": 33,
+  "nn_length_px": 2933.9712682255945,
+  "mst_lower_bound_px": 2129.3013712798293,
+  "nn_over_mst_upper_bound_on_ratio": 1.3779032446037047
+ },
+ "assam": {
+  "safe_points": 1,
+  "nn_length_px": 0.0
+ }
+}

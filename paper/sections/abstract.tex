@@ -1,0 +1,7 @@
+\begin{abstract}
+Flood relief requires converting mapped hazards and delivery points into valid UAV missions. We evaluate \adapt{}, which processes red-annotated flood rasters and weather, selects drops, routes a single UAV or a battery-constrained fleet, and exports WPL~110 missions. Its segmentation uses operator-sampled HSV thresholds; its forecast is a terrain-free spread proxy. On three demonstration graphics, all missions pass an independent structural validator, but 14 single-UAV legs fall back to unsafe straight segments and an Assam thematic map is misclassified as 83\% flood. An optional mask-fraction guard rejects that map. On 88 held-out Sen1Floods11 chips, S1 Otsu, a small S1 U-Net and S2 NDWI achieve micro IoU 0.225, 0.606 and 0.772; raw satellite imagery cannot be scored with the annotation detector. A GeoTIFF-referenced, label-rendered diagnostic mission avoids a 24.5~m scalar-coordinate error. Across two observed flood transitions, the spread proxy ties persistence. ArduCopter SITL and MAVProxy accept and read back a 364-item mission; a short simulated flight confirms one servo event and exposes a reload restart problem. Balanced fleet assignment reduces optimistic longest-route time by up to 22.9\% at equal coverage. The three supplied graphics lack georeferences, and the battery model lacks flight-log calibration; field readiness is not established.
+\end{abstract}
+
+\begin{IEEEkeywords}
+UAV relief, flood mapping, mission planning, multi-UAV allocation, geospatial verification, WPL~110.
+\end{IEEEkeywords}

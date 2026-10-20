@@ -1,0 +1,34 @@
+% Fig.: the two planning approaches (matches main.py: --mode single runs main() to the end, --mode multi calls run_multi_base).
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  font=\scriptsize, node distance=2.2mm and 2.5mm,
+  stage/.style={draw, rounded corners=1pt, align=center, minimum height=6.5mm, fill=blue!6},
+  multi/.style={draw, rounded corners=1pt, align=center, minimum height=6.5mm, fill=violet!8},
+  io/.style={draw, align=center, minimum height=6.5mm, fill=orange!12},
+  arr/.style={-{Stealth[length=1.4mm]}, semithick}]
+  \node[stage, text width=78mm] (shared) {shared stages A--F: scaling, segmentation, regions, weather, spread rule, obstacles $O$};
+  % Approach A: one drone
+  \node[stage, text width=27mm, below=9mm of shared.south west, anchor=north west] (s1) {(G) hull-vertex drops,\\HOME = drop point};
+  \node[stage, text width=27mm, below=of s1] (s2) {(H) nearest-neighbour order of all drops};
+  \node[stage, text width=27mm, below=of s2] (s3) {(I) per-leg D*~Lite};
+  \node[io, text width=27mm, below=of s3] (s4) {(J, K) one mission for one drone};
+  % Approach B: drone fleet
+  \node[multi, text width=47mm, below=9mm of shared.south east, anchor=north east] (m1) {(B) dry drops; (D) base candidates, routed distances};
+  \node[multi, text width=47mm, below=of m1] (m2) {(E) base selection ($\le K$); each drone gets the cluster of drops nearest its base};
+  \node[multi, text width=14mm, below=of m2.south west, anchor=north west] (u1) {UAV 1:\\cluster 1,\\(F) sorties};
+  \node[multi, text width=14mm, right=1.6mm of u1] (u2) {UAV 2:\\cluster 2,\\(F) sorties};
+  \node[multi, text width=10mm, right=1.6mm of u2] (u3) {\ldots\\UAV $K$};
+  \node[multi, text width=47mm, below=of u2.south, anchor=north] (m3) {(G) crossing check and repair; exit 2 if unresolved};
+  \node[io, text width=47mm, below=of m3] (m4) {(H) one mission per drone + route files + summary};
+  \draw[arr] (shared.south -| s1.north) -- node[left, font=\tiny, align=right]{\textbf{A: one drone}\\\texttt{-{}-mode single}} (s1.north);
+  \draw[arr] (shared.south -| m1.north) -- node[right, font=\tiny, align=left]{\textbf{B: drone fleet}\\\texttt{-{}-mode multi}} (m1.north);
+  \draw[arr] (s1) -- (s2); \draw[arr] (s2) -- (s3); \draw[arr] (s3) -- (s4);
+  \draw[arr] (m1) -- (m2);
+  \draw[arr] (m2.south -| u1.north) -- (u1.north); \draw[arr] (m2.south -| u2.north) -- (u2.north); \draw[arr] (m2.south -| u3.north) -- (u3.north);
+  \draw[arr] (u1.south) -- (u1.south |- m3.north); \draw[arr] (u2.south) -- (u2.south |- m3.north); \draw[arr] (u3.south) -- (u3.south |- m3.north);
+  \draw[arr] (m3) -- (m4);
+\end{tikzpicture}
+\caption{The two planning approaches. Left, Approach A: one drone visits every drop point (single-UAV pipeline, Section~\ref{sec:method}). Right, Approach B: a fleet of up to $K$ drones (multi-base mode, \texttt{-{}-max-bases K}; Section~\ref{sec:multi}, whose subsections the letters refer to). Each drone flies battery-limited sorties from its own base to the cluster of drop points nearest that base. The drones are planned independently and coordinated only by the pre-flight crossing check; $K=1$ yields one drone.}
+\label{fig:modes}
+\end{figure}
