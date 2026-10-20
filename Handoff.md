@@ -25,8 +25,16 @@ Given an image of a flood-affected area, the system plans a full drone relief mi
 ## 2. Pipeline, file by file
 
 ```
-main.py                          — entry point, orchestrates the full pipeline
+main.py                          — thin CLI wrapper, dispatches to pipeline planners
 config/settings.py                — ALL tunable constants live here (see section 4)
+
+src/pipeline/
+  __init__.py                     — pipeline package exports
+  common.py                       — shared pipeline utilities (session dirs, summary serialization,
+                                     route refinement loop, backward-compat re-exports)
+  single_base_planner.py          — single-base mission orchestration and execution pipeline
+  multi_base_planner.py           — multi-base mission orchestration, base placement, overlap repair,
+                                     territory verification, and execution pipeline
 
 src/vision/
   image_processing.py             — HSV flood mask + contour detection
@@ -43,16 +51,19 @@ src/mission/
   mission_output.py               — QGC WPL 110 file generation + route map visualization
   coordinates.py / calibration.py — pixel-to-lat/lon conversion (currently fixed-scale/CLI-based;
                                      see section 5, georeferencing NOT yet autonomous)
+  geotiff.py                      — GeoTIFF reference metadata, CRS handling, scale verification
 
 src/routing/
   pathfinding.py                  — TSP ordering, D* Lite invocation, full-path assembly
   dstarlite.py                    — D* Lite algorithm (grid-based, time-aware obstacle queries)
 
-tests/                            — pytest/unittest suite, one file per module above
+paper/                            — IEEE/journal paper LaTeX sources, figures, benchmarks, and reproducibility scripts
+tests/                            — comprehensive unittest suite (266 tests across 18 test modules)
 data/input/                       — test images (varanasi.png, kanpur.png, bhopal.png),
                                      dummy_weather.json (stress test), dummy_weather_moderate.json (realistic)
 data/output/session_<timestamp>/  — one folder per run: base<N>.waypoints (one per base),
                                      mission_route_map.png, mission_map_annotated.png, run_summary.json
+data/golden_baseline/             — verified golden baseline outputs across 6 benchmark configurations
 ```
 
 **Run it:**
@@ -64,6 +75,12 @@ python main.py --image data/input/varanasi.png --dummy-weather-moderate --no-gui
 - `--no-gui` samples the flood colour automatically (dominant saturated overlay hue); `--sample-points "x,y;x,y"` overrides it.
 - `--lat/--lon` are the **image-centre** coordinates. For the three bundled maps they default to `REGION_PRESETS` in `config/settings.py`; for any other image they are required (the run refuses to guess a city).
 - Every run writes a new `data/output/session_<YYYYmmdd_HHMMSS>/` folder (never overwrites an earlier session; a same-second run gets a `_2` suffix) and logs explicit verdict lines: `SESSION OUTPUT`, `MASK SANITY`, `STAGE COUNTS`, `BASE SELECTION`, `ASSIGNMENT TABLE`, `BASE SEPARATION`, `BASE n ROUTE REFINEMENT`, `BASE n D* LITE ROUTING`, `BASE n ROUTED SORTIE k`, `BASE n WAYPOINT VALIDATION`, `PATH OVERLAP (REPAIR|CHECK)`, `TERRITORY CHECK`, `MISSION COVERAGE`, `MAP SANITY`. Grep for these first when debugging.
+
+**Modularized Pipeline Architecture & Mock-Dispatch Pattern:**
+- `main.py` is structured as a lightweight CLI argument parser and entry point that delegates to `src/pipeline/single_base_planner.py` or `src/pipeline/multi_base_planner.py`.
+- Shared logic (session directories, run summary dumping, route refinement loops, and mission file removal) is consolidated in `src/pipeline/common.py`.
+- **`_main_attr(name, default)` dispatch pattern:** Both single- and multi-base planners dynamically inspect `sys.modules["main"]` at runtime for monkeypatched symbols. This guarantees that test fixtures patching attributes directly on `main` (e.g. `mock.patch.object(main, "forecast_frames")` or `plan_mission_stops`) transparently override planner execution without requiring changes to test mocks.
+- `main.py` re-exports all pipeline functions for backward compatibility with legacy test suites and external callers.
 
 ---
 
@@ -175,7 +192,7 @@ If you hit something that looks like deja vu from this list, check git blame/his
 
 **Map palette.** Sortie paths use 12 dark, saturated colours: `#d50000` red, `#1a237e` navy, `#f200f2` magenta, `#d86191` rose, `#3990bf` steel blue, `#590016` wine, `#6248f2` violet, `#d87700` orange, `#6d87f2` periwinkle, `#a51897` purple, `#f20054` crimson, `#59004b` plum. No greens or teals (green is reserved for detected flood contours). Each pair differs by at least CIELAB dE 34, and each is at least dE 35 from drop-point blue, BASE black, RELOAD cyan/yellow, contour green and forecast brown (`TestMapPalette` enforces this). More than 12 sorties in one map would repeat colours, and the run logs `MAP PALETTE` if so.
 
-**Validation at handoff:** 84/84 unit tests (`python -m unittest discover tests`); 3 images x 2 weather presets (6-run matrix) all pass crash-free with ZERO path overlaps, mask sane, bases found, route valid (0 fallback legs, 0 route pixels in flood), battery sane (all sorties <= 80%), map renders, waypoints valid (one per base), base separation, no path overlap, territories consistent, all drop points assigned or reported unreachable.
+**Validation at handoff:** 266/266 unit tests passing (`python -m unittest discover tests`); 3 images x 2 weather presets (6-run matrix) all pass crash-free with ZERO path overlaps, mask sane, bases found, route valid (0 fallback legs, 0 route pixels in flood), battery sane (all sorties <= 80%), map renders, waypoints valid (one per base), base separation, no path overlap, territories consistent, all drop points assigned or reported unreachable. All 6 configurations verified byte-identical to golden baseline waypoint files.
 
 ## 9. Still open after the audit (known, not hidden)
 
@@ -186,4 +203,18 @@ If you hit something that looks like deja vu from this list, check git blame/his
 - **Overlapping sorties** to the same corridor draw on top of each other on the map.
 - **README.md is outdated** (describes the pre-D* Lite pipeline). `scripts/test_pathfinding_dummy.py` still deliberately plots a labelled "TSP Direct Path" comparison line; it is a dev plot, not the mission map.
 
-*Handoff updated October 2026 after the stabilization audit and path overlap repair fix (84/84 unit tests passing via `python -m unittest discover tests`). Main open item: autonomous georeferencing and real map scale.*
+---
+
+## 10. October 2026 Modularization & Teammate Integration Pass
+
+- **Architecture Refactoring:** `main.py` refactored from a monolithic ~600-line script into a thin CLI wrapper with core pipeline stages cleanly decoupled into `src/pipeline/` (`single_base_planner.py`, `multi_base_planner.py`, `common.py`).
+- **Dynamic Mock-Dispatch Pattern:** Implemented `_main_attr(name, default)` in both single- and multi-base planners to dynamically check `sys.modules["main"]` for monkeypatched attributes during unit testing. This preserves 100% test compatibility for existing mock fixtures without requiring mock target migrations.
+- **Teammate Test Alignment:**
+  - `tests/test_multi_base_regressions.py` (`test_generated_mission_is_valid_qgc_wpl_110`): HOME row uses `MAV_FRAME_GLOBAL` (0) per standard QGC convention rather than `MAV_FRAME_GLOBAL_RELATIVE_ALT` (3).
+  - `tests/test_resize_consistency.py` (`test_every_waypoint_maps_its_pixel_through_the_documented_model`): checks each exported waypoint against the full set of path pixels mapped through `documented_model` rather than mistakenly asserting all waypoints match the home coordinate.
+  - Merged `requirements-geotiff.txt` into standard `requirements.txt`.
+- **Forecast Frame Optimization:** Forecast frame generation in `flood_spread.py` now uses incremental 1-hour spread chaining with exact-horizon keys; verified byte-identical against prior frame hashes.
+- **Golden Baseline Verification:** All 6 benchmark configurations (Varanasi, Kanpur, Bhopal × extreme, moderate weather) produce byte-identical `.waypoints` files matching verified golden baselines.
+- **Full Test Suite:** 266 tests passing (1 skipped) via `python -m unittest discover tests`.
+
+*Handoff updated October 2026 after pipeline modularization, teammate merge, and golden baseline verification (266/266 unit tests passing via `python -m unittest discover tests`).*
