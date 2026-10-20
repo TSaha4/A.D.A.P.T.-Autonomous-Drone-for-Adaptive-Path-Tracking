@@ -30,7 +30,8 @@ def run_single_base(image, mask, forecasts, contours, cluster_edges, points,
 
     # Safe drop points
     try:
-        safe_points = find_safe_drop_points(cluster_edges, list(range(len(points))), points)
+        safe_points = find_safe_drop_points(cluster_edges, list(range(len(points))), points,
+                                            obstacle_mask=combined_obstacle_mask, raw_contours=contours)
     except Exception as e:
         logging.error(f"find_safe_drop_points failed: {e}")
         safe_points = []

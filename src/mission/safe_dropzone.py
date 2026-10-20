@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import logging
+import math
 
 def point_line_distance(point, line_start, line_end):
     # Find the shortest distance from a point to a line segment.
@@ -24,38 +25,44 @@ def point_line_distance(point, line_start, line_end):
 
 def find_safe_drop_points(clustered_contours, path_order, path_points, obstacle_mask=None,
                           raw_contours=None,
+                          moderate_contour_area_threshold=None,
                           large_contour_area_threshold=None,
+                          huge_contour_area_threshold=None,
                           large_contour_area_step=None,
                           max_drops_per_contour=None,
-                          min_drop_separation_px=None):
+                          min_drop_separation_px=None,
+                          **kwargs):
     """Choose dry delivery points near each flood contour and the planned path.
 
     Contour vertices themselves belong to the flooded region, so they cannot
     be treated as safe delivery points. With an obstacle mask, candidates are
     searched in a narrow band outside each contour and validated as dry.
 
-    For large contours whose area exceeds ``large_contour_area_threshold``,
-    multiple safe drop points are generated along the contour boundary,
-    spaced around the perimeter and filtered by ``min_drop_separation_px``.
+    Contour visits scale gracefully with size:
+      - Normal contours (< moderate threshold): 1 drop point
+      - Moderate contours (>= moderate threshold): 2 drop points
+      - Big contours (>= large threshold): 3 drop points
+      - Huge contours (>= huge threshold): up to 4 drop points (capped by max_drops)
+
+    Multiple drop points on the same contour are distributed around the perimeter
+    and spaced widely apart according to the contour's perimeter and bounding diameter.
     """
-    if obstacle_mask is None:
-        if (raw_contours is not None or large_contour_area_threshold is not None or
-            large_contour_area_step is not None or max_drops_per_contour is not None or
-            min_drop_separation_px is not None):
-            raise TypeError("extra options require obstacle_mask")
     from config import settings
-    large_contour_area_threshold = (settings.LARGE_CONTOUR_AREA_THRESHOLD
-                                    if large_contour_area_threshold is None
-                                    else large_contour_area_threshold)
-    large_contour_area_step = (settings.LARGE_CONTOUR_AREA_STEP
-                               if large_contour_area_step is None
-                               else large_contour_area_step)
-    max_drops_per_contour = (settings.MAX_DROPS_PER_CONTOUR
-                             if max_drops_per_contour is None
-                             else max_drops_per_contour)
-    min_drop_separation_px = (settings.MIN_DROP_SEPARATION_PX
-                              if min_drop_separation_px is None
-                              else min_drop_separation_px)
+    moderate_thresh = (settings.MODERATE_CONTOUR_AREA_THRESHOLD
+                       if moderate_contour_area_threshold is None
+                       else float(moderate_contour_area_threshold))
+    large_thresh = (settings.LARGE_CONTOUR_AREA_THRESHOLD
+                    if large_contour_area_threshold is None
+                    else float(large_contour_area_threshold))
+    huge_thresh = (settings.HUGE_CONTOUR_AREA_THRESHOLD
+                   if huge_contour_area_threshold is None
+                   else float(huge_contour_area_threshold))
+    max_drops = (settings.MAX_DROPS_PER_CONTOUR
+                 if max_drops_per_contour is None
+                 else int(max_drops_per_contour))
+    min_drop_sep = (settings.MIN_DROP_SEPARATION_PX
+                    if min_drop_separation_px is None
+                    else float(min_drop_separation_px))
 
     safe_points = []
     path_points = [np.array(p, dtype=float) for p in path_points]
@@ -74,11 +81,23 @@ def find_safe_drop_points(clustered_contours, path_order, path_points, obstacle_
 
         area = float(cv2.contourArea(cnt_ref))
 
-        # Check if contour qualifies as large
-        target_points = 1
-        if area >= large_contour_area_threshold:
-            extra = int((area - large_contour_area_threshold) // max(1.0, large_contour_area_step))
-            target_points = min(max_drops_per_contour, 1 + extra + 1)
+        # Size-based visit formulation:
+        # Normal (< moderate): 1 drop point
+        # Moderate: 2 drop points
+        # Big: 3 drop points
+        # Huge: 4 drop points (capped by max_drops)
+        if area >= huge_thresh:
+            target_points = min(max_drops, 4)
+            cat_label = "Huge"
+        elif area >= large_thresh:
+            target_points = min(max_drops, 3)
+            cat_label = "Big"
+        elif area >= moderate_thresh:
+            target_points = min(max_drops, 2)
+            cat_label = "Moderate"
+        else:
+            target_points = 1
+            cat_label = "Standard"
 
         # Generate dry candidates just outside the contour.
         candidates = []
@@ -88,7 +107,7 @@ def find_safe_drop_points(clustered_contours, path_order, path_points, obstacle_
             contour_mask = np.zeros(mask.shape[:2], dtype=np.uint8)
             polygon = np.rint(contour_points).astype(np.int32).reshape(-1, 1, 2)
             cv2.fillPoly(contour_mask, [polygon], 255)
-            max_radius = max(2, min(20, int(np.ceil(max(mask.shape) * 0.03))))
+            max_radius = max(2, min(25, int(np.ceil(max(mask.shape) * 0.035))))
             for radius in range(1, max_radius + 1):
                 kernel_size = 2 * radius + 1
                 expanded = cv2.dilate(contour_mask, np.ones((kernel_size, kernel_size), np.uint8))
@@ -99,30 +118,38 @@ def find_safe_drop_points(clustered_contours, path_order, path_points, obstacle_
                 if candidates:
                     break
             if target_points > 1:
-                # Multi-point zones search the whole band: the first dry ring
-                # can be a single spot (e.g. where forecast growth is least),
-                # which would collapse every perimeter anchor onto one point.
+                # Multi-point zones search the full candidate band around the perimeter
                 kernel_size = 2 * max_radius + 1
                 expanded = cv2.dilate(contour_mask, np.ones((kernel_size, kernel_size), np.uint8))
                 ys, xs = np.where((expanded > 0) & (mask == 0))
-                perimeter_candidates = np.column_stack((xs, ys))
+                if len(xs):
+                    perimeter_candidates = np.column_stack((xs, ys))
         else:
             candidates = contour_points
 
-        if len(candidates) == 0:
+        if len(candidates) == 0 and (perimeter_candidates is None or len(perimeter_candidates) == 0):
             continue
 
         if target_points > 1 and len(contour_points) >= 3:
-            # Multi-point perimeter sampling for large flood contour
+            # Multi-point perimeter sampling: distribute drops around the contour perimeter
             diffs = np.diff(contour_points, axis=0, append=contour_points[:1])
             seg_lens = np.linalg.norm(diffs, axis=1)
             cum_lens = np.cumsum(seg_lens)
             total_len = cum_lens[-1] if len(cum_lens) and cum_lens[-1] > 0 else 1.0
 
-            cand_arr = np.asarray(candidates if perimeter_candidates is None else perimeter_candidates,
-                                  dtype=float)
+            # Contour bounding box diameter to prevent points from collapsing
+            bx, by, bw, bh = cv2.boundingRect(cnt_ref)
+            contour_diag = math.hypot(bw, bh)
+
+            # Target separation ensures drops are placed far apart across the contour
+            target_sep = max(min_drop_sep, min(total_len / (1.5 * target_points), contour_diag * 0.45))
+
+            cand_pool = perimeter_candidates if perimeter_candidates is not None and len(perimeter_candidates) else candidates
+            cand_arr = np.asarray(cand_pool, dtype=float)
             chosen_contour_points = []
+
             for k in range(target_points):
+                # Anchor stations spaced around the perimeter (e.g., 0 and 0.5 for 2 drops; 0, 1/3, 2/3 for 3 drops)
                 target_s = (k / target_points) * total_len
                 idx = int(np.searchsorted(cum_lens, target_s))
                 idx = min(idx, len(contour_points) - 1)
@@ -130,24 +157,32 @@ def find_safe_drop_points(clustered_contours, path_order, path_points, obstacle_
                 dists = np.linalg.norm(cand_arr - anchor, axis=1)
                 sorted_cand_indices = np.argsort(dists)
 
-                for cand_idx in sorted_cand_indices:
-                    pt_np = cand_arr[cand_idx]
-                    x, y = int(round(pt_np[0])), int(round(pt_np[1]))
-                    if obstacle_mask is not None:
-                        if not (0 <= y < mask.shape[0] and 0 <= x < mask.shape[1]) or mask[y, x] > 0:
-                            continue
-                    # Check separation from existing points in this contour
-                    pt_tuple = (x, y)
-                    if all(np.linalg.norm(np.array(pt_tuple) - np.array(prev)) >= min_drop_separation_px
-                           for prev in chosen_contour_points):
-                        chosen_contour_points.append(pt_tuple)
+                found_pt = None
+                # Progressively try separation from target_sep down to min_drop_sep
+                sep_tiers = [target_sep, target_sep * 0.8, target_sep * 0.6, min_drop_sep]
+                for sep_req in sep_tiers:
+                    for cand_idx in sorted_cand_indices:
+                        pt_np = cand_arr[cand_idx]
+                        x, y = int(round(pt_np[0])), int(round(pt_np[1]))
+                        if obstacle_mask is not None:
+                            if not (0 <= y < mask.shape[0] and 0 <= x < mask.shape[1]) or mask[y, x] > 0:
+                                continue
+                        pt_tuple = (x, y)
+                        # Check separation from other drop points on this contour
+                        if all(math.hypot(x - prev[0], y - prev[1]) >= sep_req for prev in chosen_contour_points):
+                            found_pt = pt_tuple
+                            break
+                    if found_pt is not None:
                         break
+
+                if found_pt is not None:
+                    chosen_contour_points.append(found_pt)
 
             if chosen_contour_points:
                 safe_points.extend(chosen_contour_points)
                 logging.info(
-                    "Large flood contour %d (area=%.1f px^2 >= %.1f) allocated %d drop points: %s",
-                    cluster_idx, area, large_contour_area_threshold, len(chosen_contour_points),
+                    "%s flood contour %d (area=%.1f px^2) allocated %d spaced drop points (target_sep=%.1f px): %s",
+                    cat_label, cluster_idx, area, len(chosen_contour_points), target_sep,
                     chosen_contour_points)
                 continue
 
