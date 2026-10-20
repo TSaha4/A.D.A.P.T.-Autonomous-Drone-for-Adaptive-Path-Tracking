@@ -67,44 +67,35 @@ flood regions ──► boundary drop points + HOME ──► nearest-neighbour 
 ```
 main.py                     CLI entry point (runs the whole pipeline)
 config/settings.py          configuration from environment / .env
+src/pipeline/               pipeline orchestration (single_base_planner.py, multi_base_planner.py, common.py)
 src/vision/                 image_processing.py (HSV sampling, mask, contours), clustering.py (hulls, centroids)
 src/weather/                weather_api.py (Open-Meteo client + fallback), flood_spread.py (spread rule)
 src/mission/                safe_dropzone.py (drop points, connectivity filter), coordinates.py (pixel -> lat/lon),
-                            mission_output.py (WPL writer + run-time check, single- and multi-base maps)
+                            geotiff.py (GeoTIFF metadata & validation), mission_output.py (WPL writer, route maps),
                             multi_base.py (base selection, assignment), constraints.py (battery/payload model,
-                            sortie planning), overlap_repair.py (route-crossing repair)   [multi-UAV mode]
+                            sortie planning), overlap_repair.py (route-crossing repair)
 src/routing/                pathfinding.py (NN ordering, snapping, per-leg planning; routing grid, routed
-                            distances, time-aware router and crossing test for the multi-UAV mode), dstarlite.py
-data/input/                 sample maps (varanasi.png, kanpur.png, assam.png) and dummy_weather.json
+                            distances, time-aware router and crossing test), dstarlite.py (D* Lite algorithm)
+data/input/                 sample maps (varanasi.png, kanpur.png, bhopal.png) and dummy weather presets
 data/output/                single-UAV mission (enriched_drone_mission.waypoints); multi-UAV session_<time>/ folders
-tests/                      test suite, independent geodesy reference and mission validator
-scripts/                    test_pathfinding_dummy.py (visual routing demo on a synthetic grid)
-docs/                       MULTI_UAV_INTEGRATION.md (multi-UAV integration), QA_REPORT.md (adversarial QA results)
-qa/                         adversarial QA suite: property, end-to-end, fuzz and stress tests (run explicitly)
-paper/                      research manuscript, evaluation scripts and results (see paper/README.md)
 ```
 
 ## Setup
 
-The pipeline requires Python 3.8+. The test suite and the paper's evaluation scripts need Python
-3.11+. All results reported here were produced with Python 3.11.9.
+The pipeline requires Python 3.8+.
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1        # bash: source .venv/Scripts/activate (Windows) or .venv/bin/activate
 pip install -r requirements.txt
-pip install pytest                  # to run the tests
 ```
 
 If PowerShell refuses to run `Activate.ps1`, run
 `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` once. Note that the
 activation command has no trailing backslash.
 
-To reproduce the exact package versions used in the paper, install from
-`paper/experiments/requirements-paper.txt` instead.
-
 On a server without a display, install `opencv-python-headless`. Note that the colour-sampling
-step needs a window.
+step needs a window (or run with `--no-gui`).
 
 ## Configuration
 
@@ -292,99 +283,6 @@ WGS84:
 - **Error over large areas:** grows with map size, for example about 345 m across a 90 km map.
 - **Web-map screenshots:** these use Web Mercator, which violates the uniform-scale assumption.
 
-## Testing and verification
-
-```powershell
-python -m pytest            # 238 tests + 520 subtests in the faculty-paper branch
-```
-
-The suite covers the following:
-
-- **Coordinate conversion**
-  - **Ground truth:** synthetic points checked against an independent WGS84 (Vincenty) reference in
-    `tests/geodesy_reference.py`, itself checked against a published geodesic.
-  - **Edge cases:** poles, the antimeridian, NaN/inf, and zero or negative scale.
-  - **Round trips:** randomised round trips through a test-only inverse.
-- **Resize consistency:** the same map at multiple display widths must give the same ground
-  positions.
-- **Image centre:** the reference pixel is checked for even and odd image sizes.
-- **Mission structure:** HOME-region drop, servo parameter slots, and the absence of partial or
-  stale missions.
-- **D* Lite and snapping, clustering, flood spread and the weather client.**
-- **Multi-UAV mode** (`test_multi_uav.py`, `test_multi_base.py`, `test_overlap_repair.py`,
-  `test_mission_constraints.py`, `test_multi_base_regressions.py`):
-  - **End-to-end runs of `main.py --mode multi` on synthetic maps:**
-    - one, two and three UAVs, and the base cap;
-    - battery limits;
-    - drops sealed off by flood;
-    - the crossing gate;
-    - empty and single-region maps;
-    - the scale convention.
-  - **Checks on every exported mission:** each passes the independent validator, no drop is served
-    twice, and no routes cross.
-  - **Unit tests:** reach, assignment, all three repair tiers, sortie planning and reloads, and
-    forecast frames.
-  - **Preserved behaviour:** the single-UAV interfaces are unchanged.
-
-Missions can also be checked with the independent validator. It does not import the production
-code; it re-derives every row from the route when a sidecar file is supplied.
-
-```powershell
-python -m tests.wpl_validator data/output/enriched_drone_mission.waypoints --servo-channel 9 --servo-pwm 2000
-python -m tests.wpl_validator MISSION.waypoints --sidecar ROUTE.json --table items.csv
-```
-
-The validator is itself exercised by 36 adversarial tests built from corrupted missions.
-
-An adversarial QA suite (`qa/`, run explicitly; see `qa/README.md`) adds:
-
-- **Property tests (Hypothesis):** for example, D* Lite against Dijkstra and the crossing test against brute
-  force.
-- **End-to-end runs of `main.py` on pathological inputs:** about 110 runs.
-- **A seeded fuzzer:** 500 random scenarios checked against all multi-base invariants.
-- **Stress tests.**
-
-Its findings, fixes and the remaining known issues are in `docs/QA_REPORT.md`.
-
-## Evaluation summary
-
-Results come from the bundled maps with fixed weather and a simulated operator. Details, the
-scripts and the raw data are in `paper/experiments/`.
-
-| | Varanasi | Kanpur | Assam |
-|---|---|---|---|
-| Flood-mask fraction | 8.1 % | 15.1 % | 83.1 % (segmentation failure: white background passes the red test) |
-| Regions = deliveries | 16 | 33 | 1 |
-| Legs with no path (flown straight) | 8 of 16 | 6 of 33 | 0 |
-| Mission items | 364 | 1145 | 10 |
-| Validator | pass | pass | pass |
-
-Other findings:
-
-- **Predicted-flood obstacles are a trade-off.** They reduce the share of the route over predicted
-  flooding, from 33.8 % to 17.9 % (Varanasi) and from 47.9 % to 11.6 % (Kanpur). But they cause
-  every no-path leg.
-- **Route order:** nearest-neighbour ordering is 3.2 % longer than optimal on Varanasi.
-- **D* Lite speed:** D* Lite returns the same optimal paths as A* but, as used here (rebuilt per
-  leg), is 61–112× slower.
-- **Coordinate accuracy:** mission rows match their source pixels to within 4×10⁻¹⁵°.
-- **Mutation testing:** 31 of 33 injected bugs are detected by the test suite (the 2 survivors are
-  behaviour-equivalent), including all 9 bugs injected into the multi-UAV code.
-
-**Multi-UAV mode** (simulated operator, `--max-bases` 1 → 4; `paper/experiments/multi_uav_comparison.py`):
-
-| | Varanasi (22 drops) | Kanpur (41 drops) |
-|---|---|---|
-| Drops served, dummy weather, K = 1 → 4 | 6 → 12 | 10 → 23 |
-| Drops served, moderate weather, K = 1 → 4 | 10 → 18 | 17 → 34 |
-| Longest single mission, moderate, K = 1 → 4 | 10.3 → 6.4 km | 11.0 → 8.5 km |
-
-- **Missions:** all 43 missions produced pass the validator, and no routes cross.
-- **Workload:** it is not balanced. On Kanpur, one base keeps 15–17 drops for every K.
-- **Assam:** at most 1 of 4 drops is served (segmentation failure).
-- **Reference equivalence:** with identical inputs, the integrated mode reproduces the original
-  multi-base implementation's plans exactly.
-
 ## Known limitations
 
 - **Geography:**
@@ -429,13 +327,6 @@ Before any real flight, at minimum:
 5. Confirm drop points are clear of people and structures.
 6. Ground-test the release mechanism with the configured servo channel and PWM.
 7. Follow local aviation regulations.
-
-## Research paper
-
-`paper/` contains an IEEE-format manuscript describing and evaluating this system. It also holds
-all evaluation scripts, their raw results, and the audit files (`paper_facts.md`,
-`claim_evidence_map.csv`, `literature_matrix.csv`). Build and reproduction instructions are in
-`paper/README.md`.
 
 ## Troubleshooting
 
