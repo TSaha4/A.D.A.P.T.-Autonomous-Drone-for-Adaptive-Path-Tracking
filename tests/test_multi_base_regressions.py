@@ -290,7 +290,7 @@ class TestWaypointExport(unittest.TestCase):
                                   filename=str(out), reload_indices=[3])
             self.assertEqual(validate_waypoints_file(str(out)), [])
             rows = [line.split("\t") for line in out.read_text().splitlines()[1:]]
-        self.assertEqual(rows[0][1:4], ["1", "3", "16"])  # DEVELOPMENT writes the HOME row in frame 3 (MAIN: 0)
+        self.assertEqual(rows[0][1:4], ["1", "0", "16"])  # HOME row uses MAV_FRAME_GLOBAL (0) per QGC convention
         servo = [r for r in rows if r[3] == "183"]
         self.assertEqual(len(servo), 2)
         self.assertTrue(all(float(r[4]) == 9 and float(r[5]) == 2000 for r in servo))

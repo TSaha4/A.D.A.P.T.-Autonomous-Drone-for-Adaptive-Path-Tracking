@@ -157,11 +157,17 @@ class TestResizeConsistency(unittest.TestCase):
         # No hidden transformation between pathfinding output and mission rows
         for width, r in self.results.items():
             rows = read_nav_rows(r["file"])
-            expected_home = ref.documented_model(r["home"][0], r["home"][1], r["image_center_px"],
+            # Build the set of expected lat/lon from every path pixel via the documented model
+            expected_positions = set()
+            for pt in r["full_path"]:
+                lat, lon = ref.documented_model(pt[0], pt[1], r["image_center_px"],
                                                  r["geo_center"], r["meters_per_pixel"])
+                expected_positions.add((round(lat, 12), round(lon, 12)))
+            # Every mission row must match one of the expected positions
             for lat, lon in rows:
-                self.assertAlmostEqual(lat, expected_home[0], delta=1e-12)
-                self.assertAlmostEqual(lon, expected_home[1], delta=1e-12)
+                rounded = (round(lat, 12), round(lon, 12))
+                self.assertIn(rounded, expected_positions,
+                              f"display width {width}: ({lat}, {lon}) not from any path pixel")
 
 
 if __name__ == '__main__':

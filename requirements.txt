@@ -3,3 +3,6 @@ opencv-python
 matplotlib
 requests
 python-dotenv
+rasterio>=1.4
+pyproj>=3.7
+

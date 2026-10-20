@@ -124,18 +124,22 @@ def forecast_frames(mask: np.ndarray, weather_data: dict, horizon_hours: float, 
         return {0.0: cv2.bitwise_or(current, predicted)}
     iterations = max(1, int(horizon_hours))
     frames = {0.0: current}
-    for k in range(1, iterations + 1):
-        t = float(k)
-        if t > horizon_hours:
-            break
-        frame = (np.asarray(predictor(mask, weather_data, t)) > 0).astype(np.uint8) * 255
-        frame = cv2.bitwise_or(frame, current)
-        frames[t] = frame
-    # Exact-horizon last frame: predict_spread(original, weather, horizon)
-    last = (np.asarray(predictor(mask, weather_data, horizon_hours)) > 0).astype(np.uint8) * 255
-    last = cv2.bitwise_or(last, current)
-    last_key = float(min(iterations, horizon_hours))
-    frames[last_key] = last
+    previous = current
+    if float(iterations) == float(horizon_hours):
+        for k in range(1, iterations + 1):
+            frame = (np.asarray(predictor(previous, weather_data, 1)) > 0).astype(np.uint8) * 255
+            frame = cv2.bitwise_or(frame, previous)
+            frames[float(k)] = frame
+            previous = frame
+    else:
+        for k in range(1, iterations):
+            frame = (np.asarray(predictor(previous, weather_data, 1)) > 0).astype(np.uint8) * 255
+            frame = cv2.bitwise_or(frame, previous)
+            frames[float(k)] = frame
+            previous = frame
+        last_key = float(min(iterations, horizon_hours))
+        last = (np.asarray(predictor(mask, weather_data, horizon_hours)) > 0).astype(np.uint8) * 255
+        frames[last_key] = cv2.bitwise_or(last, current)
     return frames
 
 
