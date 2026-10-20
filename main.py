@@ -32,19 +32,10 @@ from src.pipeline.common import (                    # noqa: F401
     create_session_dir,
     write_summary,
     refine_route,
+    remove_mission_file,
 )
 
 
-def remove_mission_file(path: str) -> bool:
-    """Delete a mission file if present; returns False if removal fails."""
-    if not os.path.lexists(path):
-        return True
-    try:
-        os.remove(path)
-        return True
-    except OSError as e:
-        logging.error(f"Could not remove mission file '{path}': {e}")
-        return False
 from src.pipeline.multi_base_planner import run_multi_base   # noqa: F401
 from src.pipeline.single_base_planner import run_single_base  # noqa: F401
 
