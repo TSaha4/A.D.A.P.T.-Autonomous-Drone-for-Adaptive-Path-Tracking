@@ -13,3 +13,6 @@ data/output/*
 .DS_Store
 .vscode/
 .idea/
+paper/
+ADAPT_Journal_Paper_Final.pdf
+ADAPT_Journal_Paper_Final.tex

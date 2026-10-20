@@ -284,6 +284,9 @@ def main():
                  coverage * 100, settings.MASK_MIN_COVERAGE_FRACTION * 100,
                  settings.MASK_MAX_COVERAGE_FRACTION * 100)
 
+    if not args.no_gui:
+        show_image_safe("Flood Mask", mask, wait=True)
+
     # 3. Predict flood spread
     logging.info(f"Predicting flood spread over {args.horizon} hours...")
     forecasts = predict_spread(mask, weather, args.horizon)
